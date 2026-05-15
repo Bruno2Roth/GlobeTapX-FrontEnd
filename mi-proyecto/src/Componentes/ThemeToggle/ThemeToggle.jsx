@@ -1,0 +1,6 @@
+export const ThemeToggle = () => (
+  <div className="flex bg-gray-100 p-1 rounded-full w-fit">
+    <button className="px-4 py-1 bg-white rounded-full shadow-sm text-sm">Light</button>
+    <button className="px-4 py-1 text-sm text-gray-500">Dark</button>
+  </div>
+);

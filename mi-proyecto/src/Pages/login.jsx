@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -77,3 +78,19 @@ export const Login = () => {
     </div>
   );
 };
+=======
+import LoginForm from '../Componentes/LoginForm/LoginForm'
+
+function Login() {
+
+  return (
+    <div className='page'>
+
+      <LoginForm />
+
+    </div>
+  )
+}
+
+export default Login
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

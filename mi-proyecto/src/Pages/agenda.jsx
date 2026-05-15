@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export const Agenda = () => {
   return (
     <div className="p-6 bg-white min-h-screen">
@@ -29,3 +30,31 @@ export const Agenda = () => {
     </div>
   );
 };
+=======
+import Header from '../Componentes/Header/Header'
+import Calendar from '../Componentes/Calendar/Calendar'
+import ActivityTimeline from '../Componentes/ActivityTimeline/ActivityTimeline'
+import BottomNav from '../Componentes/BottomNav/BottomNav'
+
+function Agenda() {
+
+  return (
+    <div className='page'>
+
+      <Header
+        title='Mi Agenda'
+        subtitle='Organizá tus viajes'
+      />
+
+      <Calendar />
+
+      <ActivityTimeline />
+
+      <BottomNav />
+
+    </div>
+  )
+}
+
+export default Agenda
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

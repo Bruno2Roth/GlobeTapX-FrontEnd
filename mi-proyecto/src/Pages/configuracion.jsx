@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Perfil.jsx
 export const Perfil = () => (
   <div className="flex flex-col items-center p-10">
@@ -17,3 +18,28 @@ export const Perfil = () => (
     </div>
   </div>
 );
+=======
+import Header from '../Componentes/Header/Header'
+import ConfigMenu from '../Componentes/ConfigMenu/ConfigMenu'
+import ThemeToggle from '../Componentes/ThemeToggle/ThemeToggle'
+
+function Configuracion() {
+
+  return (
+    <div className='page'>
+
+      <Header
+        title='Configuración'
+        subtitle='Preferencias de la app'
+      />
+
+      <ThemeToggle />
+
+      <ConfigMenu />
+
+    </div>
+  )
+}
+
+export default Configuracion
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

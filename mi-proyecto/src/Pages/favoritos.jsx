@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export const Favoritos = () => {
   return (
     <div className="p-6 bg-[#F8F9FA] min-h-screen">
@@ -18,3 +19,30 @@ export const Favoritos = () => {
     </div>
   );
 };
+=======
+import Header from '../Componentes/Header/Header'
+import FavoriteCard from '../Componentes/FavoriteCard/FavoriteCard'
+import BottomNav from '../Componentes/BottomNav/BottomNav'
+
+function Favoritos() {
+
+  return (
+    <div className='page'>
+
+      <Header
+        title='Favoritos'
+        subtitle='Destinos guardados'
+      />
+
+      <FavoriteCard />
+
+      <FavoriteCard />
+
+      <BottomNav />
+
+    </div>
+  )
+}
+
+export default Favoritos
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

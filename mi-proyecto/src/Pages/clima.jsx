@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export const Clima = () => {
   return (
     <div className="p-8 bg-white flex flex-col items-center text-center">
@@ -22,3 +23,32 @@ export const Clima = () => {
     </div>
   );
 };
+=======
+import Header from '../Componentes/Header/Header'
+import CardClima from '../Componentes/CardClima/CardClima'
+import BottomNav from '../Componentes/BottomNav/BottomNav'
+
+function Clima() {
+
+  return (
+    <div className='page'>
+
+      <Header
+        title='Clima'
+        subtitle='Pronóstico actual'
+      />
+
+      <CardClima
+        ciudad='Tokio'
+        temperatura='28°'
+        estado='Mayormente soleado'
+      />
+
+      <BottomNav />
+
+    </div>
+  )
+}
+
+export default Clima
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

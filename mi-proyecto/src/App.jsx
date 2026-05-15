@@ -1,7 +1,17 @@
+<<<<<<< HEAD
 import React from 'react';
 import './App.css';
+=======
+import './App.css'
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327
+
+import Home from './Pages/home'
+import Explorar from './Pages/explorar'
+import Clima from './Pages/clima'
+import Perfil from './Pages/perfil'
 
 function App() {
+<<<<<<< HEAD
   return (
     <div className="login-container">
       <div className="login-card">
@@ -64,3 +74,16 @@ function App() {
 }
 
 export default App;
+=======
+
+  return (
+    <>
+    
+      <Home />
+
+    </>
+  )
+}
+
+export default App
+>>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327

@@ -1,0 +1,17 @@
+.configMenu {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.configItem {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+}
+
+.configItem:last-child {
+  border-bottom: none;
+}

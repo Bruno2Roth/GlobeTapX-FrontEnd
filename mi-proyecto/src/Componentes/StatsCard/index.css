@@ -1,0 +1,13 @@
+.statsCard {
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.stat {
+  text-align: center;
+}

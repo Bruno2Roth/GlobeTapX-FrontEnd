@@ -1,0 +1,8 @@
+.cardClima {
+  margin: 20px;
+  padding: 30px;
+  border-radius: 25px;
+  background: linear-gradient(135deg,#0d6efd,#00bfff);
+  color: white;
+  text-align: center;
+}

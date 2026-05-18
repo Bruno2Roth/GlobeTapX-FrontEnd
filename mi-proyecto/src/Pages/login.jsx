@@ -1,96 +1,83 @@
-<<<<<<< HEAD
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import '../App.css'; // Los dos puntos (..) salen de Pages y buscan App.css en src
 
-export const Login = () => {
-  const navigate = useNavigate();
+function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
-    e.preventDefault(); // Evita que la página se recargue
-    // Aquí podrías validar el usuario, pero por ahora vamos directo al Home
-    navigate('/'); 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Iniciando sesión con:', email, password);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-xl flex flex-col items-center">
+    <div className="login-container">
+      <div className="login-card">
         
-        {/* Logo */}
-        <h2 className="text-[#002855] font-bold text-xl mb-10">GlobeTapX</h2>
+        <div className="login-header">
+          <span className="top-text">Iniciar Sesión</span>
+          <h1 className="logo-title">GlobeTapX</h1>
+          <h2 className="welcome-title">
+            Tu viaje comienza con un <span className="highlight-text">clic.</span>
+          </h2>
+          <p className="welcome-subtitle">
+            Bienvenido de nuevo a tu panel de control global.
+          </p>
+        </div>
 
-        {/* Título */}
-        <h1 className="text-4xl font-bold text-center leading-tight mb-4">
-          Tu viaje comienza con un <span className="text-orange-400">clic.</span>
-        </h1>
-        <p className="text-gray-400 text-center mb-10">
-          Bienvenido de nuevo a tu panel de control global.
-        </p>
-
-        {/* Formulario */}
-        <form onSubmit={handleLogin} className="w-full space-y-6">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-4">Email o Usuario</label>
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="input-group">
+            <label htmlFor="email">EMAIL O USUARIO</label>
             <input 
               type="text" 
-              placeholder="user@gmail.com"
-              className="w-full bg-gray-100 p-4 rounded-2xl mt-2 outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+              id="email"
+              placeholder="user@globetapx.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
-          <div className="relative">
-            <div className="flex justify-between items-center ml-4">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contraseña</label>
-              <button type="button" className="text-[10px] text-orange-300 font-bold">¿Olvidaste tu contraseña?</button>
+          <div className="input-group">
+            <div className="label-row">
+              <label htmlFor="password">CONTRASEÑA</label>
+              <a href="#forgot" className="forgot-password">¿Olvidaste tu contraseña?</a>
             </div>
             <input 
               type="password" 
-              placeholder="********"
-              className="w-full bg-gray-100 p-4 rounded-2xl mt-2 outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+              id="password"
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <button 
-            type="submit"
-            className="w-full bg-[#001A41] text-white py-4 rounded-full font-bold text-lg hover:bg-[#002855] transition-colors shadow-lg"
-          >
-            INICIAR
-          </button>
+          <button type="submit" className="btn-submit">INICIAR</button>
         </form>
 
-        {/* Separador */}
-        <div className="flex items-center w-full my-8">
-          <div className="flex-1 h-[1px] bg-gray-200"></div>
-          <span className="px-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">Continuar con</span>
-          <div className="flex-1 h-[1px] bg-gray-200"></div>
+        <div className="divider">
+          <span>CONTINUAR CON</span>
         </div>
 
-        {/* Social Buttons */}
-        <div className="flex gap-4 w-full mb-10">
-          <button className="flex-1 bg-gray-100 py-3 rounded-2xl font-bold text-sm">Google</button>
-          <button className="flex-1 bg-gray-100 py-3 rounded-2xl font-bold text-sm">Facebook</button>
+        <div className="social-buttons">
+          <button type="button" className="btn-social btn-google">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_Logo.svg" alt="Google" />
+            Google
+          </button>
+          <button type="button" className="btn-social btn-facebook">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/2023_Facebook_icon.svg" alt="Facebook" />
+            Facebook
+          </button>
         </div>
 
-        {/* Registro */}
-        <p className="text-sm text-gray-600">
-          ¿No tienes una cuenta? <button onClick={() => navigate('/registro')} className="text-[#001A41] font-bold">Crea una cuenta</button>
-        </p>
+        <div className="login-footer">
+          <p>¿No tienes una cuenta? <a href="#register" className="create-account-link">Crea una cuenta</a></p>
+        </div>
+
       </div>
     </div>
   );
-};
-=======
-import LoginForm from '../Componentes/LoginForm/LoginForm'
-
-function Login() {
-
-  return (
-    <div className='page'>
-
-      <LoginForm />
-
-    </div>
-  )
 }
 
-export default Login
->>>>>>> 88d0f8af3f1a9b88cb94f9e872a42dc7929d9327
+export default Login;

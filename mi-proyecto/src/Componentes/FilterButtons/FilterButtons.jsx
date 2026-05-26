@@ -1,9 +1,20 @@
-export const FilterButtons = ({ options }) => (
-  <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-    {options.map(opt => (
-      <button key={opt} className="px-6 py-2 rounded-full bg-white border border-gray-200 whitespace-nowrap hover:bg-black hover:text-white transition-all text-sm font-medium">
-        {opt}
-      </button>
-    ))}
-  </div>
-);
+import './FilterButtons.css'
+
+function FilterButtons() {
+
+  return (
+    <div className='filterButtons'>
+
+      <button>Hoteles</button>
+
+      <button>Comida</button>
+
+      <button>Cultura</button>
+
+      <button>Museos</button>
+
+    </div>
+  )
+}
+
+export default FilterButtons

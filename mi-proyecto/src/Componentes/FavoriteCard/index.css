@@ -1,0 +1,41 @@
+.favoriteCard {
+  background: white;
+
+  border-radius: 28px;
+
+  overflow: hidden;
+
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+
+  transition: all 0.25s ease;
+
+  cursor: pointer;
+}
+
+.favoriteCard:hover {
+  transform: translateY(-4px);
+}
+
+.favoriteCard img {
+  width: 100%;
+  height: 220px;
+
+  object-fit: cover;
+}
+
+.favoriteInfo {
+  padding: 18px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favoriteInfo h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.favoriteInfo span {
+  font-size: 22px;
+}

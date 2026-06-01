@@ -1,3 +1,4 @@
+import './Pages.css'
 import Header from '../Componentes/Header/Header'
 import LanguageSelector from '../Componentes/LanguageSelector/LanguageSelector'
 import BottomNav from '../Componentes/BottomNav/BottomNav'

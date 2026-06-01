@@ -293,3 +293,161 @@ button {
 button:hover {
   background: #163b66;
 }
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  background: #f5f6f8;
+}
+
+/* CONTENEDOR GENERAL */
+.home {
+  padding: 20px;
+}
+
+/* HERO */
+.hero {
+  margin-bottom: 20px;
+}
+
+.hero h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.search {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: #e9ebef;
+  outline: none;
+}
+
+/* LOCATION */
+.location {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-size: 12px;
+  color: gray;
+}
+
+.location h3 {
+  font-size: 22px;
+}
+
+.time {
+  color: gray;
+  font-size: 14px;
+}
+
+/* CARDS GRANDES */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+  min-height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* COLORES */
+.red {
+  background: #f8d7d7;
+  color: #b91c1c;
+}
+
+.orange {
+  background: #f5e1d3;
+  color: #c2410c;
+}
+
+.green {
+  background: #cfeeee;
+  color: #0f766e;
+}
+
+.blue {
+  background: #dde3ea;
+  color: #1e293b;
+}
+
+/* BOTONES CHICOS */
+.mini-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.mini-btn {
+  background: #e9ebef;
+  padding: 12px;
+  border-radius: 20px;
+  text-align: center;
+  text-decoration: none;
+  color: #334155;
+  font-size: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.navbar {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+
+  border-radius: 18px;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  padding: 8px 0;
+
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* TEXTO */
+.navbar p {
+  font-size: 11px;
+  color: #94a3b8;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+/* HOVER */
+.navbar p:hover {
+  color: #f97316;
+  transform: scale(1.05);
+}

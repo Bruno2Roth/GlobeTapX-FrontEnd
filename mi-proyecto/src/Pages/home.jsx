@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 function Home() {
 
@@ -13,9 +14,11 @@ function Home() {
         setPais(data.country_name);
         setCiudad(data.city);
 
-        // hora local
         const now = new Date();
-        const horaLocal = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const horaLocal = now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
         setHora(horaLocal);
       });
   }, []);
@@ -47,18 +50,52 @@ function Home() {
 
       {/* CARDS */}
       <div className="cards">
-        <div className="card red"><p>Emergencias y Seguridad</p></div>
-        <div className="card orange"><p>Vida diaria</p></div>
-        <div className="card green"><p>Cambio</p></div>
-        <div className="card blue"><p>Documentación</p></div>
+
+        <Link to="/seguridad" className="card red">
+          <p>Emergencias y Seguridad</p>
+        </Link>
+
+        <Link to="/vida" className="card orange">
+          <p>Vida diaria</p>
+        </Link>
+
+        <Link to="/cambio" className="card green">
+          <p>Cambio</p>
+        </Link>
+
+        <Link to="/documentacion" className="card blue">
+          <p>Documentación</p>
+        </Link>
+
+      </div>
+
+      {/* BOTONES CHICOS */}
+      <div className="mini-buttons">
+
+        <Link to="/clima" className="mini-btn">
+          <p>Clima</p>
+        </Link>
+
+        <Link to="/idioma" className="mini-btn">
+          <p>Idioma</p>
+        </Link>
+
+        <Link to="/reglas" className="mini-btn">
+          <p>Reglas</p>
+        </Link>
+
+        <Link to="/alojamiento" className="mini-btn">
+          <p>Alojamiento</p>
+        </Link>
+
       </div>
 
       {/* NAVBAR */}
       <div className="navbar">
-        <p>Home</p>
-        <p>Explorar</p>
-        <p>Favoritos</p>
-        <p>Perfil</p>
+        <Link to="/">Home</Link>
+        <Link to="/explorar">Explorar</Link>
+        <Link to="/favoritos">Favoritos</Link>
+        <Link to="/perfil">Perfil</Link>
       </div>
 
     </div>

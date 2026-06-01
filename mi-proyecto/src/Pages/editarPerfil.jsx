@@ -1,3 +1,4 @@
+import './Pages.css'
 import Header from '../Componentes/Header/Header'
 import EditProfileForm from '../Componentes/EditProfileForm/EditProfileForm'
 

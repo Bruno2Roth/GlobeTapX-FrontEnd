@@ -1,3 +1,4 @@
+import './Pages.css'
 import Header from '../Componentes/Header/Header'
 import CardClima from '../Componentes/CardClima/CardClima'
 import BottomNav from '../Componentes/BottomNav/BottomNav'

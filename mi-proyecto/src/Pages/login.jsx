@@ -1,3 +1,4 @@
+import './Pages.css'
 import React, { useState } from 'react';
 import '../App.css'; // Los dos puntos (..) salen de Pages y buscan App.css en src
 

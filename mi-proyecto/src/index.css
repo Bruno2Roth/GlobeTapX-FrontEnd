@@ -109,3 +109,187 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+body {
+  margin: 0;
+  font-family: "Arial", sans-serif;
+  background: #f5f6fa;
+}
+
+.home {
+  max-width: 390px;
+  margin: auto;
+  background: white;
+  min-height: 100vh;
+}
+
+/* HERO */
+.hero {
+  height: 250px;
+  background: linear-gradient(to bottom, #cfd3d8, #4b5563);
+  border-radius: 0 0 20px 20px;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+
+.hero-content h2 {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.search {
+  width: 100%;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+}
+
+/* LOCATION */
+.location {
+  padding: 20px;
+}
+
+.label {
+  font-size: 10px;
+  color: gray;
+}
+
+.time {
+  font-size: 12px;
+  color: gray;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  font-size: 14px;
+}
+
+/* COLORS */
+.red {
+  background: #ff6b6b;
+}
+
+.orange {
+  background: #f7b267;
+}
+
+.green {
+  background: #4ecdc4;
+}
+
+.blue {
+  background: #1a535c;
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  width: 390px;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Fondo general */
+body {
+  background: #f4f6f9;
+}
+
+/* Contenedor principal */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Tarjeta */
+.login-card {
+  background: #ffffff;
+  padding: 40px 30px;
+  width: 350px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+/* Títulos */
+.login-card h1 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0a2540;
+  margin-bottom: 10px;
+}
+
+.login-card h2 {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+/* Inputs */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 12px;
+  color: #666;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: #f7f7f7;
+  outline: none;
+  transition: 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #0a2540;
+  background: #fff;
+}
+
+/* Botón */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #0a2540;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+
+button:hover {
+  background: #163b66;
+}

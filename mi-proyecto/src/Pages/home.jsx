@@ -6,12 +6,12 @@ function Home() {
   const [pais, setPais] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [hora, setHora] = useState("");
-
+  const HOST = "LOCALHOST"
   useEffect(() => {
     fetch("https://ipapi.co/json/")
       .then(res => res.json())
       .then(data => {
-        setPais(data.country_name);
+        setPais("http://" + HOST + ":3000/api/pais/1");
         setCiudad(data.city);
 
         const now = new Date();

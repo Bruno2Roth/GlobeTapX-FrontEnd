@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import InputField from '../Componentes/InputField/InputField'
 import ButtonPrimary from '../Componentes/ButtonPrimary/ButtonPrimary'

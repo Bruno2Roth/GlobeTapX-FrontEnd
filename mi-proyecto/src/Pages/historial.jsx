@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import TripCard from '../Componentes/TripCard/TripCard'
 import BottomNav from '../Componentes/BottomNav/BottomNav'

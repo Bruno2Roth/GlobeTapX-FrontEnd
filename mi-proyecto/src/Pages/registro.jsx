@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import RegisterForm from '../Componentes/RegisterForm/RegisterForm'
 
 function Registro() {

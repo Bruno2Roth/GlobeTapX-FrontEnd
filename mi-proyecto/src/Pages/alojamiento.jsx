@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import SearchBar from '../Componentes/SearchBar/SearchBar'
 import FilterButtons from '../Componentes/FilterButtons/FilterButtons'

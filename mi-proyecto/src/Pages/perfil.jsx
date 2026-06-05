@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import ProfileCard from '../Componentes/ProfileCard/ProfileCard'
 import StatsCard from '../Componentes/StatsCard/StatsCard'

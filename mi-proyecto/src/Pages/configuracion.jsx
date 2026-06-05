@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import ConfigMenu from '../Componentes/ConfigMenu/ConfigMenu'
 import ThemeToggle from '../Componentes/ThemeToggle/ThemeToggle'

@@ -1,4 +1,4 @@
-import './Pages.css'
+import '../index.css'
 import Header from '../Componentes/Header/Header'
 import Calendar from '../Componentes/Calendar/Calendar'
 import ActivityTimeline from '../Componentes/ActivityTimeline/ActivityTimeline'

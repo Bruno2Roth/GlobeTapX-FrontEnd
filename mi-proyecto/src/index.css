@@ -1108,3 +1108,225 @@ body{
 .footer p:hover{
   color:#003f3b;
 }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f4f4;
+}
+
+.clima-container {
+  max-width: 390px;
+  min-height: 100vh;
+  margin: auto;
+  padding: 15px;
+  background: #f7f7f7;
+}
+
+/* HEADER */
+
+.clima-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.menu {
+  font-size: 22px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: url("https://i.pravatar.cc/100");
+  background-size: cover;
+  background-position: center;
+}
+
+/* MAIN */
+
+.weather-main {
+  text-align: center;
+}
+
+.location {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #7a7a7a;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.weather-title {
+  font-size: 30px;
+  color: #0b3d36;
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+
+.temp {
+  font-size: 90px;
+  font-weight: 700;
+  color: #0b3d36;
+  line-height: 1;
+  margin-bottom: 25px;
+}
+
+/* CARDS PEQUEÑAS */
+
+.weather-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.small-card {
+  flex: 1;
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.small-card h3 {
+  font-size: 18px;
+  color: #0b3d36;
+  margin-bottom: 5px;
+}
+
+.small-card p {
+  font-size: 13px;
+  color: #777;
+}
+
+/* FOTO */
+
+.hero-card {
+  height: 240px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background-image: url("https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.1)
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+}
+
+.hero-overlay h3 {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.hero-overlay p {
+  color: white;
+  font-size: 14px;
+}
+
+/* UV */
+
+.uv-card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.uv-card p {
+  color: #777;
+  font-size: 14px;
+}
+
+.uv-card h2 {
+  color: #0b3d36;
+  margin: 8px 0;
+  font-size: 28px;
+}
+
+.uv-card span {
+  color: #555;
+  font-size: 13px;
+}
+
+/* PREVISIÓN */
+
+.forecast {
+  margin-top: 10px;
+}
+
+.forecast h2 {
+  margin-bottom: 15px;
+  color: #0b3d36;
+}
+
+.forecast-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  margin-bottom: 10px;
+  padding: 15px 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.forecast-row span:first-child {
+  color: #333;
+  font-weight: 500;
+}
+
+.forecast-row span:nth-child(2) {
+  color: #0b3d36;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.forecast-row span:last-child {
+  color: #888;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 480px) {
+  .temp {
+    font-size: 75px;
+  }
+
+  .weather-title {
+    font-size: 26px;
+  }
+
+  .hero-overlay h3 {
+    font-size: 24px;
+  }
+}

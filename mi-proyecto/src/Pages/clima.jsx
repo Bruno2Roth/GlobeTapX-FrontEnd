@@ -6,7 +6,9 @@ function Clima() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/clima")
+    fetch(
+      "https://api.open-meteo.com/v1/forecast?latitude=-34.61&longitude=-58.38&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
+    )
       .then((res) => {
         if (!res.ok) {
           throw new Error("Error al obtener el clima");
@@ -14,8 +16,41 @@ function Clima() {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
-        setClima(data);
+        const diasSemana = [
+          "Domingo",
+          "Lunes",
+          "Martes",
+          "Miércoles",
+          "Jueves",
+          "Viernes",
+          "Sábado",
+        ];
+
+        const pronostico = data.daily.time
+          .slice(1, 6)
+          .map((fecha, index) => ({
+            nombre: diasSemana[new Date(fecha).getDay()],
+            max: Math.round(data.daily.temperature_2m_max[index + 1]),
+            min: Math.round(data.daily.temperature_2m_min[index + 1]),
+          }));
+
+        setClima({
+          ciudad: "Buenos Aires",
+          pais: "Argentina",
+          descripcion: "Mayormente Soleado",
+          temperatura: Math.round(data.current.temperature_2m),
+          humedad: data.current.relative_humidity_2m,
+          viento: Math.round(data.current.wind_speed_10m),
+
+          mensaje:
+            "Condiciones ideales para recorrer la ciudad y disfrutar al aire libre.",
+
+          indiceUVTexto: "Moderado",
+          recomendacionUV:
+            "Usá protector solar si vas a permanecer mucho tiempo al sol.",
+
+          pronostico,
+        });
       })
       .catch((err) => {
         console.error(err);
@@ -33,19 +68,15 @@ function Clima() {
 
   return (
     <div className="clima-container">
+      <header className="clima-header">
+        <div className="menu">☰</div>
 
-      <div className="clima-header">
-        <span>☰</span>
+        <h2 className="logo">GlobeTapX</h2>
 
-        <h3 className="logo">GlobeTapX</h3>
+        <div className="avatar">S</div>
+      </header>
 
-        <div className="perfil">
-          {clima.usuario?.charAt(0) || "U"}
-        </div>
-      </div>
-
-      <div className="weather-main">
-
+      <section className="weather-main">
         <p className="location">
           {clima.ciudad}, {clima.pais}
         </p>
@@ -54,69 +85,50 @@ function Clima() {
           {clima.descripcion}
         </h1>
 
-        <div className="temperature">
+        <div className="temp">
           {clima.temperatura}°
         </div>
+      </section>
 
-      </div>
-
-      <div className="weather-info">
-
-        <div className="info-card">
-          <h4>{clima.humedad}%</h4>
+      <section className="weather-cards">
+        <div className="small-card">
+          <h3>{clima.humedad}%</h3>
           <p>Humedad</p>
         </div>
 
-        <div className="info-card">
-          <h4>{clima.viento} km/h</h4>
+        <div className="small-card">
+          <h3>{clima.viento} km/h</h3>
           <p>Viento</p>
         </div>
+      </section>
 
-      </div>
-
-      <div className="image-card">
-        <div className="overlay">
+      <section className="hero-card">
+        <div className="hero-overlay">
           <h3>Día Perfecto para Explorar</h3>
-          <p>
-            {clima.mensaje || "Condiciones ideales para salir."}
-          </p>
-        </div>
-      </div>
 
-      <div className="uv-card">
+          <p>{clima.mensaje}</p>
+        </div>
+      </section>
+
+      <section className="uv-card">
         <p>Índice UV</p>
 
-        <h2>
-          {clima.indiceUVTexto || "No disponible"}
-        </h2>
+        <h2>{clima.indiceUVTexto}</h2>
 
-        <span>
-          {clima.recomendacionUV || ""}
-        </span>
-      </div>
+        <span>{clima.recomendacionUV}</span>
+      </section>
 
-      <div className="forecast">
-
+      <section className="forecast">
         <h2>Previsión de 5 días</h2>
 
-        {clima.pronostico?.map((dia, index) => (
-          <div className="forecast-day" key={index}>
+        {clima.pronostico.map((dia, index) => (
+          <div className="forecast-row" key={index}>
             <span>{dia.nombre}</span>
             <span>{dia.max}°</span>
             <span>{dia.min}°</span>
           </div>
         ))}
-
-      </div>
-
-      <div className="footer">
-        <p>EXPLORE</p>
-        <p>FAVORITES</p>
-        <p>CULTURE</p>
-        <p>FACTS</p>
-        <p>PROFILE</p>
-      </div>
-
+      </section>
     </div>
   );
 }

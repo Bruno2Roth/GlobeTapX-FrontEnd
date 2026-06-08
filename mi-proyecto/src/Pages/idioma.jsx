@@ -6,33 +6,46 @@ function Idioma() {
   const [translated, setTranslated] = useState("");
   const [source, setSource] = useState("es");
   const [target, setTarget] = useState("en");
+  const [phrases, setPhrases] = useState([]);
 
-  const phrases = {
-    en: {
-      food: "Do you have a menu in English?",
-      transport: "Where is the station?",
-      shopping: "How much does it cost?",
-      emergency: "Help!"
+const languages = [
+  { code: "es", name: "🇪🇸 Español" },
+  { code: "en", name: "🇺🇸 English" },
+  { code: "fr", name: "🇫🇷 Français" },
+  { code: "it", name: "🇮🇹 Italiano" },
+  { code: "pt", name: "🇵🇹 Português" },
+  { code: "de", name: "🇩🇪 Deutsch" },
+  { code: "ja", name: "🇯🇵 日本語" },
+  { code: "ko", name: "🇰🇷 한국어" },
+  { code: "zh-CN", name: "🇨🇳 中文" },
+  { code: "ru", name: "🇷🇺 Русский" },
+  { code: "ar", name: "🇸🇦 العربية" },
+  { code: "hi", name: "🇮🇳 हिन्दी" },
+  { code: "tr", name: "🇹🇷 Türkçe" },
+  { code: "nl", name: "🇳🇱 Nederlands" },
+  { code: "sv", name: "🇸🇪 Svenska" },
+  { code: "pl", name: "🇵🇱 Polski" },
+  { code: "el", name: "🇬🇷 Ελληνικά" }
+];
+
+  const basePhrases = [
+    {
+      category: "🍴 Comidas",
+      text: "Do you have a menu in English?"
     },
-    es: {
-      food: "¿Tienen menú en español?",
-      transport: "¿Dónde está la estación?",
-      shopping: "¿Cuánto cuesta?",
-      emergency: "¡Ayuda!"
+    {
+      category: "🚌 Transporte",
+      text: "Where is the station?"
     },
-    fr: {
-      food: "Avez-vous un menu en français ?",
-      transport: "Où est la gare ?",
-      shopping: "Combien ça coûte ?",
-      emergency: "Au secours !"
+    {
+      category: "🛍️ Compras",
+      text: "How much does it cost?"
     },
-    it: {
-      food: "Avete un menù in italiano?",
-      transport: "Dov'è la stazione?",
-      shopping: "Quanto costa?",
-      emergency: "Aiuto!"
+    {
+      category: "🚨 Emergencia",
+      text: "Help!"
     }
-  };
+  ];
 
   const translateText = async () => {
     if (!text.trim()) {
@@ -42,31 +55,68 @@ function Idioma() {
 
     try {
       const response = await fetch(
-        "https://translate.argosopentech.com/translate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            q: text,
-            source,
-            target,
-            format: "text",
-          }),
-        }
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+          text
+        )}&langpair=${source}|${target}`
       );
 
       const data = await response.json();
-      setTranslated(data.translatedText);
+
+      setTranslated(
+        data.responseData?.translatedText ||
+          "No se pudo traducir"
+      );
+    } catch (error) {
+      console.error(error);
+      setTranslated("Error al traducir");
+    }
+  };
+
+  const loadPhrases = async () => {
+    try {
+      const translatedPhrases = await Promise.all(
+        basePhrases.map(async (phrase) => {
+          const response = await fetch(
+            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+              phrase.text
+            )}&langpair=en|${target}`
+          );
+
+          const data = await response.json();
+
+          return {
+            ...phrase,
+            translated:
+              data.responseData?.translatedText ||
+              phrase.text
+          };
+        })
+      );
+
+      setPhrases(translatedPhrases);
     } catch (error) {
       console.error(error);
     }
   };
 
   useEffect(() => {
-    translateText();
+    const delay = setTimeout(() => {
+      translateText();
+    }, 400);
+
+    return () => clearTimeout(delay);
   }, [text, source, target]);
+
+  useEffect(() => {
+    loadPhrases();
+  }, [target]);
+
+  const swapLanguages = () => {
+    setSource(target);
+    setTarget(source);
+    setText(translated);
+    setTranslated(text);
+  };
 
   const copyText = () => {
     navigator.clipboard.writeText(translated);
@@ -92,22 +142,32 @@ function Idioma() {
             value={source}
             onChange={(e) => setSource(e.target.value)}
           >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="it">Italiano</option>
+            {languages.map((lang) => (
+              <option
+                key={lang.code}
+                value={lang.code}
+              >
+                {lang.name}
+              </option>
+            ))}
           </select>
 
-          <span>⇄</span>
+          <button onClick={swapLanguages}>
+            ⇄
+          </button>
 
           <select
             value={target}
             onChange={(e) => setTarget(e.target.value)}
           >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="it">Italiano</option>
+            {languages.map((lang) => (
+              <option
+                key={lang.code}
+                value={lang.code}
+              >
+                {lang.name}
+              </option>
+            ))}
           </select>
 
         </div>
@@ -115,41 +175,81 @@ function Idioma() {
         <textarea
           placeholder="Escribe aquí para traducir..."
           value={text}
+          maxLength={5000}
           onChange={(e) => setText(e.target.value)}
         />
 
+        <div className="counter">
+          {text.length}/5000
+        </div>
+
         <div className="translation-box">
-          <p>{translated || "Aquí aparecerá la traducción..."}</p>
+
+          <p>
+            {translated ||
+              "La traducción aparecerá aquí"}
+          </p>
 
           <div className="translation-actions">
-            <button onClick={speakText}>🔊</button>
-            <button onClick={copyText}>📋</button>
+
+            <button onClick={speakText}>
+              🔊
+            </button>
+
+            <button onClick={copyText}>
+              📋
+            </button>
+
           </div>
+
+        </div>
+
+        <div className="camera-card">
+
+          <div className="camera-icon">
+            📷
+          </div>
+
+          <h4>
+            Traducir con Visión
+          </h4>
+
+          <p>
+            Apunta tu cámara a carteles o menús
+          </p>
+
         </div>
 
         <div className="phrases">
 
-          <h3>Frases útiles</h3>
+          <h3>
+            Frases Esenciales
+          </h3>
 
-          <div className="phrase food">
-            <h4>🍴 Comida</h4>
-            <span>{phrases[target]?.food}</span>
-          </div>
+          {phrases.map((phrase, index) => (
+            <div
+              key={index}
+              className={`phrase-card ${
+                phrase.category.includes(
+                  "Emergencia"
+                )
+                  ? "emergency"
+                  : ""
+              }`}
+            >
+              <h4>
+                {phrase.category}
+              </h4>
 
-          <div className="phrase transport">
-            <h4>🚌 Transporte</h4>
-            <span>{phrases[target]?.transport}</span>
-          </div>
+              <p>
+                {phrase.text}
+              </p>
 
-          <div className="phrase shopping">
-            <h4>🛍️ Compras</h4>
-            <span>{phrases[target]?.shopping}</span>
-          </div>
-
-          <div className="phrase emergency">
-            <h4>🚨 Emergencia</h4>
-            <span>{phrases[target]?.emergency}</span>
-          </div>
+              <small>
+                {phrase.translated}
+              </small>
+            </div>
+          ))}
 
         </div>
 

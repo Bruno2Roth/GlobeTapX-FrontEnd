@@ -11,13 +11,12 @@ function NumEmergencia() {
 
     useEffect(() => {
 
-        fetch("http://A-PHZ2-CIDI-17:3000/api/pais/2")
+        fetch("http://A-PHZ2-CIDI-17:3000/api/country/AR")
             .then((res) => res.json())
             .then((data) => {
 
                 console.log(data);
 
-                // Ajustar según la estructura real del JSON
                 setPais(data.pais || data.nombre || "");
                 setAmbulancia(data.ambulancia || "");
                 setBomberos(data.bomberos || "");

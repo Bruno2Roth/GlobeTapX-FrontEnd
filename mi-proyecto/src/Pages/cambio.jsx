@@ -15,7 +15,7 @@ const Cambio = () => {
       setLoading(true);
 
       const response = await fetch(
-        `https://restcountries.com/v3.1/name/${nombrePais}?fullText=true`
+        `http://A-PHZ2-CIDI-17:3000/api/clima/country?country=Argentina`
       );
 
       const data = await response.json();

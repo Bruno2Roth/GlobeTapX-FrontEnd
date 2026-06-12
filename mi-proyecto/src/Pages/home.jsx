@@ -71,7 +71,7 @@ function Home() {
       {/* CARDS */}
       <div className="cards">
 
-        <Link to="/seguridad" className="card red">
+        <Link to="/numEmergencia" className="card red">
           <p>Emergencias y Seguridad</p>
         </Link>
 

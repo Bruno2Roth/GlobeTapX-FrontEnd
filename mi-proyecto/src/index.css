@@ -1711,132 +1711,113 @@ textarea{
    CAMBIO
 ========================== */
 
+.cambio-title-card{
+    background:white;
+    border-radius:24px;
+    padding:24px;
+    margin-bottom:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,.05);
+}
+
+.cambio-title-card h2{
+    margin-top:12px;
+    color:#1D2939;
+    font-size:28px;
+}
+
+.cambio-title-card p{
+    margin-top:8px;
+    color:#667085;
+}
+
 .cambio-container{
     max-width:420px;
     margin:auto;
     padding:20px;
 }
 
-.cambio-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:25px;
-}
-
-.cambio-header h1{
-    color:#0b2545;
-    font-size:34px;
-}
-
-.menu{
-    font-size:28px;
-    cursor:pointer;
-}
-
-.cambio-header img{
-    width:45px;
-    height:45px;
-    border-radius:50%;
-}
-
 .cambio-card{
     background:white;
-    border-radius:28px;
-    padding:25px;
-    box-shadow:0 4px 20px rgba(0,0,0,.06);
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,.05);
 }
 
 .moneda-box{
-    background:#f8f8f8;
-    border-radius:20px;
-    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
 }
 
 .moneda-box span{
-    color:#667085;
     font-size:14px;
+    color:#667085;
+    font-weight:600;
 }
 
-.moneda-box input{
-    width:100%;
-    border:none;
-    background:none;
-    font-size:42px;
-    font-weight:700;
-    margin-top:10px;
-    color:#0b2545;
-}
-
-.moneda-box h2{
-    font-size:42px;
-    margin-top:10px;
-    color:#0b2545;
-}
-
+.moneda-box input,
 .moneda-box select{
     width:100%;
-    margin-top:10px;
-    border:none;
-    background:white;
-    padding:10px;
-    border-radius:12px;
-    cursor:pointer;
+    padding:14px;
+    border:1px solid #E4E7EC;
+    border-radius:14px;
+    font-size:15px;
 }
 
 .swap-btn{
-    width:60px;
-    height:60px;
+    width:55px;
+    height:55px;
     border:none;
     border-radius:50%;
-    margin:15px auto;
-    display:block;
     background:#0E7C66;
     color:white;
     font-size:24px;
+    margin:20px auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
     cursor:pointer;
 }
 
-.swap-btn:hover{
-    background:#0b5a4c;
+.resultado-box{
+    background:#F5F7FA;
+    border-radius:14px;
+    padding:16px;
+    text-align:center;
+    font-size:28px;
+    font-weight:700;
+    color:#0E7C66;
 }
 
 .cotizacion-card{
-    background:white;
-    border-radius:24px;
     margin-top:20px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 4px 15px rgba(0,0,0,.05);
+    background:linear-gradient(135deg,#0E7C66,#0B5A4C);
+    color:white;
+    padding:24px;
+    border-radius:24px;
 }
 
 .cotizacion-card p{
-    color:#667085;
-    margin-bottom:10px;
-}
-
-.cotizacion-card h3{
-    color:#0b2545;
-    font-size:28px;
+    opacity:.8;
+    margin-bottom:8px;
 }
 
 .convertir-btn{
-    width:100%;
     margin-top:20px;
-    background:#0b2545;
-    color:white;
+    width:100%;
     border:none;
-    border-radius:20px;
-    padding:18px;
-    font-size:18px;
-    font-weight:700;
+    background:#0E7C66;
+    color:white;
+    padding:16px;
+    border-radius:18px;
+    font-size:16px;
+    font-weight:600;
     cursor:pointer;
 }
 
 .convertir-btn:hover{
-    background:#123765;
+    background:#0B5A4C;
 }
-
 
 /* =======================
    NÚMEROS DE EMERGENCIA 

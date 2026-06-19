@@ -3,58 +3,52 @@ import "../index.css";
 
 function Cambio() {
   const [monto, setMonto] = useState(1);
-
   const [origen, setOrigen] = useState("USD");
   const [destino, setDestino] = useState("EUR");
 
-  const [resultado, setResultado] = useState("0.92");
-  const [cotizacion, setCotizacion] = useState("0.92045");
+  const [resultado, setResultado] = useState("");
+  const [cotizacion, setCotizacion] = useState("");
 
   const convertir = async () => {
     try {
-
       const response = await fetch(
         `http://A-PHZ2-CIDI-18:3000/api/cambio?from=${origen}&to=${destino}&amount=${monto}`
       );
 
       const data = await response.json();
 
+      console.log(data);
+
       setResultado(data.resultado);
       setCotizacion(data.cotizacion);
-
     } catch (error) {
       console.log(error);
     }
   };
 
   const intercambiarMonedas = () => {
-    const temp = origen;
+    const monedaOrigen = origen;
 
     setOrigen(destino);
-    setDestino(temp);
+    setDestino(monedaOrigen);
   };
 
   return (
     <div className="cambio-container">
 
-      <div className="cambio-header">
+      <div className="cambio-title-card">
+        <span className="badge">💱 Conversor</span>
 
-        <div className="menu">☰</div>
+        <h2>Cambio de Moneda</h2>
 
-        <h1>GlobeTapX</h1>
-
-        <img
-          src="https://i.pravatar.cc/100?img=32"
-          alt="perfil"
-        />
-
+        <p>Convertí valores entre distintas monedas del mundo.</p>
       </div>
 
       <div className="cambio-card">
 
         <div className="moneda-box">
 
-          <span>Desde</span>
+          <span>Moneda origen</span>
 
           <input
             type="number"
@@ -66,18 +60,16 @@ function Cambio() {
             value={origen}
             onChange={(e) => setOrigen(e.target.value)}
           >
-            <option value="ARS">Argentina - ARS</option>
-            <option value="AUD">Australia - AUD</option>
-            <option value="USD">Estados Unidos - USD</option>
-            <option value="BRL">Brasil - BRL</option>
-            <option value="GBP">Inglaterra - GBP</option>
-            <option value="EUR">Francia - EUR</option>
-            <option value="ILS">Israel - ILS</option>
-            <option value="KRW">Corea del Sur - KRW</option>
-            <option value="CNY">China - CNY</option>
-            <option value="EUR">Italia - EUR</option>
-            <option value="EUR">España - EUR</option>
-            <option value="CLP">Chile - CLP</option>
+            <option value="ARS">Peso Argentino (ARS)</option>
+            <option value="AUD">Dólar Australiano (AUD)</option>
+            <option value="USD">Dólar Estadounidense (USD)</option>
+            <option value="BRL">Real Brasileño (BRL)</option>
+            <option value="GBP">Libra Esterlina (GBP)</option>
+            <option value="EUR">Euro (EUR)</option>
+            <option value="ILS">Shekel Israelí (ILS)</option>
+            <option value="KRW">Won Surcoreano (KRW)</option>
+            <option value="CNY">Yuan Chino (CNY)</option>
+            <option value="CLP">Peso Chileno (CLP)</option>
           </select>
 
         </div>
@@ -91,26 +83,26 @@ function Cambio() {
 
         <div className="moneda-box">
 
-          <span>Hacia</span>
+          <span>Moneda destino</span>
 
-          <h2>{resultado}</h2>
+          <div className="resultado-box">
+            {resultado || "0.00"}
+          </div>
 
           <select
             value={destino}
             onChange={(e) => setDestino(e.target.value)}
           >
-            <option value="ARS">Argentina - ARS</option>
-            <option value="AUD">Australia - AUD</option>
-            <option value="USD">Estados Unidos - USD</option>
-            <option value="BRL">Brasil - BRL</option>
-            <option value="GBP">Inglaterra - GBP</option>
-            <option value="EUR">Francia - EUR</option>
-            <option value="ILS">Israel - ILS</option>
-            <option value="KRW">Corea del Sur - KRW</option>
-            <option value="CNY">China - CNY</option>
-            <option value="EUR">Italia - EUR</option>
-            <option value="EUR">España - EUR</option>
-            <option value="CLP">Chile - CLP</option>
+            <option value="ARS">Peso Argentino (ARS)</option>
+            <option value="AUD">Dólar Australiano (AUD)</option>
+            <option value="USD">Dólar Estadounidense (USD)</option>
+            <option value="BRL">Real Brasileño (BRL)</option>
+            <option value="GBP">Libra Esterlina (GBP)</option>
+            <option value="EUR">Euro (EUR)</option>
+            <option value="ILS">Shekel Israelí (ILS)</option>
+            <option value="KRW">Won Surcoreano (KRW)</option>
+            <option value="CNY">Yuan Chino (CNY)</option>
+            <option value="CLP">Peso Chileno (CLP)</option>
           </select>
 
         </div>
@@ -122,7 +114,7 @@ function Cambio() {
         <p>Cotización actual</p>
 
         <h3>
-          1 {origen} = {cotizacion} {destino}
+          1 {origen} = {cotizacion || "-"} {destino}
         </h3>
 
       </div>
@@ -131,7 +123,7 @@ function Cambio() {
         className="convertir-btn"
         onClick={convertir}
       >
-        Convertir 
+        Convertir Moneda
       </button>
 
     </div>

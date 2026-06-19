@@ -8,6 +8,7 @@ import Home from "./Pages/home";
 import Clima from "./Pages/clima";
 import Cambio from "./Pages/cambio";
 import NumEmergencia from "./Pages/numEmergencia";
+import Idioma from "./Pages/Idioma";
 
 function AppContent() {
   const location = useLocation();
@@ -24,6 +25,7 @@ function AppContent() {
         <Route path="/clima" element={<Clima />} />
         <Route path="/cambio" element={<Cambio />} />
         <Route path="/numEmergencia" element={<NumEmergencia />} />
+           <Route path="/Idioma" element={<Idioma />} />
       </Routes>
 
       {mostrarLayout && <Footer />}

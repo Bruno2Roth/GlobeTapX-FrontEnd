@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "../index.css";
+import { API } from "../config";
 
 function NumEmergencia() {
-
     const [pais, setPais] = useState("");
     const [ambulancia, setAmbulancia] = useState("");
     const [bomberos, setBomberos] = useState("");
@@ -10,10 +10,15 @@ function NumEmergencia() {
     const [emergencia, setEmergencia] = useState("");
 
     useEffect(() => {
+        const obtenerDatos = async () => {
+            try {
+                const respuesta = await fetch(`${API}/country/AR`);
 
-        fetch("http://A-PHZ2-CIDI-17:3000/api/country/AR")
-            .then((res) => res.json())
-            .then((data) => {
+                if (!respuesta.ok) {
+                    throw new Error("Error al obtener los datos");
+                }
+
+                const data = await respuesta.json();
 
                 console.log(data);
 
@@ -23,9 +28,12 @@ function NumEmergencia() {
                 setPolicia(data.policia || "");
                 setEmergencia(data.emergencia || "");
 
-            })
-            .catch((error) => console.log(error));
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        };
 
+        obtenerDatos();
     }, []);
 
     return (

@@ -1,4 +1,4 @@
-import './ActivityTimeline.css'
+import './index.css'
 
 function ActivityTimeline() {
 

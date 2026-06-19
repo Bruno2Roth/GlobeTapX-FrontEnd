@@ -1,4 +1,4 @@
-import './InputField.css'
+import './index.css'
 
 function InputField({ placeholder, type='text' }) {
 

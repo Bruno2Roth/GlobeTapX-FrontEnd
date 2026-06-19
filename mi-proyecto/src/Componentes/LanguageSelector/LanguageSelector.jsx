@@ -1,4 +1,4 @@
-import './LanguageSelector.css'
+import './index.css'
 
 function LanguageSelector() {
 

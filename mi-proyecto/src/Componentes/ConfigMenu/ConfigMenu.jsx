@@ -1,4 +1,4 @@
-import './ConfigMenu.css'
+import './index.css'
 
 function ConfigMenu() {
 

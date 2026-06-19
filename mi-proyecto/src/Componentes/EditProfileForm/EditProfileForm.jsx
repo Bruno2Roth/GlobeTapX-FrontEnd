@@ -1,4 +1,4 @@
-import './EditProfileForm.css'
+import './index.css'
 
 function EditProfileForm() {
 

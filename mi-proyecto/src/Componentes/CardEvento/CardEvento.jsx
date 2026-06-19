@@ -1,4 +1,4 @@
-import './CardEvento.css'
+import './index.css'
 
 function CardEvento() {
 

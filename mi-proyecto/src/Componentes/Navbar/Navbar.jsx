@@ -1,28 +1,34 @@
-<div className="navbar">
+import "./index.css";
 
-  <Link to="/explorar" className={location.pathname === "/explorar" ? "active" : ""}>
-    <span>🌍</span>
-    <p>Explore</p>
-  </Link>
+function Navbar() {
+  return (
+    <header className="navbar">
 
-  <Link to="/favoritos" className={location.pathname === "/favoritos" ? "active" : ""}>
-    <span>🤍</span>
-    <p>Favorites</p>
-  </Link>
+      <div className="nav-left">
 
-  <Link to="/" className={location.pathname === "/" ? "active" : ""}>
-    <span>🏠</span>
-    <p>Home</p>
-  </Link>
+        <button className="menu-btn">☰</button>
 
-  <Link to="/facts" className={location.pathname === "/facts" ? "active" : ""}>
-    <span>💡</span>
-    <p>Facts</p>
-  </Link>
+        <div className="logo">
+          <img src="/logo.png" alt="Logo" />
+          <h2>GlobeTapX</h2>
+        </div>
 
-  <Link to="/perfil" className={location.pathname === "/perfil" ? "active" : ""}>
-    <span>👤</span>
-    <p>Profile</p>
-  </Link>
+      </div>
 
-</div>
+      <div className="nav-right">
+
+        <button className="icon-btn">🔔</button>
+
+        <img
+          className="perfil"
+          src="/perfil.png"
+          alt="Perfil"
+        />
+
+      </div>
+
+    </header>
+  );
+}
+
+export default Navbar;

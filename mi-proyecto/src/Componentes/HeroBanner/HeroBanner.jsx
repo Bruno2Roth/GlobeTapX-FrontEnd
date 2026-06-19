@@ -1,4 +1,4 @@
-import './HeroBanner.css'
+import './index.css'
 
 function HeroBanner() {
 

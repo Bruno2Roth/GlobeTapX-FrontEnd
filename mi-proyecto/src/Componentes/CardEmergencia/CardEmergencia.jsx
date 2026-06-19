@@ -1,4 +1,4 @@
-import './CardEmergencia.css'
+import './index.css'
 
 function CardEmergencia() {
 

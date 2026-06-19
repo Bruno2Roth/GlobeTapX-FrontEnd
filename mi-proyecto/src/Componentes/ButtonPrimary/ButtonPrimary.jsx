@@ -1,4 +1,4 @@
-import './ButtonPrimary.css'
+import './index.css'
 
 function ButtonPrimary({ text }) {
 

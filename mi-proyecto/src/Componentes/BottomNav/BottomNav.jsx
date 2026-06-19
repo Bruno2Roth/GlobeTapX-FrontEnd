@@ -1,4 +1,5 @@
-import './BottomNav.css'
+import './index.css'
+   
 
 function BottomNav() {
 

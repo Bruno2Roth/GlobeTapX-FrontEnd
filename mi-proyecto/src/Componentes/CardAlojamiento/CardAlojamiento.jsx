@@ -1,4 +1,4 @@
-import './CardAlojamiento.css'
+import './index.css'
 
 function CardAlojamiento({ nombre, lugar }) {
 

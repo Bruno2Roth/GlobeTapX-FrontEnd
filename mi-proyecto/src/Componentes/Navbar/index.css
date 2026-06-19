@@ -1,13 +1,126 @@
+/* ==========================
+   NAVBAR GLOBETAPX
+========================== */
+
 .navbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:20px;
-  background:#0b2341;
-  color:white;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 100%;
+    max-width: 390px;
+
+    height: 65px;
+
+    background: rgba(255,255,255,.96);
+
+    backdrop-filter: blur(12px);
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 18px;
+
+    border-bottom:1px solid #ececec;
+
+    z-index:1000;
+
+    box-sizing:border-box;
 }
 
-.nav-links{
-  display:flex;
-  gap:20px;
+.nav-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+}
+
+.logo{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+.logo img{
+
+    width:36px;
+
+    height:36px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+}
+
+.logo h3{
+
+    font-size:18px;
+
+    color:#0E7C66;
+
+    font-weight:700;
+}
+
+.nav-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+}
+
+.icon{
+
+    font-size:20px;
+
+    color:#667085;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.icon:hover{
+
+    color:#0E7C66;
+}
+
+.profile{
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    border:2px solid #E8F5F1;
+}
+
+/* Responsive */
+
+@media (max-width:420px){
+
+    .navbar{
+
+        max-width:100%;
+
+        padding:0 15px;
+    }
+
 }

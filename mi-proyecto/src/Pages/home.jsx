@@ -110,26 +110,7 @@ function Home() {
 
       </div>
 
-      {/* NAVBAR */}
-      <div className="navbar">
-
-        <Link to="/home">
-          Home
-        </Link>
-
-        <Link to="/explorar">
-          Explorar
-        </Link>
-
-        <Link to="/favoritos">
-          Favoritos
-        </Link>
-
-        <Link to="/perfil">
-          Perfil
-        </Link>
-
-      </div>
+  
 
     </div>
   );

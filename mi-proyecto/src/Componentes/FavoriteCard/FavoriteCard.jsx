@@ -1,4 +1,4 @@
-import './FavoriteCard.css'
+import './index.css'
 
 function FavoriteCard() {
 

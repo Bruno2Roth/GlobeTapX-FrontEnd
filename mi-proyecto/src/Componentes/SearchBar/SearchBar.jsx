@@ -1,4 +1,4 @@
-import './SearchBar.css'
+import './index.css'
 
 function SearchBar() {
 

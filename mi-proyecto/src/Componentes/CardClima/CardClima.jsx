@@ -1,4 +1,4 @@
-import './CardClima.css'
+import './index.css'
 
 function CardClima({ ciudad, temperatura, estado }) {
 

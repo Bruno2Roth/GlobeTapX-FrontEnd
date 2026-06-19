@@ -1,4 +1,4 @@
-import './LoginForm.css'
+import './index.css'
 
 function LoginForm() {
 

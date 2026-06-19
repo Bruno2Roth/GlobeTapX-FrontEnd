@@ -1,4 +1,4 @@
-import './CardDestino.css'
+import './index.css'
 
 function CardDestino({ titulo, pais, imagen }) {
 

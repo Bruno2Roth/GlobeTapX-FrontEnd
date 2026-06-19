@@ -1,4 +1,4 @@
-import './ButtonSecondary.css'
+import './index.css'
 
 function ButtonSecondary({ text }) {
 

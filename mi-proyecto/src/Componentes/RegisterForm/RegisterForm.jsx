@@ -1,4 +1,4 @@
-import './RegisterForm.css'
+import './index.css'
 
 function RegisterForm() {
 

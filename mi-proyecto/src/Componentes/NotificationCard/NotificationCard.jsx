@@ -1,4 +1,4 @@
-import './NotificationCard.css'
+import './index.css'
 
 function NotificationCard() {
 

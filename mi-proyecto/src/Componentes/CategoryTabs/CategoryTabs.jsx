@@ -1,4 +1,4 @@
-import './CategoryTabs.css'
+import './index.css'
 
 function CategoryTabs() {
 

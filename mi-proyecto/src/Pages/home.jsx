@@ -12,7 +12,7 @@ function Home() {
 
   useEffect(() => {
 
-    fetch(`http://${HOST}:${PORT}/api`)
+    fetch(API)
       .then((res) => res.json())
       .then((data) => {
 

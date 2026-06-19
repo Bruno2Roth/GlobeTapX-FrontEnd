@@ -9,6 +9,7 @@ import Clima from "./Pages/clima";
 import Cambio from "./Pages/cambio";
 import NumEmergencia from "./Pages/numEmergencia";
 import Idioma from "./Pages/Idioma";
+import Agenda from "./Pages/agenda";
 
 function AppContent() {
   const location = useLocation();
@@ -26,7 +27,7 @@ function AppContent() {
         <Route path="/cambio" element={<Cambio />} />
         <Route path="/numEmergencia" element={<NumEmergencia />} />
         <Route path="/Idioma" element={<Idioma />} />
-        <Route path="/agenda" element={<agenda />} />
+        <Route path="/Agenda" element={<Agenda />} />
       </Routes>
 
       {mostrarLayout && <Footer />}

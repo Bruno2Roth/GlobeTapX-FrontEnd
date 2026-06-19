@@ -1932,3 +1932,61 @@ body{
 .emergency{
     border-left:6px solid #1D2939;
 }
+
+/* =======================
+   AGENDA
+======================= */
+
+.agenda{
+  max-width:420px;
+  margin:auto;
+  padding:20px;
+  padding-bottom:90px;
+  min-height:100vh;
+  background:#f5f6fa;
+}
+
+.agenda .cargando{
+  text-align:center;
+  color:#667085;
+  padding:60px 20px;
+  font-size:16px;
+}
+
+.agenda .lista-eventos{
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+  margin-top:20px;
+}
+
+.agenda .evento-card{
+  background:white;
+  border-radius:22px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,.05);
+  transition:.3s;
+}
+
+.agenda .evento-card:hover{
+  transform:translateY(-2px);
+}
+
+.agenda .evento-card h3{
+  color:#1D2939;
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.agenda .evento-card p{
+  color:#667085;
+  font-size:14px;
+}
+
+.agenda .sin-eventos{
+  text-align:center;
+  color:#9ca3af;
+  padding:40px 20px;
+  font-size:15px;
+}

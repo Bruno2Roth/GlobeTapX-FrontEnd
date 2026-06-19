@@ -12,7 +12,7 @@ function NumEmergencia() {
     useEffect(() => {
         const obtenerDatos = async () => {
             try {
-                const respuesta = await fetch(`${API}/country/AR`);
+                const respuesta = await fetch( `http://${HOST}:${PORT}/api`);
 
                 if (!respuesta.ok) {
                     throw new Error("Error al obtener los datos");

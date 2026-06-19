@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../index.css";
+import { API } from "../config";
+
 
 function Home() {
 
@@ -10,7 +12,7 @@ function Home() {
 
   useEffect(() => {
 
-    fetch("https://ipapi.co/json/")
+    fetch(`http://${HOST}:${PORT}/api`)
       .then((res) => res.json())
       .then((data) => {
 

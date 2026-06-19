@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "../index.css";
+import { API } from "../config";
+
 
 function Cambio() {
   const [monto, setMonto] = useState(1);
@@ -12,7 +14,7 @@ function Cambio() {
   const convertir = async () => {
     try {
       const response = await fetch(
-        `http://A-PHZ2-CIDI-18:3000/api/cambio?from=${origen}&to=${destino}&amount=${monto}`
+        `http://${HOST}:${PORT}/api`
       );
 
       const data = await response.json();

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import "../index.css";
+import { API } from "../config";
+
 
 function Clima() {
   const [clima, setClima] = useState(null);
@@ -7,7 +9,7 @@ function Clima() {
 
   useEffect(() => {
     fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=-34.61&longitude=-58.38&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
+      `http://${HOST}:${PORT}/api`
     )
       .then((res) => {
         if (!res.ok) {

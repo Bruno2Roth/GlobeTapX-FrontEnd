@@ -1,4 +1,4 @@
-const HOST = "A-PHZ2-CIDI-18";
+const HOST = "A-PHZ2-CIDI-02";
 const PORT = 3000;
 const usuarioID = "5"
 

@@ -9,7 +9,7 @@ function Navbar() {
         <button className="menu-btn">☰</button>
 
         <div className="logo">
-          <img src="/logo.png" alt="Logo" />
+          <img src="/logoPestaña.png" alt="Logo" />
           <h2>GlobeTapX</h2>
         </div>
 

@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import '../index.css'
 import { agenda as agendaUrl } from '../config'
 
+const PAIS = 'AR'
 const meses = 'Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre'.split(',')
 const diasSemana = 'Dom Lun Mar Mié Jue Vie Sáb'.split(' ')
 
 function Agenda() {
   const [items, setItems] = useState({ eventos: [], feriados: [] })
   const [fecha, setFecha] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState(null)
   const anio = fecha.getFullYear()
   const mes = fecha.getMonth()
 
@@ -30,6 +32,25 @@ function Agenda() {
             })
           })
         }
+        const anios = []
+        for (let y = 2024; y <= 2030; y++) anios.push(y)
+        const controlador = new AbortController()
+        setTimeout(() => controlador.abort(), 5000)
+        const resultados = await Promise.allSettled(
+          anios.map(y =>
+            fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/${PAIS}`, { signal: controlador.signal })
+              .then(r => r.ok ? r.json() : [])
+              .catch(() => [])
+          )
+        )
+        resultados.forEach(r => {
+          if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+            r.value.forEach(f => {
+              if (!feriados.some(ex => ex.fecha === f.date))
+                feriados.push({ fecha: f.date, titulo: f.localName || f.name })
+            })
+          }
+        })
         setItems({ eventos, feriados })
       } catch (err) {
         console.error(err)
@@ -52,7 +73,7 @@ function Agenda() {
   const esHoy = (d) => d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()
 
   const celdas = []
-  for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd" />)
+  for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd cd-empty" />)
   for (let d = 1; d <= diasEnMes; d++) {
     const evs = items.eventos.filter(e => enDia(e.fecha, d))
     const fers = items.feriados.filter(e => enDia(e.fecha, d))
@@ -61,14 +82,32 @@ function Agenda() {
     if (fers.length) cls.push('feriado')
     if (evs.length) cls.push('evento')
     celdas.push(
-      <div key={d} className={cls.join(' ')}>
+      <div key={d} className={cls.join(' ')} onClick={() => handleDayClick(d)}>
         <span className="num">{d}</span>
-        {fers.length > 0 && <span className="tag f-tag">{fers[0].titulo.substring(0, 20)}</span>}
-        {evs.length > 0 && <span className="tag e-tag">{evs[0].titulo.substring(0, 20)}</span>}
-        {evs.length > 1 && <span className="tag e-tag">+{evs.length - 1} más</span>}
+        <div className="tags">
+          {fers.map((f, i) => <span key={`f${i}`} className="tag f-tag" title={f.titulo}>{f.titulo}</span>)}
+          {evs.slice(0, 2).map((e, i) => <span key={`e${i}`} className="tag e-tag" title={`${e.titulo}${e.desc ? ' - ' + e.desc : ''}`}>{e.titulo}</span>)}
+          {evs.length > 2 && <span className="tag e-tag tag-more">+{evs.length - 2} más</span>}
+        </div>
       </div>
     )
   }
+  while (celdas.length < 42) celdas.push(<div key={`v${celdas.length}`} className="cd cd-empty" />)
+
+  const handleDayClick = (d) => {
+    const evs = items.eventos.filter(e => enDia(e.fecha, d))
+    const fers = items.feriados.filter(e => enDia(e.fecha, d))
+    if (evs.length > 0 || fers.length > 0) {
+      setSelectedDay({
+        dia: d,
+        eventos: evs,
+        feriados: fers,
+        fecha: `${d} de ${meses[mes]} de ${anio}`
+      })
+    }
+  }
+
+  const cerrarModal = () => setSelectedDay(null)
 
   return (
     <div className="agenda">
@@ -80,9 +119,9 @@ function Agenda() {
 
       <div className="cal">
         <div className="cal-h">
-          <button className="btn" onClick={() => setFecha(new Date(anio, mes - 1, 1))}>‹</button>
+          <button className="btn" onClick={() => setFecha(new Date(anio, mes - 1, 1))} aria-label="Mes anterior">‹</button>
           <h3>{meses[mes]} <span className="anio">{anio}</span></h3>
-          <button className="btn" onClick={() => setFecha(new Date(anio, mes + 1, 1))}>›</button>
+          <button className="btn" onClick={() => setFecha(new Date(anio, mes + 1, 1))} aria-label="Mes siguiente">›</button>
         </div>
         <div className="cal-dias">
           {diasSemana.map(d => <span key={d} className="dl">{d}</span>)}
@@ -91,7 +130,29 @@ function Agenda() {
       </div>
 
       {eventosMes.length === 0 && feriadosMes.length === 0 && (
-        <p className="vacio">No hay eventos ni feriados este mes</p>
+        <div className="vacio">📭 No hay eventos ni feriados este mes</div>
+      )}
+      {selectedDay && (
+        <div className="dm-overlay" onClick={cerrarModal}>
+          <div className="dm-modal" onClick={e => e.stopPropagation()}>
+            <div className="dm-h">
+              <span className="dm-fecha">{selectedDay.fecha}</span>
+              <button className="dm-x" onClick={cerrarModal}>✕</button>
+            </div>
+            <div className="dm-body">
+              {selectedDay.feriados.map((f, i) => (
+                <div key={`mf${i}`} className="dm-feriado">📅 {f.titulo}</div>
+              ))}
+              {selectedDay.eventos.map((e, i) => (
+                <div key={`me${i}`} className="dm-evento">
+                  <div className="dm-evento-titulo">{e.titulo}</div>
+                  {e.desc && <div className="dm-evento-desc">{e.desc}</div>}
+                  {e.lugar && <div className="dm-evento-lugar">📍 {e.lugar}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

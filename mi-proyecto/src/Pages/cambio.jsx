@@ -13,9 +13,7 @@ function Cambio() {
 
   const convertir = async () => {
     try {
-      const response = await fetch(
-        `http://${HOST}:${PORT}/api`
-      );
+      const response = await fetch(API);
 
       const data = await response.json();
 

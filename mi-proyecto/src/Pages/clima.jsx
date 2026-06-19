@@ -1,130 +1,84 @@
 import { useEffect, useState } from "react";
 import "../index.css";
-import { API } from "../config";
+import { API, usuarioID } from "../config";
 
+const descClima = {
+  0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
+  3: "Nublado", 45: "Niebla", 48: "Niebla con escarcha",
+  51: "Llovizna ligera", 53: "Llovizna moderada", 55: "Llovizna densa",
+  61: "Lluvia ligera", 63: "Lluvia moderada", 65: "Lluvia intensa",
+  71: "Nevada ligera", 73: "Nevada moderada", 75: "Nevada intensa",
+  80: "Chubascos ligeros", 81: "Chubascos moderados", 82: "Chubascos intensos",
+  95: "Tormenta", 96: "Tormenta con granizo", 99: "Tormenta con granizo intenso",
+};
 
 function Clima() {
   const [clima, setClima] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(
-      `http://${HOST}:${PORT}/api`
-    )
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Error al obtener el clima");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const diasSemana = [
-          "Domingo",
-          "Lunes",
-          "Martes",
-          "Miércoles",
-          "Jueves",
-          "Viernes",
-          "Sábado",
-        ];
+    const fetchClima = async () => {
+      try {
+        const userRes = await fetch(`${API}/usuario/${usuarioID}`);
+        const userData = await userRes.json();
 
-        const pronostico = data.daily.time
-          .slice(1, 6)
-          .map((fecha, index) => ({
-            nombre: diasSemana[new Date(fecha).getDay()],
-            max: Math.round(data.daily.temperature_2m_max[index + 1]),
-            min: Math.round(data.daily.temperature_2m_min[index + 1]),
-          }));
+        const paisesRes = await fetch(`${API}/pais`);
+        const paises = await paisesRes.json();
+        const pais = paises.find((p) => p.ID === userData.paisActual);
+        if (!pais) throw new Error("País no encontrado");
+
+        const climaRes = await fetch(`${API}/clima/country?country=${encodeURIComponent(pais.nombre)}`);
+        if (!climaRes.ok) throw new Error("Error al obtener el clima");
+        const data = await climaRes.json();
+
+        const codigo = data.current?.weather_code ?? 0;
+        const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+        const pronostico = (data.daily?.time || []).slice(0, 5).map((fecha, i) => ({
+          nombre: diasSemana[new Date(fecha).getDay()],
+          max: Math.round(data.daily.temperature_2m_max[i]),
+          min: Math.round(data.daily.temperature_2m_min[i]),
+          codigo: data.daily.weather_code?.[i] ?? 0,
+        }));
 
         setClima({
-          ciudad: "Buenos Aires",
-          pais: "Argentina",
-          descripcion: "Mayormente Soleado",
           temperatura: Math.round(data.current.temperature_2m),
-          humedad: data.current.relative_humidity_2m,
+          descripcion: descClima[codigo] || "Desconocido",
           viento: Math.round(data.current.wind_speed_10m),
-
-          mensaje:
-            "Condiciones ideales para recorrer la ciudad y disfrutar al aire libre.",
-
-          indiceUVTexto: "Moderado",
-          recomendacionUV:
-            "Usá protector solar si vas a permanecer mucho tiempo al sol.",
-
+          windDirection: data.current.wind_direction_10m ?? 0,
           pronostico,
         });
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
         setError("No se pudo cargar el clima");
-      });
+      }
+    };
+    fetchClima();
   }, []);
 
-  if (error) {
-    return <h2>{error}</h2>;
-  }
+  if (error) return <div className="clima-error">{error}</div>;
+  if (!clima) return <div className="clima-loading">Cargando clima...</div>;
 
-  if (!clima) {
-    return <h2>Cargando clima...</h2>;
-  }
+  const dirViento = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+  const dirIdx = Math.round(clima.windDirection / 45) % 8;
 
   return (
     <div className="clima-container">
-      <header className="clima-header">
-        <div className="menu">☰</div>
-
-        <h2 className="logo">GlobeTapX</h2>
-
-        <div className="avatar">S</div>
-      </header>
-
       <section className="weather-main">
-        <p className="location">
-          {clima.ciudad}, {clima.pais}
-        </p>
-
-        <h1 className="weather-title">
-          {clima.descripcion}
-        </h1>
-
-        <div className="temp">
-          {clima.temperatura}°
-        </div>
+        <h1 className="weather-title">{clima.descripcion}</h1>
+        <div className="temp">{clima.temperatura}°</div>
       </section>
 
       <section className="weather-cards">
         <div className="small-card">
-          <h3>{clima.humedad}%</h3>
-          <p>Humedad</p>
-        </div>
-
-        <div className="small-card">
           <h3>{clima.viento} km/h</h3>
-          <p>Viento</p>
+          <p>Viento {dirViento[dirIdx]}</p>
         </div>
-      </section>
-
-      <section className="hero-card">
-        <div className="hero-overlay">
-          <h3>Día Perfecto para Explorar</h3>
-
-          <p>{clima.mensaje}</p>
-        </div>
-      </section>
-
-      <section className="uv-card">
-        <p>Índice UV</p>
-
-        <h2>{clima.indiceUVTexto}</h2>
-
-        <span>{clima.recomendacionUV}</span>
       </section>
 
       <section className="forecast">
-        <h2>Previsión de 5 días</h2>
-
-        {clima.pronostico.map((dia, index) => (
-          <div className="forecast-row" key={index}>
+        <h2>Pronóstico 5 días</h2>
+        {clima.pronostico.map((dia, i) => (
+          <div className="forecast-row" key={i}>
             <span>{dia.nombre}</span>
             <span>{dia.max}°</span>
             <span>{dia.min}°</span>

@@ -104,8 +104,8 @@ function Home() {
           <p>Reglas</p>
         </Link>
 
-        <Link to="/alojamiento" className="mini-btn">
-          <p>Alojamiento</p>
+        <Link to="/Agenda" className="mini-btn">
+          <p>Agenda</p>
         </Link>
 
       </div>

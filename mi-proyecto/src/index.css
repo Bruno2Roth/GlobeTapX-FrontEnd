@@ -1707,113 +1707,140 @@ textarea{
   background:#ffe6e6;
 }
 
-/* =======================
+/* ==========================
    CAMBIO
-======================= */
+========================== */
 
-.cambio-page{
-  max-width:450px;
-  margin:auto;
-  min-height:100vh;
-  padding:20px;
-  background:#f7f8fc;
+.cambio-container{
+    max-width:420px;
+    margin:auto;
+    padding:20px;
 }
 
 .cambio-header{
-  margin-bottom:25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
 }
 
 .cambio-header h1{
-  font-size:32px;
-  margin-bottom:8px;
+    color:#0b2545;
+    font-size:34px;
 }
 
-.cambio-header p{
-  color:#64748b;
+.menu{
+    font-size:28px;
+    cursor:pointer;
 }
 
-.cambio-search{
-  display:flex;
-  gap:10px;
-  margin-bottom:25px;
+.cambio-header img{
+    width:45px;
+    height:45px;
+    border-radius:50%;
 }
 
-.cambio-search input{
-  flex:1;
-  border:none;
-  border-radius:14px;
-  padding:14px;
-  background:white;
+.cambio-card{
+    background:white;
+    border-radius:28px;
+    padding:25px;
+    box-shadow:0 4px 20px rgba(0,0,0,.06);
 }
 
-.cambio-search button{
-  border:none;
-  background:#0f766e;
-  color:white;
-  padding:14px 20px;
-  border-radius:14px;
-  cursor:pointer;
+.moneda-box{
+    background:#f8f8f8;
+    border-radius:20px;
+    padding:20px;
 }
 
-.country-card{
-  background:white;
-  border-radius:24px;
-  overflow:hidden;
-  margin-bottom:20px;
-  box-shadow:0 4px 15px rgba(0,0,0,.08);
+.moneda-box span{
+    color:#667085;
+    font-size:14px;
 }
 
-.country-card img{
-  width:100%;
-  height:180px;
-  object-fit:cover;
+.moneda-box input{
+    width:100%;
+    border:none;
+    background:none;
+    font-size:42px;
+    font-weight:700;
+    margin-top:10px;
+    color:#0b2545;
 }
 
-.country-info{
-  padding:20px;
+.moneda-box h2{
+    font-size:42px;
+    margin-top:10px;
+    color:#0b2545;
 }
 
-.stats-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin-bottom:20px;
+.moneda-box select{
+    width:100%;
+    margin-top:10px;
+    border:none;
+    background:white;
+    padding:10px;
+    border-radius:12px;
+    cursor:pointer;
 }
 
-.stat-box{
-  background:white;
-  padding:20px;
-  border-radius:18px;
+.swap-btn{
+    width:60px;
+    height:60px;
+    border:none;
+    border-radius:50%;
+    margin:15px auto;
+    display:block;
+    background:#0E7C66;
+    color:white;
+    font-size:24px;
+    cursor:pointer;
 }
 
-.currency-card-big{
-  background:white;
-  padding:20px;
-  border-radius:24px;
+.swap-btn:hover{
+    background:#0b5a4c;
 }
 
-.currency-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 0;
-  border-bottom:1px solid #eee;
+.cotizacion-card{
+    background:white;
+    border-radius:24px;
+    margin-top:20px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,.05);
 }
 
-.currency-row:last-child{
-  border-bottom:none;
+.cotizacion-card p{
+    color:#667085;
+    margin-bottom:10px;
 }
 
-.cambio-loading{
-  text-align:center;
-  padding:40px;
-}
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+.cotizacion-card h3{
+    color:#0b2545;
+    font-size:28px;
 }
 
+.convertir-btn{
+    width:100%;
+    margin-top:20px;
+    background:#0b2545;
+    color:white;
+    border:none;
+    border-radius:20px;
+    padding:18px;
+    font-size:18px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.convertir-btn:hover{
+    background:#123765;
+}
+
+
+/* =======================
+   NÚMEROS DE EMERGENCIA 
+======================= */
 body{
     background:#F4F5F7;
     font-family:'Inter',sans-serif;

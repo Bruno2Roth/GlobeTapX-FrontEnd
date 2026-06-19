@@ -1,134 +1,141 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../index.css";
 
-const Cambio = () => {
-  const [pais, setPais] = useState("Argentina");
-  const [info, setInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
+function Cambio() {
+  const [monto, setMonto] = useState(1);
 
-  useEffect(() => {
-    buscarPais(pais);
-  }, []);
+  const [origen, setOrigen] = useState("USD");
+  const [destino, setDestino] = useState("EUR");
 
-  const buscarPais = async (nombrePais) => {
+  const [resultado, setResultado] = useState("0.92");
+  const [cotizacion, setCotizacion] = useState("0.92045");
+
+  const convertir = async () => {
     try {
-      setLoading(true);
 
       const response = await fetch(
-        `http://A-PHZ2-CIDI-17:3000/api/clima/country?country=Argentina`
+        `http://A-PHZ2-CIDI-18:3000/api/cambio?from=${origen}&to=${destino}&amount=${monto}`
       );
 
       const data = await response.json();
 
-      setInfo(data[0]);
-      setLoading(false);
+      setResultado(data.resultado);
+      setCotizacion(data.cotizacion);
+
     } catch (error) {
       console.log(error);
-      setLoading(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    buscarPais(pais);
+  const intercambiarMonedas = () => {
+    const temp = origen;
+
+    setOrigen(destino);
+    setDestino(temp);
   };
 
   return (
-    <div className="cambio-page">
+    <div className="cambio-container">
 
-      <header className="home-header">
-        <div className="icon-menu">☰</div>
-        <h2 className="brand-logo">GlobeTapX</h2>
+      <div className="cambio-header">
 
-        <div className="user-avatar">
-          <img
-            src="https://i.pravatar.cc/100?img=32"
-            alt="user"
-          />
-        </div>
-      </header>
+        <div className="menu">☰</div>
 
-      <h1 className="cambio-title">
-        Cambio de moneda
-      </h1>
+        <h1>GlobeTapX</h1>
 
-      <form onSubmit={handleSubmit} className="cambio-search">
-
-        <input
-          type="text"
-          placeholder="Buscar país..."
-          value={pais}
-          onChange={(e) => setPais(e.target.value)}
+        <img
+          src="https://i.pravatar.cc/100?img=32"
+          alt="perfil"
         />
 
-        <button type="submit">
-          Buscar
+      </div>
+
+      <div className="cambio-card">
+
+        <div className="moneda-box">
+
+          <span>Desde</span>
+
+          <input
+            type="number"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+          />
+
+          <select
+            value={origen}
+            onChange={(e) => setOrigen(e.target.value)}
+          >
+            <option value="ARS">Argentina - ARS</option>
+            <option value="AUD">Australia - AUD</option>
+            <option value="USD">Estados Unidos - USD</option>
+            <option value="BRL">Brasil - BRL</option>
+            <option value="GBP">Inglaterra - GBP</option>
+            <option value="EUR">Francia - EUR</option>
+            <option value="ILS">Israel - ILS</option>
+            <option value="KRW">Corea del Sur - KRW</option>
+            <option value="CNY">China - CNY</option>
+            <option value="EUR">Italia - EUR</option>
+            <option value="EUR">España - EUR</option>
+            <option value="CLP">Chile - CLP</option>
+          </select>
+
+        </div>
+
+        <button
+          className="swap-btn"
+          onClick={intercambiarMonedas}
+        >
+          ⇅
         </button>
 
-      </form>
+        <div className="moneda-box">
 
-      {loading ? (
-        <div className="cambio-loading">
-          Cargando...
+          <span>Hacia</span>
+
+          <h2>{resultado}</h2>
+
+          <select
+            value={destino}
+            onChange={(e) => setDestino(e.target.value)}
+          >
+            <option value="ARS">Argentina - ARS</option>
+            <option value="AUD">Australia - AUD</option>
+            <option value="USD">Estados Unidos - USD</option>
+            <option value="BRL">Brasil - BRL</option>
+            <option value="GBP">Inglaterra - GBP</option>
+            <option value="EUR">Francia - EUR</option>
+            <option value="ILS">Israel - ILS</option>
+            <option value="KRW">Corea del Sur - KRW</option>
+            <option value="CNY">China - CNY</option>
+            <option value="EUR">Italia - EUR</option>
+            <option value="EUR">España - EUR</option>
+            <option value="CLP">Chile - CLP</option>
+          </select>
+
         </div>
-      ) : (
-        info && (
-          <>
-            <div className="currency-card">
 
-              <img
-                src={info.flags.png}
-                alt={info.name.common}
-              />
+      </div>
 
-              <h2>{info.name.common}</h2>
+      <div className="cotizacion-card">
 
-              <p>{info.capital?.[0]}</p>
+        <p>Cotización actual</p>
 
-            </div>
+        <h3>
+          1 {origen} = {cotizacion} {destino}
+        </h3>
 
-            <div className="currency-info">
+      </div>
 
-              <div className="info-box">
-                <span>Región</span>
-                <strong>{info.region}</strong>
-              </div>
+      <button
+        className="convertir-btn"
+        onClick={convertir}
+      >
+        Convertir 
+      </button>
 
-              <div className="info-box">
-                <span>Población</span>
-                <strong>
-                  {info.population.toLocaleString()}
-                </strong>
-              </div>
-
-            </div>
-
-            <div className="currency-card-big">
-
-              <h3>Moneda utilizada</h3>
-
-              {Object.entries(info.currencies).map(
-                ([codigo, moneda]) => (
-                  <div
-                    key={codigo}
-                    className="currency-row"
-                  >
-                    <span>{codigo}</span>
-
-                    <div>
-                      <p>{moneda.name}</p>
-                      <small>{moneda.symbol}</small>
-                    </div>
-                  </div>
-                )
-              )}
-
-            </div>
-          </>
-        )
-      )}
     </div>
   );
-};
+}
 
 export default Cambio;

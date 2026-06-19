@@ -25,7 +25,8 @@ function AppContent() {
         <Route path="/clima" element={<Clima />} />
         <Route path="/cambio" element={<Cambio />} />
         <Route path="/numEmergencia" element={<NumEmergencia />} />
-           <Route path="/Idioma" element={<Idioma />} />
+        <Route path="/Idioma" element={<Idioma />} />
+        <Route path="/agenda" element={<agenda />} />
       </Routes>
 
       {mostrarLayout && <Footer />}

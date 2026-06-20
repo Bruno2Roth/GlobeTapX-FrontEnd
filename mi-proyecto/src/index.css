@@ -120,6 +120,8 @@ body {
   margin: auto;
   background: white;
   min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 
 /* HERO */
@@ -803,392 +805,42 @@ body{
 .navbar a:hover{
   color:#0b4f4a;
 }
-.clima-container{
-  max-width:390px;
-  margin:auto;
-  background:white;
-  min-height:100vh;
-  padding:20px;
-  padding-bottom:80px;
-}
-
-.clima-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.logo{
-  font-size:16px;
-}
-
-.weather-main{
-  text-align:center;
-  margin-top:20px;
-}
-
-.weather-title{
-  color:#003f3b;
-  font-size:40px;
-  font-weight:700;
-  margin-top:10px;
-}
-
-.temperature{
-  font-size:80px;
-  font-weight:bold;
-  color:#003f3b;
-}
-
-.weather-info{
-  display:flex;
-  gap:10px;
-  margin-top:20px;
-}
-
-.info-card{
-  flex:1;
-  background:#f5f5f5;
-  border-radius:20px;
-  padding:15px;
-  text-align:center;
-}
-
-.image-card{
-  height:180px;
-  margin-top:20px;
-  border-radius:20px;
-  overflow:hidden;
-
-  background-image:
-  linear-gradient(
-    rgba(0,0,0,.2),
-    rgba(0,0,0,.5)
-  ),
-  url("https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff");
-
-  background-size:cover;
-  background-position:center;
-
-  display:flex;
-  align-items:flex-end;
-}
-
-.overlay{
-  color:white;
-  padding:20px;
-}
-
-.uv-card{
-  margin-top:20px;
-  background:white;
-  border:1px solid #e5e5e5;
-  border-radius:20px;
-  padding:15px;
-}
-
-.forecast{
-  margin-top:25px;
-}
-
-.forecast h2{
-  font-size:20px;
-  margin-bottom:15px;
-}
-
-.forecast-day{
-  display:flex;
-  justify-content:space-between;
-  padding:15px 0;
-  border-bottom:1px solid #eee;
-}
-
-.footer{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:390px;
-  background:white;
-  display:flex;
-  justify-content:space-around;
-  padding:15px 0;
-  border-top:1px solid #ddd;
-}
-
-.footer p{
-  font-size:11px;
-  color:#999;
-}
-/* =======================
-   CLIMA
-======================= */
-
-.clima-container{
-  max-width:390px;
-  margin:auto;
-  background:white;
-  min-height:100vh;
-  padding:20px;
-  padding-bottom:90px;
-}
-
-.clima-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.logo{
-  font-size:18px;
-  font-weight:700;
-  color:#003f3b;
-}
-
-.perfil{
-  width:35px;
-  height:35px;
-  border-radius:50%;
-  background:#003f3b;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-weight:bold;
-}
-
-.weather-main{
-  text-align:center;
-}
-
-.location{
-  color:#8c8c8c;
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.weather-title{
-  font-size:40px;
-  font-weight:700;
-  color:#003f3b;
-  margin-top:10px;
-  line-height:1.1;
-}
-
-.temperature{
-  font-size:85px;
-  font-weight:bold;
-  color:#003f3b;
-  margin-top:10px;
-}
-
-.weather-info{
-  display:flex;
-  gap:10px;
-  margin-top:20px;
-}
-
-.info-card{
-  flex:1;
-  background:#f8f8f8;
-  border-radius:20px;
-  padding:15px;
-  text-align:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.05);
-}
-
-.info-card h4{
-  color:#003f3b;
-  margin-bottom:5px;
-}
-
-.info-card p{
-  color:#666;
-  font-size:13px;
-}
-
-.image-card{
-  margin-top:20px;
-  height:180px;
-  border-radius:20px;
-  overflow:hidden;
-
-  background-image:
-  linear-gradient(
-    rgba(0,0,0,.15),
-    rgba(0,0,0,.55)
-  ),
-  url("https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff");
-
-  background-size:cover;
-  background-position:center;
-
-  display:flex;
-  align-items:flex-end;
-}
-
-.overlay{
-  color:white;
-  padding:20px;
-}
-
-.overlay h3{
-  margin-bottom:5px;
-}
-
-.uv-card{
-  margin-top:20px;
-  background:white;
-  border:1px solid #ececec;
-  border-radius:20px;
-  padding:15px;
-}
-
-.uv-card p{
-  color:#00a98f;
-  font-size:13px;
-}
-
-.uv-card h2{
-  color:#003f3b;
-  margin:5px 0;
-}
-
-.uv-card span{
-  color:#777;
-  font-size:13px;
-}
-
-.forecast{
-  margin-top:25px;
-  background:white;
-  border-radius:20px;
-}
-
-.forecast h2{
-  color:#003f3b;
-  margin-bottom:15px;
-}
-
-.forecast-day{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 0;
-  border-bottom:1px solid #ececec;
-}
-
-.forecast-day:last-child{
-  border-bottom:none;
-}
-
-.footer{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:390px;
-  background:white;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  padding:15px 0;
-  border-top:1px solid #ddd;
-  box-shadow:0 -2px 10px rgba(0,0,0,.05);
-}
-
-.footer p{
-  font-size:11px;
-  color:#999;
-  cursor:pointer;
-}
-
-.footer p:hover{
-  color:#003f3b;
-}
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
-}
-
-body {
-  background: #f4f4f4;
-}
-
 .clima-container {
   max-width: 390px;
-  height: 100dvh;
-  overflow-y: auto;
+  min-height: 100dvh;
   margin: auto;
-  padding: 15px;
-  padding-bottom: 80px;
-  background: #f7f7f7;
+  padding: 80px 15px 90px;
+  background: linear-gradient(180deg, #e8f5f1 0%, #f7f7f7 40%);
 }
 
-/* HEADER */
-
-.clima-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.menu {
-  font-size: 22px;
-  color: #1f2937;
-  cursor: pointer;
-}
-
-.logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: url("https://i.pravatar.cc/100");
-  background-size: cover;
-  background-position: center;
-}
-
-/* MAIN */
+/* MAIN WEATHER */
 
 .weather-main {
   text-align: center;
-}
-
-.location {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #7a7a7a;
-  text-transform: uppercase;
-  margin-bottom: 10px;
+  background: linear-gradient(135deg, #0E7C66, #0B5A4C);
+  border-radius: 24px;
+  padding: 30px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 30px rgba(14,124,102,0.25);
 }
 
 .weather-title {
-  font-size: 30px;
-  color: #0b3d36;
-  line-height: 1.2;
-  margin-bottom: 15px;
+  font-size: 22px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .temp {
   font-size: 90px;
   font-weight: 700;
-  color: #0b3d36;
+  color: white;
   line-height: 1;
-  margin-bottom: 25px;
 }
 
-/* CARDS PEQUEÑAS */
+/* CARDS */
 
 .weather-cards {
   display: flex;
@@ -1202,7 +854,7 @@ body {
   border-radius: 18px;
   padding: 18px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .small-card h3 {
@@ -1216,79 +868,17 @@ body {
   color: #777;
 }
 
-/* FOTO */
-
-.hero-card {
-  height: 240px;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-bottom: 20px;
-  background-image: url("https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff");
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.55),
-    rgba(0, 0, 0, 0.1)
-  );
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 18px;
-}
-
-.hero-overlay h3 {
-  color: white;
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-
-.hero-overlay p {
-  color: white;
-  font-size: 14px;
-}
-
-/* UV */
-
-.uv-card {
-  background: white;
-  border-radius: 18px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.uv-card p {
-  color: #777;
-  font-size: 14px;
-}
-
-.uv-card h2 {
-  color: #0b3d36;
-  margin: 8px 0;
-  font-size: 28px;
-}
-
-.uv-card span {
-  color: #555;
-  font-size: 13px;
-}
-
 /* PREVISIÓN */
 
 .forecast {
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .forecast h2 {
+  font-size: 18px;
   margin-bottom: 15px;
   color: #0b3d36;
+  font-weight: 700;
 }
 
 .forecast-row {
@@ -1299,22 +889,33 @@ body {
   margin-bottom: 10px;
   padding: 15px 20px;
   border-radius: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s;
+}
+
+.forecast-row:hover {
+  transform: translateX(4px);
 }
 
 .forecast-row span:first-child {
   color: #333;
   font-weight: 500;
+  flex: 1;
+  text-align: left;
 }
 
 .forecast-row span:nth-child(2) {
   color: #0b3d36;
   font-weight: 700;
   font-size: 18px;
+  width: 50px;
+  text-align: right;
 }
 
 .forecast-row span:last-child {
-  color: #888;
+  color: #999;
+  width: 50px;
+  text-align: right;
 }
 
 .clima-error,
@@ -1963,8 +1564,7 @@ body{
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  padding:20px;
-  padding-bottom:80px;
+  padding:80px 20px 80px;
 }
 
 .agenda .h-card{

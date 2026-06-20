@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "../index.css";
-import { API, usuarioID } from "../config";
+import { usuarioURL, paisesURL, climaBaseURL, TRADUCTOR_URL } from "../config";
 
 const descClima = {
   0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
@@ -19,15 +19,18 @@ function Clima() {
   useEffect(() => {
     const fetchClima = async () => {
       try {
-        const userRes = await fetch(`${API}/usuario/${usuarioID}`);
+        const userRes = await fetch(usuarioURL);
         const userData = await userRes.json();
 
-        const paisesRes = await fetch(`${API}/pais`);
+        const paisesRes = await fetch(paisesURL);
         const paises = await paisesRes.json();
         const pais = paises.find((p) => p.ID === userData.paisActual);
         if (!pais) throw new Error("País no encontrado");
 
-        const climaRes = await fetch(`${API}/clima/country?country=${encodeURIComponent(pais.nombre)}`);
+        const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(pais.nombre)}&langpair=es|en`);
+        const tradData = await tradRes.json();
+        const nombreEN = tradData.responseData.translatedText;
+        const climaRes = await fetch(`${climaBaseURL}${encodeURIComponent(nombreEN)}`);
         if (!climaRes.ok) throw new Error("Error al obtener el clima");
         const data = await climaRes.json();
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../index.css";
-import { API, usuarioID } from "../config";
+import { usuarioURL, paisesURL, climaBaseURL, TRADUCTOR_URL } from "../config";
 
 function Home() {
   const [pais, setPais] = useState("");
@@ -10,24 +10,35 @@ function Home() {
   const [heroImg, setHeroImg] = useState("");
 
   useEffect(() => {
-        fetch(`${API}/usuario/${usuarioID}`)
-      .then((res) => res.json())
-      .then((usuario) => {
-        fetch(`${API}/pais`)
-          .then((res) => res.json())
-          .then((paises) => {
-            const p = paises.find((p) => p.ID === usuario.paisActual);
-            if (p) {
-              setPais(p.nombre);
-              setHeroImg(p.imagen || "");
-              setCiudad(p.nombre);
-            }
-          });
-      })
-      .catch((error) => console.log(error));
+    const fetchData = async () => {
+      try {
+        const userRes = await fetch(usuarioURL);
+        const usuario = await userRes.json();
 
-    const now = new Date();
-    setHora(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+        const paisesRes = await fetch(paisesURL);
+        const paises = await paisesRes.json();
+
+        const p = paises.find((p) => p.ID === usuario.paisActual);
+        if (p) {
+          setPais(p.nombre);
+          setHeroImg(p.imagen || "");
+          setCiudad(p.nombre);
+
+          const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(p.nombre)}&langpair=es|en`);
+          const tradData = await tradRes.json();
+          const nombreEN = tradData.responseData.translatedText;
+          const climaRes = await fetch(`${climaBaseURL}${encodeURIComponent(nombreEN)}`);
+          const clima = await climaRes.json();
+          if (clima.current?.time) {
+            const h = clima.current.time.split("T")[1]?.slice(0, 5);
+            if (h) setHora(h);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData();
   }, []);
 
   return (

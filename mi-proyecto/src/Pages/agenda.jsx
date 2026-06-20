@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import '../index.css'
-import { agenda as agendaUrl } from '../config'
+import { agenda as agendaUrl, usuarioURL, paisesURL, TRADUCTOR_URL } from '../config'
 
-const PAIS = 'AR'
-const meses = 'Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre'.split(',')
-const diasSemana = 'Dom Lun Mar Mié Jue Vie Sáb'.split(' ')
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
 
 function Agenda() {
   const [items, setItems] = useState({ eventos: [], feriados: [] })
@@ -16,8 +14,33 @@ function Agenda() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(agendaUrl)
-        const data = await res.json()
+        const [agendaRes, userRes, paisesRes] = await Promise.all([
+          fetch(agendaUrl),
+          fetch(usuarioURL),
+          fetch(paisesURL)
+        ])
+        const data = await agendaRes.json()
+        const userData = await userRes.json()
+        const paises = await paisesRes.json()
+
+        const userPais = paises.find(p => p.ID === userData.paisActual)
+        let codigoPais = 'AR'
+        if (userPais) {
+          try {
+            const [tradRes, dispRes] = await Promise.all([
+              fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(userPais.nombre)}&langpair=es|en`),
+              fetch('https://date.nager.at/api/v3/AvailableCountries')
+            ])
+            if (tradRes.ok && dispRes.ok) {
+              const tradData = await tradRes.json()
+              const nombreEN = tradData.responseData.translatedText
+              const disp = await dispRes.json()
+              const match = disp.find(p => p.name === nombreEN)
+              if (match) codigoPais = match.countryCode
+            }
+          } catch {}
+        }
+
         const eventos = (data.agenda || []).map(e => ({
           fecha: (e.fechaInicio || '').split('T')[0],
           titulo: e.eventoNombre || 'Evento',
@@ -38,7 +61,7 @@ function Agenda() {
         setTimeout(() => controlador.abort(), 5000)
         const resultados = await Promise.allSettled(
           anios.map(y =>
-            fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/${PAIS}`, { signal: controlador.signal })
+            fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/${codigoPais}`, { signal: controlador.signal })
               .then(r => r.ok ? r.json() : [])
               .catch(() => [])
           )
@@ -94,6 +117,10 @@ function Agenda() {
   }
   while (celdas.length < 42) celdas.push(<div key={`v${celdas.length}`} className="cd cd-empty" />)
 
+  const fmtMes = (i) => cap(new Date(anio, i, 1).toLocaleDateString('es-ES', { month: 'long' }))
+  const fmtDia = (i) => cap(new Date(2024, 0, i + 1).toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3))
+  const diasHeader = Array.from({ length: 7 }, (_, i) => fmtDia(i))
+
   const handleDayClick = (d) => {
     const evs = items.eventos.filter(e => enDia(e.fecha, d))
     const fers = items.feriados.filter(e => enDia(e.fecha, d))
@@ -102,7 +129,7 @@ function Agenda() {
         dia: d,
         eventos: evs,
         feriados: fers,
-        fecha: `${d} de ${meses[mes]} de ${anio}`
+        fecha: `${d} de ${fmtMes(mes)} de ${anio}`
       })
     }
   }
@@ -120,11 +147,11 @@ function Agenda() {
       <div className="cal">
         <div className="cal-h">
           <button className="btn" onClick={() => setFecha(new Date(anio, mes - 1, 1))} aria-label="Mes anterior">‹</button>
-          <h3>{meses[mes]} <span className="anio">{anio}</span></h3>
+          <h3>{fmtMes(mes)} <span className="anio">{anio}</span></h3>
           <button className="btn" onClick={() => setFecha(new Date(anio, mes + 1, 1))} aria-label="Mes siguiente">›</button>
         </div>
         <div className="cal-dias">
-          {diasSemana.map(d => <span key={d} className="dl">{d}</span>)}
+          {diasHeader.map(d => <span key={d} className="dl">{d}</span>)}
         </div>
         <div className="cal-grid">{celdas}</div>
       </div>

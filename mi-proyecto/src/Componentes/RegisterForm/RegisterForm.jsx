@@ -1,83 +1,221 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
-import './index.css'
+import "./index.css";
+
+const idiomas = [
+  { value: "es", label: "Español" },
+  { value: "en", label: "Inglés" },
+  { value: "fr", label: "Francés" },
+  { value: "pt", label: "Portugués" },
+  { value: "he", label: "Hebreo" },
+];
+
+const validarEmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
 
 function RegisterForm() {
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [error, setError] = useState("");
-
+  const [form, setForm] = useState({
+    nombre: "",
+    mail: "",
+    contrasena: "",
+    confirmarContrasena: "",
+    nombreCompleto: "",
+    numeroContacto: "",
+    idiomaPreferido: "",
+    paisActual: "",
+  });
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState("");
+  const [paises, setPaises] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [apiError, setApiError] = useState("");
+  const fileRef = useRef();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get("/pais").then((res) => setPaises(res.data)).catch(() => {});
+  }, []);
+
+  const set = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (touched[field]) validarCampo(field, value);
+  };
+
+  const validarCampo = (field, value) => {
+    let error = "";
+    const v = value ?? form[field];
+    switch (field) {
+      case "nombre":
+        if (!v.trim()) error = "El nombre de usuario es obligatorio";
+        break;
+      case "mail":
+        if (!v.trim()) error = "El correo es obligatorio";
+        else if (!validarEmail(v)) error = "Formato de correo inválido";
+        break;
+      case "contrasena":
+        if (!v) error = "La contraseña es obligatoria";
+        else if (v.length < 8) error = "Mínimo 8 caracteres";
+        break;
+      case "confirmarContrasena":
+        if (!v) error = "Confirma tu contraseña";
+        else if (v !== form.contrasena) error = "Las contraseñas no coinciden";
+        break;
+      case "nombreCompleto":
+        if (!v.trim()) error = "El nombre completo es obligatorio";
+        break;
+      case "idiomaPreferido":
+        if (!v) error = "Selecciona un idioma";
+        break;
+      case "paisActual":
+        if (!v) error = "Selecciona un país";
+        break;
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validarCampo(field);
+  };
+
+  const handleFoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFotoPerfil(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setFotoPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setApiError("");
+    setSuccessMsg("");
 
+    const allFields = Object.keys(form);
+    setTouched(allFields.reduce((acc, f) => ({ ...acc, [f]: true }), {}));
+
+    let valid = true;
+    allFields.forEach((f) => { if (!validarCampo(f)) valid = false; });
+    if (!valid) return;
+
+    setLoading(true);
     try {
-      const res = await api.post("/auth/register", { nombre, email, password, fechaNacimiento });
+      const body = { ...form };
+      if (fotoPerfil) body.fotoPerfil = fotoPreview;
+      const res = await api.post("/auth/register", body);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user?.usuarioID ?? res.data.user?.id);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/home");
+      setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
+      setTimeout(() => navigate("/home"), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || "Error al registrarse");
+      setApiError(err.response?.data?.error || "Error al registrarse");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const InputField = ({ field, type, placeholder, label }) => (
+    <div className="rg-field">
+      <label className="rg-label" htmlFor={field}>{label}</label>
+      <input
+        id={field}
+        type={type}
+        placeholder={placeholder}
+        value={form[field]}
+        onChange={(e) => set(field, e.target.value)}
+        onBlur={() => handleBlur(field)}
+        className={"rg-input" + (errors[field] && touched[field] ? " rg-input--error" : "")}
+      />
+      {errors[field] && touched[field] && <p className="rg-field-error">{errors[field]}</p>}
+    </div>
+  );
+
   return (
-    <div className='registerForm'>
+    <div className="rg">
+      <form className="rg-form" onSubmit={handleSubmit} noValidate>
+        <h1 className="rg-title">Crear Cuenta</h1>
+        <p className="rg-subtitle">Completá tus datos para registrarte</p>
 
-      <form onSubmit={handleSubmit}>
+        {apiError && <p className="rg-msg rg-msg--error">{apiError}</p>}
+        {successMsg && <p className="rg-msg rg-msg--success">{successMsg}</p>}
 
-        <h1>Crear Cuenta</h1>
+        <InputField field="nombre" type="text" placeholder="usuario123" label="Nombre de usuario" />
+        <InputField field="mail" type="email" placeholder="ejemplo@correo.com" label="Correo electrónico" />
+        <InputField field="nombreCompleto" type="text" placeholder="Juan Pérez" label="Nombre completo" />
 
-        {error && <p className="error-msg">{error}</p>}
+        <div className="rg-field">
+          <label className="rg-label" htmlFor="numeroContacto">Número de contacto</label>
+          <input
+            id="numeroContacto"
+            type="tel"
+            placeholder="+54 11 1234-5678"
+            value={form.numeroContacto}
+            onChange={(e) => set("numeroContacto", e.target.value)}
+            className="rg-input"
+          />
+        </div>
 
-        <input
-          type='text'
-          placeholder='Nombre'
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-        />
+        <InputField field="contrasena" type="password" placeholder="••••••••" label="Contraseña" />
+        <InputField field="confirmarContrasena" type="password" placeholder="••••••••" label="Confirmar contraseña" />
 
-        <input
-          type='email'
-          placeholder='Email'
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div className="rg-field">
+          <label className="rg-label" htmlFor="idiomaPreferido">Idioma preferido</label>
+          <select
+            id="idiomaPreferido"
+            value={form.idiomaPreferido}
+            onChange={(e) => set("idiomaPreferido", e.target.value)}
+            onBlur={() => handleBlur("idiomaPreferido")}
+            className={"rg-input" + (errors.idiomaPreferido && touched.idiomaPreferido ? " rg-input--error" : "")}
+          >
+            <option value="">Seleccionar idioma</option>
+            {idiomas.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
+          </select>
+          {errors.idiomaPreferido && touched.idiomaPreferido && <p className="rg-field-error">{errors.idiomaPreferido}</p>}
+        </div>
 
-        <input
-          type='password'
-          placeholder='Contraseña'
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="rg-field">
+          <label className="rg-label" htmlFor="paisActual">País actual</label>
+          <select
+            id="paisActual"
+            value={form.paisActual}
+            onChange={(e) => set("paisActual", e.target.value)}
+            onBlur={() => handleBlur("paisActual")}
+            className={"rg-input" + (errors.paisActual && touched.paisActual ? " rg-input--error" : "")}
+          >
+            <option value="">Seleccionar país</option>
+            {paises.map((p) => <option key={p.ID} value={p.ID}>{p.nombre}</option>)}
+          </select>
+          {errors.paisActual && touched.paisActual && <p className="rg-field-error">{errors.paisActual}</p>}
+        </div>
 
-        <label className="birth-label">Fecha de nacimiento</label>
-        <input
-          type='date'
-          placeholder='Fecha de nacimiento'
-          value={fechaNacimiento}
-          onChange={(e) => setFechaNacimiento(e.target.value)}
-          required
-        />
+        <div className="rg-field">
+          <label className="rg-label">Foto de perfil</label>
+          <div className="rg-foto" onClick={() => fileRef.current.click()}>
+            {fotoPreview ? (
+              <img src={fotoPreview} alt="Preview" className="rg-foto-img" />
+            ) : (
+              <div className="rg-foto-placeholder">+</div>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFoto} hidden />
+        </div>
 
-        <button type="submit">Registrarse</button>
+        <button type="submit" className="rg-btn" disabled={loading}>
+          {loading ? <span className="rg-spinner" /> : "Crear Cuenta"}
+        </button>
       </form>
 
-      <p className="login-link">
-        ¿Ya tienes cuenta? <Link to="/">Inicia sesión</Link>
+      <p className="rg-login-link">
+        ¿Ya tenés cuenta? <Link to="/">Iniciar sesión</Link>
       </p>
-
     </div>
-  )
+  );
 }
 
-export default RegisterForm
+export default RegisterForm;

@@ -1,94 +1,210 @@
-.registerForm {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.rg {
   min-height: 100vh;
-  background-color: #f8f9fa;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  padding: 20px;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.registerForm > h1 {
-  display: none;
-}
-
-.registerForm form {
-  background: #ffffff;
-  width: 100%;
-  max-width: 420px;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.registerForm form h1 {
-  display: block;
-  font-size: 22px;
-  font-weight: 500;
-  color: #333;
-  margin: 0 0 5px 0;
-}
-
-.registerForm input {
+.rg-form {
+  background: #ffffff;
   width: 100%;
-  padding: 16px;
-  font-size: 15px;
-  border: 1px solid #f0f0f0;
-  background-color: #f5f6f8;
+  max-width: 440px;
+  padding: 36px 28px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.rg-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0E7C66;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.rg-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 24px;
+  line-height: 1.4;
+}
+
+.rg-field {
+  margin-bottom: 16px;
+}
+
+.rg-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.rg-input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
   border-radius: 12px;
   box-sizing: border-box;
-  color: #333;
-  transition: all 0.2s ease;
-}
-
-.registerForm input:focus {
+  color: #1f2937;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   outline: none;
-  border-color: #032554;
-  background-color: #ffffff;
+  transition: border-color 0.2s, background 0.2s;
+  appearance: none;
 }
 
-.registerForm button {
+.rg-input:focus {
+  border-color: #0E7C66;
+  background: #ffffff;
+}
+
+.rg-input::placeholder {
+  color: #9ca3af;
+}
+
+.rg-input--error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.rg-input--error:focus {
+  border-color: #dc2626;
+  background: #ffffff;
+}
+
+.rg-field-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin: 4px 0 0;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.rg-msg {
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.rg-msg--error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.rg-msg--success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.rg select.rg-input {
+  cursor: pointer;
+}
+
+.rg-foto {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px dashed #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.rg-foto:hover {
+  border-color: #0E7C66;
+}
+
+.rg-foto-img {
   width: 100%;
-  padding: 16px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rg-foto-placeholder {
+  font-size: 32px;
+  color: #9ca3af;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.rg-btn {
+  width: 100%;
+  padding: 14px;
   font-size: 15px;
   font-weight: 700;
   color: #ffffff;
-  background-color: #032554;
+  background: #0E7C66;
   border: none;
   border-radius: 30px;
   cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.2s;
-  letter-spacing: 0.5px;
+  margin-top: 8px;
+  letter-spacing: 0.3px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
 }
 
-.registerForm button:hover {
-  background-color: #021a3c;
+.rg-btn:hover {
+  background: #0B5A4C;
 }
 
-.registerForm .birth-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #7a7a7a;
-  letter-spacing: 0.5px;
-  text-align: left;
-  display: block;
+.rg-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-.registerForm .login-link {
+.rg-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: rg-spin 0.6s linear infinite;
+}
+
+@keyframes rg-spin {
+  to { transform: rotate(360deg); }
+}
+
+.rg-login-link {
   text-align: center;
-  font-size: 14px;
-  color: #555;
-  margin-top: 5px;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #6b7280;
 }
 
-.registerForm .login-link a {
-  color: #555;
+.rg-login-link a {
+  color: #0E7C66;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.rg-login-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .rg-form {
+    padding: 28px 20px;
+  }
 }

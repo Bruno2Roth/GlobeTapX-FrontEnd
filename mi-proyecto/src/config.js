@@ -1,4 +1,4 @@
-export const HOST = "A-PHZ2-LUM-06";
+export const HOST = "A-PHZ2-CIDI-17";
 export const PORT = 3000;
 
 export const API = `http://${HOST}:${PORT}/api`;

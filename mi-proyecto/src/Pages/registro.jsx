@@ -4,11 +4,7 @@ import RegisterForm from '../Componentes/RegisterForm/RegisterForm'
 function Registro() {
 
   return (
-    <div className='page'>
-
-      <RegisterForm />
-
-    </div>
+    <RegisterForm />
   )
 }
 

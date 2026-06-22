@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
+import "./index.css";
 
 export const Sidebar = () => {
   const links = [
-    { to: "/", icon: "🏠", label: "Home" },
+    { to: "/home", icon: "🏠", label: "Home" },
     { to: "/explorar", icon: "🔍", label: "Explorar" },
     { to: "/agenda", icon: "📅", label: "Agenda" },
     { to: "/favoritos", icon: "❤️", label: "Favoritos" },
@@ -10,19 +11,17 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-8 bg-white border-r shadow-sm z-50">
-      <div className="w-12 h-12 bg-blue-600 rounded-2xl mb-10 flex items-center justify-center text-white font-bold">GT</div>
-      
-      <nav className="flex flex-col gap-8">
+    <aside className="sidebar">
+      <div className="sidebar-logo">GT</div>
+      <nav className="sidebar-nav">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
-            className={({ isActive }) => 
-              `text-2xl p-2 rounded-xl transition-all ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-blue-400'}`
-            }
+            className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}
           >
-            {link.icon}
+            <span className="sidebar-icon">{link.icon}</span>
+            <span className="sidebar-label">{link.label}</span>
           </NavLink>
         ))}
       </nav>

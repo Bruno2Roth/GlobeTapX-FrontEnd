@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import '../index.css'
-import { agenda as agendaUrl, usuarioURL, paisesURL, TRADUCTOR_URL } from '../config'
+import api from '../services/api'
+import { TRADUCTOR_URL } from '../config'
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
 
 function Agenda() {
+  const userId = localStorage.getItem("userId")
   const [items, setItems] = useState({ eventos: [], feriados: [] })
   const [fecha, setFecha] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
@@ -12,16 +14,17 @@ function Agenda() {
   const mes = fecha.getMonth()
 
   useEffect(() => {
+    if (!userId) return
     const fetchData = async () => {
       try {
         const [agendaRes, userRes, paisesRes] = await Promise.all([
-          fetch(agendaUrl),
-          fetch(usuarioURL),
-          fetch(paisesURL)
+          api.get(`/agendausuario/${userId}`),
+          api.get(`/usuario/${userId}`),
+          api.get('/pais')
         ])
-        const data = await agendaRes.json()
-        const userData = await userRes.json()
-        const paises = await paisesRes.json()
+        const data = agendaRes.data
+        const userData = userRes.data
+        const paises = paisesRes.data
 
         const userPais = paises.find(p => p.ID === userData.paisActual)
         let codigoPais = 'AR'
@@ -80,7 +83,7 @@ function Agenda() {
       }
     }
     fetchData()
-  }, [])
+  }, [userId])
 
   const f = (v) => (v || '').split('T')[0]
   const prefijo = `${anio}-${String(mes + 1).padStart(2, '0')}`

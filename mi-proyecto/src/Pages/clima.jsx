@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../index.css";
-import { usuarioURL, paisesURL, climaBaseURL, TRADUCTOR_URL } from "../config";
+import api from "../services/api";
+import { TRADUCTOR_URL } from "../config";
 
 const descClima = {
   0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
@@ -13,26 +14,27 @@ const descClima = {
 };
 
 function Clima() {
+  const userId = localStorage.getItem("userId");
   const [clima, setClima] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!userId) return;
     const fetchClima = async () => {
       try {
-        const userRes = await fetch(usuarioURL);
-        const userData = await userRes.json();
+        const userRes = await api.get(`/usuario/${userId}`);
+        const userData = userRes.data;
 
-        const paisesRes = await fetch(paisesURL);
-        const paises = await paisesRes.json();
+        const paisesRes = await api.get("/pais");
+        const paises = paisesRes.data;
         const pais = paises.find((p) => p.ID === userData.paisActual);
         if (!pais) throw new Error("País no encontrado");
 
         const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(pais.nombre)}&langpair=es|en`);
         const tradData = await tradRes.json();
         const nombreEN = tradData.responseData.translatedText;
-        const climaRes = await fetch(`${climaBaseURL}${encodeURIComponent(nombreEN)}`);
-        if (!climaRes.ok) throw new Error("Error al obtener el clima");
-        const data = await climaRes.json();
+        const climaRes = await api.get(`/clima/country?country=${encodeURIComponent(nombreEN)}`);
+        const data = climaRes.data;
 
         const codigo = data.current?.weather_code ?? 0;
         const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -56,7 +58,7 @@ function Clima() {
       }
     };
     fetchClima();
-  }, []);
+  }, [userId]);
 
   if (error) return <div className="clima-error">{error}</div>;
   if (!clima) return <div className="clima-loading">Cargando clima...</div>;

@@ -1,21 +1,94 @@
 .registerForm {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.registerForm > h1 {
+  display: none;
+}
+
+.registerForm form {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 30px 20px;
+  gap: 18px;
+}
+
+.registerForm form h1 {
+  display: block;
+  font-size: 22px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 5px 0;
 }
 
 .registerForm input {
-  padding: 14px;
-  border: none;
-  border-radius: 14px;
-  background: #f1f1f1;
+  width: 100%;
+  padding: 16px;
+  font-size: 15px;
+  border: 1px solid #f0f0f0;
+  background-color: #f5f6f8;
+  border-radius: 12px;
+  box-sizing: border-box;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.registerForm input:focus {
+  outline: none;
+  border-color: #032554;
+  background-color: #ffffff;
 }
 
 .registerForm button {
-  padding: 14px;
+  width: 100%;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #032554;
   border: none;
-  border-radius: 14px;
-  background: #0d6efd;
-  color: white;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.registerForm button:hover {
+  background-color: #021a3c;
+}
+
+.registerForm .birth-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a7a7a;
+  letter-spacing: 0.5px;
+  text-align: left;
+  display: block;
+}
+
+.registerForm .login-link {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 5px;
+}
+
+.registerForm .login-link a {
+  color: #555;
+  font-weight: 600;
 }

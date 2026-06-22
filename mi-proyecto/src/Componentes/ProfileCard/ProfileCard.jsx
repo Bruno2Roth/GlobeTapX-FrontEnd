@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import './index.css'
 
 function ProfileCard() {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
     <div className='profileCard'>
@@ -10,11 +13,15 @@ function ProfileCard() {
         alt='perfil'
       />
 
-      <h2>Laura Gómez</h2>
+      <h2>{user?.nombre || "Usuario"}</h2>
 
-      <p>Viajera frecuente ✈</p>
+      <p>{user?.email || ""}</p>
 
-      <button>Editar Perfil</button>
+      <p className="role-badge">{user?.IsAdmin ? "Admin" : "Viajero"}</p>
+
+      <button onClick={() => navigate("/editarPerfil")}>
+        Editar Perfil
+      </button>
 
     </div>
   )

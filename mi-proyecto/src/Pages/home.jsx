@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../index.css";
-import { usuarioURL, paisesURL, climaBaseURL, TRADUCTOR_URL } from "../config";
+import api from "../services/api";
+import { TRADUCTOR_URL } from "../config";
 
 function Home() {
+  const userId = localStorage.getItem("userId");
   const [pais, setPais] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [hora, setHora] = useState("");
   const [heroImg, setHeroImg] = useState("");
 
   useEffect(() => {
+    if (!userId) return;
     const fetchData = async () => {
       try {
-        const userRes = await fetch(usuarioURL);
-        const usuario = await userRes.json();
+        const userRes = await api.get(`/usuario/${userId}`);
+        const usuario = userRes.data;
 
-        const paisesRes = await fetch(paisesURL);
-        const paises = await paisesRes.json();
+        const paisesRes = await api.get("/pais");
+        const paises = paisesRes.data;
 
         const p = paises.find((p) => p.ID === usuario.paisActual);
         if (p) {
@@ -27,8 +30,8 @@ function Home() {
           const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(p.nombre)}&langpair=es|en`);
           const tradData = await tradRes.json();
           const nombreEN = tradData.responseData.translatedText;
-          const climaRes = await fetch(`${climaBaseURL}${encodeURIComponent(nombreEN)}`);
-          const clima = await climaRes.json();
+          const climaRes = await api.get(`/clima/country?country=${encodeURIComponent(nombreEN)}`);
+          const clima = climaRes.data;
           if (clima.current?.time) {
             const h = clima.current.time.split("T")[1]?.slice(0, 5);
             if (h) setHora(h);
@@ -39,7 +42,7 @@ function Home() {
       }
     };
     fetchData();
-  }, []);
+  }, [userId]);
 
   return (
     <div className="home">

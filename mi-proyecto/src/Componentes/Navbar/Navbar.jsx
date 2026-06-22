@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import "./index.css";
-import { API, usuarioID } from "../../config";
+import api from "../../services/api";
 
 function Navbar() {
+  const userId = localStorage.getItem("userId");
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch(`${API}/usuario/${usuarioID}`)
-      .then((res) => res.json())
-      .then((data) => setUser(data))
+    if (!userId) return;
+    api.get(`/usuario/${userId}`)
+      .then((res) => setUser(res.data))
       .catch(() => {});
-  }, []);
+  }, [userId]);
 
   const nombre = user?.nombreCompleto || "Usuario";
-  const iniciales = nombre.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <header className="navbar">

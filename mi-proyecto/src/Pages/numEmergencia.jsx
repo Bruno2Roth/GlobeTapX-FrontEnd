@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "../index.css";
+import "../Styles/numEmergencia.css";
 import { API } from "../config";
 
 function NumEmergencia() {

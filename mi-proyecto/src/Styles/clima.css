@@ -1,0 +1,143 @@
+.weather-card h2{
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+.weather-card p{
+  opacity:.9;
+}
+
+.temp{
+  font-size:80px;
+  font-weight:bold;
+  margin:15px 0;
+}
+
+.clima-container {
+  max-width: 390px;
+  min-height: 100dvh;
+  margin: auto;
+  padding: 80px 15px 90px;
+  background: linear-gradient(180deg, #e8f5f1 0%, #f7f7f7 40%);
+}
+
+/* MAIN WEATHER */
+
+.weather-main {
+  text-align: center;
+  background: linear-gradient(135deg, #0E7C66, #0B5A4C);
+  border-radius: 24px;
+  padding: 30px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 30px rgba(14,124,102,0.25);
+}
+
+.weather-title {
+  font-size: 22px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.temp {
+  font-size: 90px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+/* CARDS */
+
+.weather-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.small-card {
+  flex: 1;
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.small-card h3 {
+  font-size: 18px;
+  color: #0b3d36;
+  margin-bottom: 5px;
+}
+
+.small-card p {
+  font-size: 13px;
+  color: #777;
+}
+
+/* PREVISIÓN */
+
+.forecast {
+  margin-top: 5px;
+}
+
+.forecast h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #0b3d36;
+  font-weight: 700;
+}
+
+.forecast-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  margin-bottom: 10px;
+  padding: 15px 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s;
+}
+
+.forecast-row:hover {
+  transform: translateX(4px);
+}
+
+.forecast-row span:first-child {
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.forecast-row span:nth-child(2) {
+  color: #0b3d36;
+  font-weight: 700;
+  font-size: 18px;
+  width: 50px;
+  text-align: right;
+}
+
+.forecast-row span:last-child {
+  color: #999;
+  width: 50px;
+  text-align: right;
+}
+
+.clima-error,
+.clima-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  max-width: 390px;
+  margin: auto;
+  font-size: 18px;
+  color: #555;
+}
+
+.clima-error {
+  color: #dc2626;
+}

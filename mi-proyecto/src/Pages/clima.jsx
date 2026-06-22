@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "../index.css";
+import "../Styles/clima.css";
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
 

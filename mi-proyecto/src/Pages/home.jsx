@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import "../index.css";
+import "../Styles/home.css";
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
 

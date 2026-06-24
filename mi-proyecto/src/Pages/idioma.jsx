@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../index.css";
+import "../Styles/idioma.css";
 
 function Idioma() {
   const [text, setText] = useState("");

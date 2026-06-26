@@ -100,7 +100,7 @@ function Agenda() {
   const esHoy = (d) => d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()
 
   const celdas = []
-  const filas = Math.ceil(celdas.length / 7);
+  const filas = 6;
   for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd cd-empty" />)
   for (let d = 1; d <= diasEnMes; d++) {
     const evs = items.eventos.filter(e => enDia(e.fecha, d))

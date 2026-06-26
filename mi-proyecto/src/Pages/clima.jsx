@@ -4,6 +4,7 @@ import '../index.css'
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 const descClima = {
   0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
@@ -88,7 +89,7 @@ function Clima() {
       <section className="weather-main">
         <h1 className="weather-title">{clima.descripcion}</h1>
         <div className="temp">{clima.temperatura}°</div>
-        {cacheTimestamp && <span className="cache-timer">⏱ Último cache: {new Date(cacheTimestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>}
+        {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </section>
 
       <section className="weather-cards">

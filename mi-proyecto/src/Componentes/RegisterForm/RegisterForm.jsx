@@ -13,6 +13,24 @@ const idiomas = [
 
 const validarEmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
 
+function InputField({ field, type, placeholder, label, value, error, touched, onChange, onBlur }) {
+  return (
+    <div className="rg-field">
+      <label className="rg-label" htmlFor={field}>{label}</label>
+      <input
+        id={field}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={"rg-input" + (error && touched ? " rg-input--error" : "")}
+      />
+      {error && touched && <p className="rg-field-error">{error}</p>}
+    </div>
+  );
+}
+
 function RegisterForm() {
   const [form, setForm] = useState({
     nombre: "",
@@ -32,11 +50,12 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [apiError, setApiError] = useState("");
+  const [paisesError, setPaisesError] = useState("");
   const fileRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get("/pais").then((res) => setPaises(res.data)).catch(() => {});
+    api.get("/pais").then((res) => setPaises(res.data)).catch(() => setPaisesError("Error al cargar países"));
   }, []);
 
   const set = (field, value) => {
@@ -65,6 +84,9 @@ function RegisterForm() {
         break;
       case "nombreCompleto":
         if (!v.trim()) error = "El nombre completo es obligatorio";
+        break;
+      case "numeroContacto":
+        if (v && !/^[\d\s\-+()]{7,20}$/.test(v)) error = "Formato de número inválido";
         break;
       case "idiomaPreferido":
         if (!v) error = "Selecciona un idioma";
@@ -105,7 +127,7 @@ function RegisterForm() {
 
     setLoading(true);
     try {
-      const body = { ...form };
+      const body = { ...form, IsAdmin: false };
       if (fotoPerfil) body.fotoPerfil = fotoPreview;
       const res = await api.post("/auth/register", body);
       localStorage.setItem("token", res.data.token);
@@ -120,22 +142,6 @@ function RegisterForm() {
     }
   };
 
-  const InputField = ({ field, type, placeholder, label }) => (
-    <div className="rg-field">
-      <label className="rg-label" htmlFor={field}>{label}</label>
-      <input
-        id={field}
-        type={type}
-        placeholder={placeholder}
-        value={form[field]}
-        onChange={(e) => set(field, e.target.value)}
-        onBlur={() => handleBlur(field)}
-        className={"rg-input" + (errors[field] && touched[field] ? " rg-input--error" : "")}
-      />
-      {errors[field] && touched[field] && <p className="rg-field-error">{errors[field]}</p>}
-    </div>
-  );
-
   return (
     <div className="rg">
       <form className="rg-form" onSubmit={handleSubmit} noValidate>
@@ -145,24 +151,14 @@ function RegisterForm() {
         {apiError && <p className="rg-msg rg-msg--error">{apiError}</p>}
         {successMsg && <p className="rg-msg rg-msg--success">{successMsg}</p>}
 
-        <InputField field="nombre" type="text" placeholder="usuario123" label="Nombre de usuario" />
-        <InputField field="mail" type="email" placeholder="ejemplo@correo.com" label="Correo electrónico" />
-        <InputField field="nombreCompleto" type="text" placeholder="Juan Pérez" label="Nombre completo" />
+        <InputField field="nombre" type="text" placeholder="usuario123" label="Nombre de usuario" value={form.nombre} error={errors.nombre} touched={touched.nombre} onChange={(e) => set("nombre", e.target.value)} onBlur={() => handleBlur("nombre")} />
+        <InputField field="mail" type="email" placeholder="ejemplo@correo.com" label="Correo electrónico" value={form.mail} error={errors.mail} touched={touched.mail} onChange={(e) => set("mail", e.target.value)} onBlur={() => handleBlur("mail")} />
+        <InputField field="nombreCompleto" type="text" placeholder="Juan Pérez" label="Nombre completo" value={form.nombreCompleto} error={errors.nombreCompleto} touched={touched.nombreCompleto} onChange={(e) => set("nombreCompleto", e.target.value)} onBlur={() => handleBlur("nombreCompleto")} />
 
-        <div className="rg-field">
-          <label className="rg-label" htmlFor="numeroContacto">Número de contacto</label>
-          <input
-            id="numeroContacto"
-            type="tel"
-            placeholder="+54 11 1234-5678"
-            value={form.numeroContacto}
-            onChange={(e) => set("numeroContacto", e.target.value)}
-            className="rg-input"
-          />
-        </div>
+        <InputField field="numeroContacto" type="tel" placeholder="+54 11 1234-5678" label="Número de contacto" value={form.numeroContacto} error={errors.numeroContacto} touched={touched.numeroContacto} onChange={(e) => set("numeroContacto", e.target.value)} onBlur={() => handleBlur("numeroContacto")} />
 
-        <InputField field="contrasena" type="password" placeholder="••••••••" label="Contraseña" />
-        <InputField field="confirmarContrasena" type="password" placeholder="••••••••" label="Confirmar contraseña" />
+        <InputField field="contrasena" type="password" placeholder="••••••••" label="Contraseña" value={form.contrasena} error={errors.contrasena} touched={touched.contrasena} onChange={(e) => set("contrasena", e.target.value)} onBlur={() => handleBlur("contrasena")} />
+        <InputField field="confirmarContrasena" type="password" placeholder="••••••••" label="Confirmar contraseña" value={form.confirmarContrasena} error={errors.confirmarContrasena} touched={touched.confirmarContrasena} onChange={(e) => set("confirmarContrasena", e.target.value)} onBlur={() => handleBlur("confirmarContrasena")} />
 
         <div className="rg-field">
           <label className="rg-label" htmlFor="idiomaPreferido">Idioma preferido</label>
@@ -192,6 +188,7 @@ function RegisterForm() {
             {paises.map((p) => <option key={p.ID} value={p.ID}>{p.nombre}</option>)}
           </select>
           {errors.paisActual && touched.paisActual && <p className="rg-field-error">{errors.paisActual}</p>}
+          {paisesError && <p className="rg-field-error">{paisesError}</p>}
         </div>
 
         <div className="rg-field">

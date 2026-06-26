@@ -83,6 +83,28 @@
   border-color: #ffb272;
 }
 
+.profile-form-select {
+  height: 46px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  padding: 0 15px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.profile-form-select:focus {
+  border-color: #ffb272;
+}
+
+.profile-input-readonly {
+  background: #f5f5f5;
+  color: #888;
+  cursor: not-allowed;
+}
+
 .password-box {
   position: relative;
 }
@@ -128,8 +150,13 @@
   gap: 8px;
   color: #d84d4d;
   text-decoration: none;
-  margin-top: 22px;
+  margin: 22px auto 0;
   font-size: 15px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: fit-content;
+  font-family: inherit;
 }
 
 .preferences {

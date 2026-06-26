@@ -1,132 +1,127 @@
-import React, { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "../Styles/cambio.css";
 import '../index.css'
-import { API } from "../config";
 
+const monedas = [
+  { code: "USD", name: "Dólar Estadounidense", flag: "🇺🇸" },
+  { code: "EUR", name: "Euro", flag: "🇪🇺" },
+  { code: "ARS", name: "Peso Argentino", flag: "🇦🇷" },
+  { code: "BRL", name: "Real Brasileño", flag: "🇧🇷" },
+  { code: "GBP", name: "Libra Esterlina", flag: "🇬🇧" },
+  { code: "CLP", name: "Peso Chileno", flag: "🇨🇱" },
+  { code: "CNY", name: "Yuan Chino", flag: "🇨🇳" },
+  { code: "KRW", name: "Won Surcoreano", flag: "🇰🇷" },
+  { code: "JPY", name: "Yen Japonés", flag: "🇯🇵" },
+  { code: "MXN", name: "Peso Mexicano", flag: "🇲🇽" },
+  { code: "COP", name: "Peso Colombiano", flag: "🇨🇴" },
+  { code: "PEN", name: "Sol Peruano", flag: "🇵🇪" },
+  { code: "AUD", name: "Dólar Australiano", flag: "🇦🇺" },
+  { code: "CAD", name: "Dólar Canadiense", flag: "🇨🇦" },
+  { code: "CHF", name: "Franco Suizo", flag: "🇨🇭" },
+  { code: "ILS", name: "Shekel Israeli", flag: "🇮🇱" },
+];
 
 function Cambio() {
   const [monto, setMonto] = useState(1);
   const [origen, setOrigen] = useState("USD");
-  const [destino, setDestino] = useState("EUR");
+  const [destino, setDestino] = useState("ARS");
+  const [resultado, setResultado] = useState(null);
+  const [tasa, setTasa] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
-  const [resultado, setResultado] = useState("");
-  const [cotizacion, setCotizacion] = useState("");
-
-  const convertir = async () => {
+  const convertir = useCallback(async () => {
+    if (!monto || monto <= 0) return;
+    setCargando(true);
     try {
-      const response = await fetch(API);
-
-      const data = await response.json();
-
-      console.log(data);
-
-      setResultado(data.resultado);
-      setCotizacion(data.cotizacion);
-    } catch (error) {
-      console.log(error);
+      const res = await fetch(`https://open.er-api.com/v6/latest/${origen}`);
+      const data = await res.json();
+      if (data.result === "success") {
+        const rate = data.rates[destino];
+        setTasa(rate);
+        setResultado((monto * rate).toFixed(2));
+      }
+    } catch {
+      console.error("Error al obtener cotización");
+    } finally {
+      setCargando(false);
     }
-  };
+  }, [monto, origen, destino]);
 
-  const intercambiarMonedas = () => {
-    const monedaOrigen = origen;
+  useEffect(() => {
+    convertir();
+  }, [convertir]);
 
+  const intercambiar = () => {
     setOrigen(destino);
-    setDestino(monedaOrigen);
+    setDestino(origen);
   };
 
   return (
     <div className="cambio-container">
-
-      <div className="cambio-title-card">
-        <span className="badge">💱 Conversor</span>
-
-        <h2>Cambio de Moneda</h2>
-
-        <p>Convertí valores entre distintas monedas del mundo.</p>
+      <div className="cambio-hero">
+        <span className="cambio-badge">💱 Conversor</span>
+        <h1>Cambio de Moneda</h1>
+        <p>Convertí valores entre distintas monedas del mundo al instante.</p>
       </div>
 
       <div className="cambio-card">
-
-        <div className="moneda-box">
-
-          <span>Moneda origen</span>
-
+        <div className="cambio-section">
+          <label className="cambio-label">Monto</label>
           <input
             type="number"
+            className="cambio-monto"
             value={monto}
             onChange={(e) => setMonto(e.target.value)}
+            min="0"
+            step="any"
           />
-
-          <select
-            value={origen}
-            onChange={(e) => setOrigen(e.target.value)}
-          >
-            <option value="ARS">Peso Argentino (ARS)</option>
-            <option value="AUD">Dólar Australiano (AUD)</option>
-            <option value="USD">Dólar Estadounidense (USD)</option>
-            <option value="BRL">Real Brasileño (BRL)</option>
-            <option value="GBP">Libra Esterlina (GBP)</option>
-            <option value="EUR">Euro (EUR)</option>
-            <option value="ILS">Shekel Israelí (ILS)</option>
-            <option value="KRW">Won Surcoreano (KRW)</option>
-            <option value="CNY">Yuan Chino (CNY)</option>
-            <option value="CLP">Peso Chileno (CLP)</option>
-          </select>
-
         </div>
 
-        <button
-          className="swap-btn"
-          onClick={intercambiarMonedas}
-        >
-          ⇅
-        </button>
-
-        <div className="moneda-box">
-
-          <span>Moneda destino</span>
-
-          <div className="resultado-box">
-            {resultado || "0.00"}
+        <div className="cambio-pares">
+          <div className="cambio-select-group">
+            <label className="cambio-label">De</label>
+            <select value={origen} onChange={(e) => setOrigen(e.target.value)} className="cambio-select">
+              {monedas.map((m) => (
+                <option key={m.code} value={m.code}>{m.flag} {m.code} — {m.name}</option>
+              ))}
+            </select>
           </div>
 
-          <select
-            value={destino}
-            onChange={(e) => setDestino(e.target.value)}
-          >
-            <option value="ARS">Peso Argentino (ARS)</option>
-            <option value="AUD">Dólar Australiano (AUD)</option>
-            <option value="USD">Dólar Estadounidense (USD)</option>
-            <option value="BRL">Real Brasileño (BRL)</option>
-            <option value="GBP">Libra Esterlina (GBP)</option>
-            <option value="EUR">Euro (EUR)</option>
-            <option value="ILS">Shekel Israelí (ILS)</option>
-            <option value="KRW">Won Surcoreano (KRW)</option>
-            <option value="CNY">Yuan Chino (CNY)</option>
-            <option value="CLP">Peso Chileno (CLP)</option>
-          </select>
+          <button className="cambio-swap" onClick={intercambiar} aria-label="Intercambiar monedas">⇄</button>
 
+          <div className="cambio-select-group">
+            <label className="cambio-label">A</label>
+            <select value={destino} onChange={(e) => setDestino(e.target.value)} className="cambio-select">
+              {monedas.map((m) => (
+                <option key={m.code} value={m.code}>{m.flag} {m.code} — {m.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
+        <div className="cambio-resultado">
+          {cargando ? (
+            <span className="cambio-cargando">Calculando...</span>
+          ) : resultado !== null ? (
+            <>
+              <span className="cambio-resultado-monto">{resultado}</span>
+              <span className="cambio-resultado-code">{destino}</span>
+            </>
+          ) : (
+            <span className="cambio-resultado-placeholder">0.00</span>
+          )}
+        </div>
+
+        {tasa && (
+          <div className="cambio-tasa">
+            1 {origen} = {tasa} {destino}
+          </div>
+        )}
       </div>
 
-      <div className="cotizacion-card">
-
-        <p>Cotización actual</p>
-
-        <h3>
-          1 {origen} = {cotizacion || "-"} {destino}
-        </h3>
-
+      <div className="cambio-footer">
+        <p>Datos provistos por <strong>ExchangeRate-API</strong></p>
       </div>
-
-      <button
-        className="convertir-btn"
-        onClick={convertir}
-      >
-        Convertir Moneda
-      </button>
-
     </div>
   );
 }

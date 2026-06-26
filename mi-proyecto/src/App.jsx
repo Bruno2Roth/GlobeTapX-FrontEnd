@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 
-import Navbar from "./Componentes/Navbar/Navbar";
+import TopBar from "./Componentes/TopBar/TopBar";
 import Footer from "./Componentes/Footer/Footer";
 
 import Login from "./Pages/login";
@@ -35,7 +35,7 @@ function AppContent() {
 
   return (
     <>
-      {mostrarLayout && <Navbar />}
+      {mostrarLayout && <><TopBar /><Footer /></>}
 
       <Routes>
         <Route path="/" element={<Login />} />
@@ -59,8 +59,6 @@ function AppContent() {
 
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-
-      {mostrarLayout && <Footer />}
     </>
   );
 }

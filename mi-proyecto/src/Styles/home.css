@@ -5,28 +5,29 @@
   max-width: 420px;
   margin: 0 auto;
   background: #ffffff;
-  min-height: 100vh;
-  padding: 85px 20px 90px;
+  height: 100dvh;
+  overflow: hidden;
+  padding: 70px 20px 20px;
   text-align: left;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .home .hero {
-  height: 250px;
+  height: 180px;
   background: linear-gradient(to bottom, #cfd3d8, #4b5563);
   border-radius: 0 0 20px 20px;
   display: flex;
   align-items: flex-end;
-  padding: 20px;
-  margin: 0 0 20px;
+  padding: 16px 20px;
+  margin: 0 0 14px;
 }
 
 .home .hero-content h2 {
   color: #ffffff;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   text-align: left;
   letter-spacing: -0.2px;
   line-height: 1.3;

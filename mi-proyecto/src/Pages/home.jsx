@@ -1,37 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 function Home() {
   const userId = localStorage.getItem("userId");
-  const [pais, setPais] = useState("");
-  const [ciudad, setCiudad] = useState("");
-  const [hora, setHora] = useState("");
-  const [heroImg, setHeroImg] = useState("");
-  const [cacheTimestamp, setCacheTimestamp] = useState(null);
+
+  const cacheInicial = !userId ? null : obtenerCache(`home_cache_${userId}`);
+
+  const [pais, setPais] = useState(cacheInicial?.data?.pais ?? "");
+  const [ciudad, setCiudad] = useState(cacheInicial?.data?.ciudad ?? "");
+  const [hora, setHora] = useState(cacheInicial?.data?.hora ?? "");
+  const [heroImg, setHeroImg] = useState(cacheInicial?.data?.heroImg ?? "");
+  const [cacheTimestamp, setCacheTimestamp] = useState(cacheInicial?.timestamp ?? null);
+  const skipFetch = useRef(cacheInicial);
 
   useEffect(() => {
     if (!userId) return;
+    if (skipFetch.current) return;
+
     const fetchData = async () => {
       try {
         const userRes = await api.get(`/usuario/${userId}`);
         const usuario = userRes.data;
         const paisActual = usuario.paisActual;
-
-        const cacheKey = `home_cache_${userId}`;
-        const cache = obtenerCache(cacheKey);
-        if (cache && cache.data.paisActual === paisActual) {
-          setPais(cache.data.pais);
-          setCiudad(cache.data.ciudad);
-          setHora(cache.data.hora);
-          setHeroImg(cache.data.heroImg);
-          setCacheTimestamp(cache.timestamp);
-          return;
-        }
 
         const paisesRes = await api.get("/pais");
         const paises = paisesRes.data;
@@ -54,7 +50,7 @@ function Home() {
           }
           setHora(horaLocal);
           const homeData = { pais: p.nombre, ciudad: p.nombre, hora: horaLocal, heroImg: p.imagen || "", paisActual };
-          guardarCache(cacheKey, homeData);
+          guardarCache(`home_cache_${userId}`, homeData);
           setCacheTimestamp(Date.now());
         }
       } catch (error) {
@@ -94,7 +90,7 @@ function Home() {
         <p className="time">
           {ciudad || "..."} · {hora || "..."} LOCAL
         </p>
-        {cacheTimestamp && <p className="cache-timer">⏱ Último cache: {new Date(cacheTimestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>}
+        {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </div>
 
       <div className="cards">

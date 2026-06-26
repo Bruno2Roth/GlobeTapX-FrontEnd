@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import "../Styles/numEmergencia.css";
 import api from "../services/api";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 function NumEmergencia() {
     const [pais, setPais] = useState("");
@@ -98,7 +99,7 @@ function NumEmergencia() {
                 <span className="badge">🚨 Asistencia</span>
                 <h1>Números de Emergencia</h1>
                 <p>Información importante para viajeros</p>
-                {cacheTimestamp && <span className="cache-timer">⏱ Último cache: {new Date(cacheTimestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>}
+                {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
             </div>
 
             <div className="country-card">

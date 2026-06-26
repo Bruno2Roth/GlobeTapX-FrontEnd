@@ -108,6 +108,21 @@ body {
   flex-direction: column;
 }
 
+.cache-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #667085;
+  background: #f0f4f8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-top: 8px;
+  letter-spacing: 0.2px;
+  width: fit-content;
+}
+
 h1,
 h2 {
   font-family: var(--heading);
@@ -310,7 +325,7 @@ body {
   max-width: 420px;
   margin: 0 auto;
   min-height: 100vh;
-  padding: 85px 20px 90px;
+  padding: 70px 20px 20px;
   background: #ffffff;
 }
 

@@ -1,114 +1,187 @@
-/* =======================
-   NÚMEROS DE EMERGENCIA 
-======================= */
-body{
-    background:#F4F5F7;
-    font-family:'Inter',sans-serif;
+.emergencia-container {
+  max-width: 420px;
+  margin: auto;
+  padding: 70px 16px 90px;
+  min-height: 100dvh;
+  background: #f8fafb;
 }
 
-.emergencia-container{
-    max-width:420px;
-    margin:auto;
-    padding:20px;
+/* ---------- Header ---------- */
+.header-card {
+  background: linear-gradient(135deg, #0E7C66, #0B5A4C);
+  border-radius: 20px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
 }
 
-.header-card{
-    background:white;
-    border-radius:24px;
-    padding:24px;
-    margin-bottom:18px;
-    box-shadow:0 4px 20px rgba(0,0,0,.05);
+.header-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 180px;
+  height: 180px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
 }
 
-.badge{
-    background:#E8F5F1;
-    color:#0E7C66;
-    padding:6px 12px;
-    border-radius:20px;
-    font-size:12px;
-    font-weight:600;
+.header-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 140px;
+  height: 140px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
 }
 
-.header-card h1{
-    margin-top:15px;
-    font-size:28px;
-    font-weight:700;
-    color:#1D2939;
+.badge {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
 }
 
-.header-card p{
-    margin-top:8px;
-    color:#667085;
+.header-card h1 {
+  margin: 8px 0 2px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  z-index: 1;
 }
 
-.country-card{
-    background:linear-gradient(135deg,#0E7C66,#0B5A4C);
-    color:white;
-    padding:24px;
-    border-radius:24px;
-    margin-bottom:20px;
+.header-card p {
+  color: #c8f0e8;
+  font-size: 13px;
+  margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
-.country-card h2{
-    font-size:24px;
-    margin-bottom:5px;
+.header-card .cache-timer {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a7e0d5;
+  position: relative;
+  z-index: 1;
 }
 
-.cards-grid{
-    display:flex;
-    flex-direction:column;
-    gap:15px;
+/* ---------- Country card ---------- */
+.country-card {
+  background: #fff;
+  color: #1D2939;
+  padding: 16px 20px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.service-card{
-    background:white;
-    border-radius:22px;
-    padding:20px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-    box-shadow:0 4px 15px rgba(0,0,0,.05);
-    transition:.3s;
+.country-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: #1e293b;
 }
 
-.service-card:hover{
-    transform:translateY(-2px);
+.country-card p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 2px 0 0;
 }
 
-.icon{
-    width:55px;
-    height:55px;
-    border-radius:15px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:25px;
-    background:#F5F7FA;
+/* ---------- Service cards ---------- */
+.cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.service-card h3{
-    color:#1D2939;
-    margin-bottom:5px;
+.service-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.service-card p{
-    font-size:24px;
-    font-weight:700;
+.service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
-.ambulance{
-    border-left:6px solid #0E7C66;
+.icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
-.fire{
-    border-left:6px solid #FF8A3D;
+.ambulance .icon { background: #f0fdfa; }
+.fire .icon { background: #fff7ed; }
+.police .icon { background: #eff6ff; }
+.emergency .icon { background: #fef2f2; }
+
+.service-card h3 {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 2px;
 }
 
-.police{
-    border-left:6px solid #2D6CDF;
+.service-card p {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: 0.5px;
 }
 
-.emergency{
-    border-left:6px solid #1D2939;
-    background:#ffe6e6;
+/* Accent stripes */
+.ambulance { border-left: 4px solid #0E7C66; }
+.fire { border-left: 4px solid #f97316; }
+.police { border-left: 4px solid #3b82f6; }
+.emergency { border-left: 4px solid #ef4444; }
+
+.call-indicator {
+  margin-left: auto;
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  transition: background 0.2s;
+}
+
+.service-card:hover .call-indicator {
+  background: #e2e8f0;
+}
+
+.sin-numero {
+  opacity: 0.45;
 }

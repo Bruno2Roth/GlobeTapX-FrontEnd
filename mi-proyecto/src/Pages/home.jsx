@@ -4,6 +4,7 @@ import "../Styles/home.css";
 import '../index.css'
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
+import { obtenerCache, guardarCache } from "../helpers/cache";
 
 function Home() {
   const userId = localStorage.getItem("userId");
@@ -11,6 +12,7 @@ function Home() {
   const [ciudad, setCiudad] = useState("");
   const [hora, setHora] = useState("");
   const [heroImg, setHeroImg] = useState("");
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -18,11 +20,23 @@ function Home() {
       try {
         const userRes = await api.get(`/usuario/${userId}`);
         const usuario = userRes.data;
+        const paisActual = usuario.paisActual;
+
+        const cacheKey = `home_cache_${userId}`;
+        const cache = obtenerCache(cacheKey);
+        if (cache && cache.data.paisActual === paisActual) {
+          setPais(cache.data.pais);
+          setCiudad(cache.data.ciudad);
+          setHora(cache.data.hora);
+          setHeroImg(cache.data.heroImg);
+          setCacheTimestamp(cache.timestamp);
+          return;
+        }
 
         const paisesRes = await api.get("/pais");
         const paises = paisesRes.data;
 
-        const p = paises.find((p) => p.ID === usuario.paisActual);
+        const p = paises.find((p) => p.ID === paisActual);
         if (p) {
           setPais(p.nombre);
           setHeroImg(p.imagen || "");
@@ -33,10 +47,15 @@ function Home() {
           const nombreEN = tradData.responseData.translatedText;
           const climaRes = await api.get(`/clima/country?country=${encodeURIComponent(nombreEN)}`);
           const clima = climaRes.data;
+          let horaLocal = ""
           if (clima.current?.time) {
             const h = clima.current.time.split("T")[1]?.slice(0, 5);
-            if (h) setHora(h);
+            if (h) horaLocal = h;
           }
+          setHora(horaLocal);
+          const homeData = { pais: p.nombre, ciudad: p.nombre, hora: horaLocal, heroImg: p.imagen || "", paisActual };
+          guardarCache(cacheKey, homeData);
+          setCacheTimestamp(Date.now());
         }
       } catch (error) {
         console.log(error);
@@ -75,6 +94,7 @@ function Home() {
         <p className="time">
           {ciudad || "..."} · {hora || "..."} LOCAL
         </p>
+        {cacheTimestamp && <p className="cache-timer">⏱ Último cache: {new Date(cacheTimestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>}
       </div>
 
       <div className="cards">

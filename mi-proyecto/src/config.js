@@ -5,4 +5,3 @@ export const API = `http://${HOST}:${PORT}/api`;
 export const paisesURL = `${API}/pais`;
 export const climaBaseURL = `${API}/clima/country?country=`;
 export const TRADUCTOR_URL = "https://api.mymemory.translated.net/get";
-

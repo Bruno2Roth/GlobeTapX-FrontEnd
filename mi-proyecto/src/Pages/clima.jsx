@@ -3,6 +3,7 @@ import "../Styles/clima.css";
 import '../index.css'
 import api from "../services/api";
 import { TRADUCTOR_URL } from "../config";
+import { obtenerCache, guardarCache } from "../helpers/cache";
 
 const descClima = {
   0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
@@ -14,13 +15,24 @@ const descClima = {
   95: "Tormenta", 96: "Tormenta con granizo", 99: "Tormenta con granizo intenso",
 };
 
+const CACHE_KEY = "clima_cache";
+
 function Clima() {
   const userId = localStorage.getItem("userId");
   const [clima, setClima] = useState(null);
   const [error, setError] = useState("");
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
+
+    const cache = obtenerCache(CACHE_KEY);
+    if (cache) {
+      setClima(cache.data);
+      setCacheTimestamp(cache.timestamp);
+      return;
+    }
+
     const fetchClima = async () => {
       try {
         const userRes = await api.get(`/usuario/${userId}`);
@@ -46,13 +58,17 @@ function Clima() {
           codigo: data.daily.weather_code?.[i] ?? 0,
         }));
 
-        setClima({
+        const climaData = {
           temperatura: Math.round(data.current.temperature_2m),
           descripcion: descClima[codigo] || "Desconocido",
           viento: Math.round(data.current.wind_speed_10m),
           windDirection: data.current.wind_direction_10m ?? 0,
           pronostico,
-        });
+        };
+
+        guardarCache(CACHE_KEY, climaData);
+        setCacheTimestamp(Date.now());
+        setClima(climaData);
       } catch (err) {
         console.error(err);
         setError("No se pudo cargar el clima");
@@ -72,6 +88,7 @@ function Clima() {
       <section className="weather-main">
         <h1 className="weather-title">{clima.descripcion}</h1>
         <div className="temp">{clima.temperatura}°</div>
+        {cacheTimestamp && <span className="cache-timer">⏱ Último cache: {new Date(cacheTimestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>}
       </section>
 
       <section className="weather-cards">

@@ -1,98 +1,64 @@
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+.page-header {
   width: 100%;
-  max-width: 420px;
-  height: 65px;
-  background: #ffffff;
+  max-width: 420px; /* más ancho */
+  margin: 0 auto;
+  padding: 16px 20px;
+
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0 18px;
-  border-bottom: 1px solid #e6e6e6;
-  border-radius: 0 0 18px 18px;
-  z-index: 1000;
+  align-items: flex-start;
+
+  background: #fff;
   box-sizing: border-box;
 }
 
-.nav-left {
+.page-header-left {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
 }
 
-.menu-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  padding: 0;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.logo h2 {
-  font-size: 18px;
-  color: #0E7C66;
-  font-weight: 700;
+.page-header-title {
   margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-.nav-right {
+.page-header-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.page-header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.icon-btn {
-  background: none;
+.page-header-btn {
+  width: 40px;
+  height: 40px;
   border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-  color: #667085;
+  border-radius: 50%;
+  background: transparent;
   display: flex;
   align-items: center;
-  transition: 0.2s;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 22px;
+  color: #1f2937;
 }
 
-.icon-btn:hover {
-  color: #0E7C66;
-}
-
-.profile {
+.page-header-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #e8f5f1;
-}
-
-@media (max-width: 1125px) {
-  .navbar {
-    max-width: 100%;
-  }
-}
-
-@media (min-width: 1126px) {
-  .navbar {
-    left: calc((100vw - 420px) / 2);
-    transform: none;
-  }
+  background: #0f766e;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }

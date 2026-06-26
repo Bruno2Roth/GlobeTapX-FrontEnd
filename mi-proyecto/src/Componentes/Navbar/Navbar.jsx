@@ -1,40 +1,64 @@
-import { useEffect, useState } from "react";
 import "./index.css";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FiBell } from "react-icons/fi";
 import api from "../../services/api";
 
-function Navbar() {
-  const userId = localStorage.getItem("userId");
-  const [user, setUser] = useState(null);
+
+function Header() {
+  const [usuario, setUsuario] = useState(null);
+
 
   useEffect(() => {
-    if (!userId) return;
-    api.get(`/usuario/${userId}`)
-      .then((res) => setUser(res.data))
-      .catch(() => {});
-  }, [userId]);
+    const userId = localStorage.getItem("userId");
 
-  const nombre = user?.nombreCompleto || "Usuario";
+
+    if (!userId) return;
+
+
+    const obtenerUsuario = async () => {
+      try {
+        const res = await api.get(`/usuario/${userId}`);
+        setUsuario(res.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+
+    obtenerUsuario();
+  }, []);
+
 
   return (
-    <header className="navbar">
-      <div className="nav-left">
-        <button className="menu-btn">☰</button>
-        <div className="logo">
-          <img src="/logoPestaña.png" alt="Logo" />
-          <h2>GlobeTapX</h2>
-        </div>
+    <header className="page-header">
+      <div className="page-header-left">
+        <h1 className="page-header-title">
+          Hola, {usuario?.nombre || usuario?.Nombre || "Usuario"} 👋
+        </h1>
+
+
+        <p className="page-header-subtitle">
+          Descubrí tu próximo destino
+        </p>
       </div>
 
-      <div className="nav-right">
-        <button className="icon-btn">🔔</button>
-        <img
-          className="profile"
-          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=0E7C66&color=fff&size=40`}
-          alt={nombre}
-        />
+
+      <div className="page-header-right">
+        <button className="page-header-btn">
+          <FiBell />
+        </button>
+
+
+        <Link to="/perfil" className="page-header-avatar">
+          {(usuario?.nombre || usuario?.Nombre || "U")
+            .charAt(0)
+            .toUpperCase()}
+        </Link>
       </div>
     </header>
   );
 }
 
-export default Navbar;
+
+export default Header;

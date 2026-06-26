@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import '../Styles/agenda.css'
+import '../index.css'
 import api from '../services/api'
 import { TRADUCTOR_URL } from '../config'
 

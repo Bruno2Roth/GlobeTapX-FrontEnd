@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../Styles/cambio.css";
+import '../index.css'
 import { API } from "../config";
 
 

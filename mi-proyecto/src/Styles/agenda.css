@@ -1,28 +1,27 @@
-/* =======================
-   AGENDA
-======================= */
-
-/* Agenda */
 .agenda{
   max-width:390px;
   margin:auto;
-  height:100dvh;
-  overflow:hidden;
+  padding:20px;
   display:flex;
   flex-direction:column;
-  padding:80px 20px 80px;
+  gap:18px;
 }
 
 .agenda .h-card{
-  flex-shrink:0;
-  background:linear-gradient(135deg,#0E7C66,#0B5A4C);
-  color:white;
-  padding:20px 24px;
-  border-radius:20px;
-  margin-bottom:16px;
-  box-shadow:0 6px 30px rgba(14,124,102,0.3);
-  position:relative;
-  overflow:hidden;
+    background:linear-gradient(135deg,#0E7C66,#0B5A4C);
+    color:white;
+    padding:22px 24px;
+    border-radius:22px;
+    margin-bottom:20px;
+    box-shadow:0 6px 25px rgba(14,124,102,.25);
+
+    height:160px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+    position:relative;
+    overflow:hidden;
 }
 
 .agenda .h-card::before{
@@ -76,15 +75,13 @@
 }
 
 .agenda .cal{
-  flex:1;
-  min-height:0;
+  border-radius:22px;
   display:flex;
   flex-direction:column;
   background:white;
-  border-radius:20px;
-  padding:16px 20px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.06);
-  overflow:hidden;
+  padding:18px;
+  box-shadow:0 8px 25px rgba(0,0,0,.08);    
+  min-height:470px;
 }
 
 .agenda .cal-h{
@@ -150,37 +147,30 @@
 }
 
 .agenda .cal-grid{
-  flex:1;
-  min-height:0;
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  grid-template-rows:repeat(6,1fr);
-  gap:4px;
+  grid-template-rows:repeat(6,52px);
+  gap:6px;
 }
 
 .agenda .cd{
-  border-radius:10px;
-  background:#f8f9fc;
-  padding:4px 3px;
+  background:#f5f7fb;
+  border-radius:12px;
   display:flex;
   flex-direction:column;
-  align-items:stretch;
-  gap:2px;
+  align-items:center;
+  justify-content:flex-start;
+  padding:5px;
   cursor:pointer;
-  transition:0.15s;
-  border:1.5px solid transparent;
-  box-sizing:border-box;
-  overflow:hidden;
-  min-height:0;
+  transition:.2s;
 }
 
 .agenda .cd-empty{
-  background:#f3f5f8;
+  background:#eef2f6;
 }
 
 .agenda .cd:hover{
-  background:#f0fdfa;
-  border-color:#0E7C66;
+  background:#0E7C66;
 }
 
 .agenda .cd.feriado{
@@ -192,12 +182,27 @@
 }
 
 .agenda .cd .num{
-  font-size:12px;
+  font-size:18px;
   font-weight:700;
-  color:#1D2939;
+  color:#16325c;
   text-align:center;
   flex-shrink:0;
   line-height:1.2;
+}
+
+.agenda .cd.hoy{
+  background:#0E7C66;
+}
+
+.agenda .cd.hoy .num{
+  color:white;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:auto;
 }
 
 .agenda .cd .tags{
@@ -288,15 +293,16 @@
 }
 
 .agenda .vacio{
-  flex:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#9ca3af;
+  text-align: center;
+  color:#94A3B8;
+  padding: 40px 20px;
   font-size:15px;
   background:white;
-  border-radius:20px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+  border-radius:22px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
 @media(max-width:360px){
@@ -306,15 +312,7 @@
     height:100dvh;
     overflow:hidden;
   }
-  .agenda .h-card{
-    padding:16px 18px;
-    border-radius:16px;
-    margin-bottom:12px;
-  }
-  .agenda .cal{
-    padding:12px 14px;
-    border-radius:16px;
-  }
+
   .agenda .cal-h{
     margin-bottom:8px;
   }
@@ -337,17 +335,7 @@
     font-size:9px;
     padding:3px 0;
   }
-  .agenda .cal-grid{
-    gap:2px;
-  }
-  .agenda .cd{
-    padding:3px 2px;
-    border-radius:6px;
-    gap:1px;
-  }
-  .agenda .cd .num{
-    font-size:11px;
-  }
+
   .agenda .cd .tag{
     font-size:7px;
     padding:1px 3px;
@@ -481,12 +469,7 @@
     height:100dvh;
     overflow:hidden;
   }
-  .agenda .h-card{
-    flex-shrink:0;
-    border-radius:24px;
-    padding:28px 32px;
-    margin-bottom:20px;
-  }
+
   .agenda .cal{
     padding:22px 28px;
     border-radius:24px;
@@ -514,18 +497,7 @@
     font-size:12px;
     padding:6px 0;
   }
-  .agenda .cal-grid{
-    gap:5px;
-  }
-  .agenda .cd{
-    border-radius:12px;
-    padding:6px 5px;
-    gap:3px;
-    border-width:2px;
-  }
-  .agenda .cd .num{
-    font-size:16px;
-  }
+
   .agenda .cd .tag{
     font-size:10px;
     padding:2px 6px;
@@ -540,4 +512,38 @@
     height:28px;
     font-size:15px;
   }
+}
+
+.lista-eventos{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.item-evento{
+    background:white;
+    padding:16px;
+    border-radius:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+    border-left:5px solid #0E7C66;
+}
+
+.item-feriado{
+    background:#FFF8E6;
+    color:#A16207;
+    padding:14px;
+    border-radius:18px;
+    font-weight:600;
+    border-left:5px solid #F59E0B;
+}
+
+.item-evento p{
+    margin-top:6px;
+    color:#64748B;
+}
+
+.item-evento small{
+    display:block;
+    margin-top:6px;
+    color:#0E7C66;
 }

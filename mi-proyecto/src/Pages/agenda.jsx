@@ -100,6 +100,7 @@ function Agenda() {
   const esHoy = (d) => d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()
 
   const celdas = []
+  const filas = Math.ceil(celdas.length / 7);
   for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd cd-empty" />)
   for (let d = 1; d <= diasEnMes; d++) {
     const evs = items.eventos.filter(e => enDia(e.fecha, d))
@@ -119,7 +120,6 @@ function Agenda() {
       </div>
     )
   }
-  while (celdas.length < 42) celdas.push(<div key={`v${celdas.length}`} className="cd cd-empty" />)
 
   const fmtMes = (i) => cap(new Date(anio, i, 1).toLocaleDateString('es-ES', { month: 'long' }))
   const fmtDia = (i) => cap(new Date(2024, 0, i + 1).toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3))
@@ -157,12 +157,45 @@ function Agenda() {
         <div className="cal-dias">
           {diasHeader.map(d => <span key={d} className="dl">{d}</span>)}
         </div>
-        <div className="cal-grid">{celdas}</div>
-      </div>
+            <div
+                className="cal-grid"
+                style={{
+                    gridTemplateRows: `repeat(${filas}, 52px)`
+                }}
+            >
+                {celdas}
+            </div>      
+        </div>
 
-      {eventosMes.length === 0 && feriadosMes.length === 0 && (
-        <div className="vacio">📭 No hay eventos ni feriados este mes</div>
-      )}
+      {eventosMes.length === 0 && feriadosMes.length === 0 && 
+        (
+          <div className="vacio">
+              <h3>📭 Sin actividades</h3>
+              <p>No hay eventos ni feriados para este mes.</p>
+          </div>      
+        )
+      }
+      {(eventosMes.length > 0 || feriadosMes.length > 0) && (
+<div className="lista-eventos">
+
+    {feriadosMes.map((f,i)=>(
+        <div className="item-feriado" key={i}>
+            📅 {f.titulo}
+        </div>
+    ))}
+
+    {eventosMes.map((e,i)=>(
+        <div className="item-evento" key={i}>
+            <strong>{e.titulo}</strong>
+
+            {e.desc && <p>{e.desc}</p>}
+
+            {e.lugar && <small>📍 {e.lugar}</small>}
+        </div>
+    ))}
+
+</div>
+)}
       {selectedDay && (
         <div className="dm-overlay" onClick={cerrarModal}>
           <div className="dm-modal" onClick={e => e.stopPropagation()}>

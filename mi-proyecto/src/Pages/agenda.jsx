@@ -112,11 +112,35 @@ function Agenda() {
     celdas.push(
       <div key={d} className={cls.join(' ')} onClick={() => handleDayClick(d)}>
         <span className="num">{d}</span>
-        <div className="tags">
-          {fers.map((f, i) => <span key={`f${i}`} className="tag f-tag" title={f.titulo}>{f.titulo}</span>)}
-          {evs.slice(0, 2).map((e, i) => <span key={`e${i}`} className="tag e-tag" title={`${e.titulo}${e.desc ? ' - ' + e.desc : ''}`}>{e.titulo}</span>)}
-          {evs.length > 2 && <span className="tag e-tag tag-more">+{evs.length - 2} más</span>}
-        </div>
+<div className="tags">
+
+  {fers.slice(0,1).map((f, i) => (
+    <span
+      key={`f${i}`}
+      className="tag f-tag"
+      title={f.titulo}
+    >
+      {f.titulo}
+    </span>
+  ))}
+
+  {evs.slice(0,1).map((e, i) => (
+    <span
+      key={`e${i}`}
+      className="tag e-tag"
+      title={e.titulo}
+    >
+      {e.titulo}
+    </span>
+  ))}
+
+  {(fers.length + evs.length) > 1 && (
+    <span className="tag tag-more">
+      +{fers.length + evs.length - 1}
+    </span>
+  )}
+
+</div>
       </div>
     )
   }

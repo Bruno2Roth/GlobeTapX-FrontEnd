@@ -1,7 +1,6 @@
 import '../index.css'
 import Header from '../Componentes/Header/Header'
 import FavoriteCard from '../Componentes/FavoriteCard/FavoriteCard'
-import BottomNav from '../Componentes/BottomNav/BottomNav'
 
 function Favoritos() {
 
@@ -16,8 +15,6 @@ function Favoritos() {
       <FavoriteCard />
 
       <FavoriteCard />
-
-      <BottomNav />
 
     </div>
   )

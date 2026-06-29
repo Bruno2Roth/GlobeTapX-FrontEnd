@@ -39,7 +39,7 @@ function TopBar() {
         <Link to="/numEmergencia" onClick={() => setMenuOpen(false)}>Ayuda</Link>
         <Link to="/idioma" onClick={() => setMenuOpen(false)}>Idioma</Link>
         <Link to="/agenda" onClick={() => setMenuOpen(false)}>Agenda</Link>
-        <Link to="/reglas" onClick={() => setMenuOpen(false)}>Reglas</Link>
+        <span className="top-bar-nav-item" onClick={() => setMenuOpen(false)}>Reglas</span>
         <Link to="/explorar" onClick={() => setMenuOpen(false)}>Explorar</Link>
         <Link to="/favoritos" onClick={() => setMenuOpen(false)}>Favoritos</Link>
         <Link to="/perfil" onClick={() => setMenuOpen(false)}>Perfil</Link>

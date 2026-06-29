@@ -71,7 +71,10 @@ function Cambio() {
             type="number"
             className="cambio-monto"
             value={monto}
-            onChange={(e) => setMonto(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val.length <= 8) setMonto(val);
+            }}
             min="0"
             step="any"
           />

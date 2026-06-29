@@ -3,7 +3,6 @@ import Header from '../Componentes/Header/Header'
 import SearchBar from '../Componentes/SearchBar/SearchBar'
 import CategoryTabs from '../Componentes/CategoryTabs/CategoryTabs'
 import CardDestino from '../Componentes/CardDestino/CardDestino'
-import BottomNav from '../Componentes/BottomNav/BottomNav'
 
 function Explorar() {
 
@@ -28,8 +27,6 @@ function Explorar() {
         titulo='Jardines Kyoto'
         pais='Japón'
       />
-
-      <BottomNav />
 
     </div>
   )

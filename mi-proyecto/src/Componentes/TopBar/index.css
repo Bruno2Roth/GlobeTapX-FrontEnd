@@ -109,6 +109,15 @@
   color: #0f766e;
 }
 
+.top-bar-nav-item {
+  display: block;
+  padding: 12px 20px;
+  color: #374151;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: default;
+}
+
 @media (max-width: 1125px) {
   .top-bar,
   .top-bar-nav {

@@ -3,7 +3,6 @@ import Header from '../Componentes/Header/Header'
 import SearchBar from '../Componentes/SearchBar/SearchBar'
 import FilterButtons from '../Componentes/FilterButtons/FilterButtons'
 import CardAlojamiento from '../Componentes/CardAlojamiento/CardAlojamiento'
-import BottomNav from '../Componentes/BottomNav/BottomNav'
 
 function Alojamiento() {
 
@@ -28,8 +27,6 @@ function Alojamiento() {
         nombre='Jardines Kyoto'
         lugar='Japón'
       />
-
-      <BottomNav />
 
     </div>
   )

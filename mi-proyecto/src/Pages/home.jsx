@@ -1,58 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
 import api from "../services/api";
-import { TRADUCTOR_URL } from "../config";
-import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 function Home() {
   const userId = localStorage.getItem("userId");
 
-  const cacheInicial = !userId ? null : obtenerCache(`home_cache_${userId}`);
-
-  const [pais, setPais] = useState(cacheInicial?.data?.pais ?? "");
-  const [ciudad, setCiudad] = useState(cacheInicial?.data?.ciudad ?? "");
-  const [hora, setHora] = useState(cacheInicial?.data?.hora ?? "");
-  const [heroImg, setHeroImg] = useState(cacheInicial?.data?.heroImg ?? "");
-  const [cacheTimestamp, setCacheTimestamp] = useState(cacheInicial?.timestamp ?? null);
-  const skipFetch = useRef(cacheInicial);
+  const [pais, setPais] = useState("");
+  const [hora, setHora] = useState("");
+  const [heroImg, setHeroImg] = useState("");
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
-    if (skipFetch.current) return;
 
     const fetchData = async () => {
       try {
-        const userRes = await api.get(`/usuario/${userId}`);
-        const usuario = userRes.data;
+        const { data: usuario } = await api.get(`/usuario/${userId}`);
         const paisActual = usuario.paisActual;
 
-        const paisesRes = await api.get("/pais");
-        const paises = paisesRes.data;
-
-        const p = paises.find((p) => p.ID === paisActual);
-        if (p) {
-          setPais(p.nombre);
-          setHeroImg(p.imagen || "");
-          setCiudad(p.nombre);
-
-          const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(p.nombre)}&langpair=es|en`);
-          const tradData = await tradRes.json();
-          const nombreEN = tradData.responseData.translatedText;
-          const climaRes = await api.get(`/clima/country?country=${encodeURIComponent(nombreEN)}`);
-          const clima = climaRes.data;
-          let horaLocal = ""
-          if (clima.current?.time) {
-            const h = clima.current.time.split("T")[1]?.slice(0, 5);
-            if (h) horaLocal = h;
-          }
-          setHora(horaLocal);
-          const homeData = { pais: p.nombre, ciudad: p.nombre, hora: horaLocal, heroImg: p.imagen || "", paisActual };
-          guardarCache(`home_cache_${userId}`, homeData);
-          setCacheTimestamp(Date.now());
-        }
+        const { data: paisData } = await api.get(`/pais/${paisActual}`);
+        setPais(paisData.nombre);
+        setHeroImg(paisData.imagen || "");
+        setHora(paisData.local_time?.split("T")[1]?.slice(0, 5) || "");
       } catch (error) {
         console.log(error);
       }
@@ -88,7 +60,7 @@ function Home() {
         <p className="label">CURRENTLY EXPLORING</p>
         <h3>{pais || "Cargando..."}</h3>
         <p className="time">
-          {ciudad || "..."} · {hora || "..."} LOCAL
+          {pais || "..."} · {hora || "..."} LOCAL
         </p>
         {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </div>
@@ -115,9 +87,9 @@ function Home() {
         <Link to="/idioma" className="mini-btn">
           <p>Idioma</p>
         </Link>
-        <Link to="/reglas" className="mini-btn">
+        <div className="mini-btn">
           <p>Reglas</p>
-        </Link>
+        </div>
         <Link to="/Agenda" className="mini-btn">
           <p>Agenda</p>
         </Link>

@@ -1,7 +1,6 @@
 import '../index.css'
 import Header from '../Componentes/Header/Header'
 import TripCard from '../Componentes/TripCard/TripCard'
-import BottomNav from '../Componentes/BottomNav/BottomNav'
 
 function Historial() {
 
@@ -17,7 +16,6 @@ function Historial() {
 
       <TripCard />
 
-      <BottomNav />
 
     </div>
   )

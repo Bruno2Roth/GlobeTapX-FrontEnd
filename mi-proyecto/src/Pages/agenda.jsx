@@ -3,6 +3,7 @@ import '../Styles/agenda.css'
 import '../index.css'
 import api from '../services/api'
 import { TRADUCTOR_URL } from '../config'
+import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -11,6 +12,7 @@ function Agenda() {
   const [items, setItems] = useState({ eventos: [], feriados: [] })
   const [fecha, setFecha] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
+  const [cacheTimestamp, setCacheTimestamp] = useState(null)
   const anio = fecha.getFullYear()
   const mes = fecha.getMonth()
 
@@ -79,6 +81,7 @@ function Agenda() {
           }
         })
         setItems({ eventos, feriados })
+        setCacheTimestamp(Date.now())
       } catch (err) {
         console.error(err)
       }
@@ -170,6 +173,7 @@ function Agenda() {
         <span className="badge">📅 Agenda</span>
         <h1>Mi Agenda</h1>
         <p>Organizá tus viajes</p>
+        {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </div>
 
       <div className="cal">

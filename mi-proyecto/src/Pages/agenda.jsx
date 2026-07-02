@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import '../Styles/agenda.css'
 import '../index.css'
-import api from '../services/api'
-import { TRADUCTOR_URL } from '../config'
+import { getAgendaUsuario, getUsuario, getPaises, traducir } from '../config'
+import { obtenerCache, guardarCache } from '../helpers/cache'
 import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
+
+const CACHE_KEY = userId => `agenda_${userId}`
 
 function Agenda() {
   const userId = localStorage.getItem("userId")
@@ -18,28 +20,30 @@ function Agenda() {
 
   useEffect(() => {
     if (!userId) return
+    const cache = obtenerCache(CACHE_KEY(userId))
+    if (cache) {
+      setItems(cache.data)
+      setCacheTimestamp(cache.timestamp)
+      return
+    }
     const fetchData = async () => {
       try {
-        const [agendaRes, userRes, paisesRes] = await Promise.all([
-          api.get(`/agendausuario/${userId}`),
-          api.get(`/usuario/${userId}`),
-          api.get('/pais')
+        const [data, userData, paises] = await Promise.all([
+          getAgendaUsuario(userId),
+          getUsuario(userId),
+          getPaises()
         ])
-        const data = agendaRes.data
-        const userData = userRes.data
-        const paises = paisesRes.data
 
         const userPais = paises.find(p => p.ID === userData.paisActual)
         let codigoPais = 'AR'
         if (userPais) {
           try {
             const [tradRes, dispRes] = await Promise.all([
-              fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(userPais.nombre)}&langpair=es|en`),
+              traducir({ text: userPais.nombre, targetLanguage: 'en' }).catch(() => null),
               fetch('https://date.nager.at/api/v3/AvailableCountries')
             ])
-            if (tradRes.ok && dispRes.ok) {
-              const tradData = await tradRes.json()
-              const nombreEN = tradData.responseData.translatedText
+            if (tradRes && dispRes.ok) {
+              const nombreEN = tradRes.data.translatedText
               const disp = await dispRes.json()
               const match = disp.find(p => p.name === nombreEN)
               if (match) codigoPais = match.countryCode
@@ -80,7 +84,9 @@ function Agenda() {
             })
           }
         })
-        setItems({ eventos, feriados })
+        const result = { eventos, feriados }
+        guardarCache(CACHE_KEY(userId), result)
+        setItems(result)
         setCacheTimestamp(Date.now())
       } catch (err) {
         console.error(err)

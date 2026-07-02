@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../Styles/idioma.css";
 import '../index.css'
+import { traducir, traducirBatch } from "../config";
 
 
 function Idioma() {
@@ -56,18 +57,8 @@ const languages = [
     }
 
     try {
-      const response = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-          text
-        )}&langpair=${source}|${target}`
-      );
-
-      const data = await response.json();
-
-      setTranslated(
-        data.responseData?.translatedText ||
-          "No se pudo traducir"
-      );
+      const data = await traducir({ text, targetLanguage: target, sourceLanguage: source });
+      setTranslated(data.data.translatedText);
     } catch (error) {
       console.error(error);
       setTranslated("Error al traducir");
@@ -76,25 +67,11 @@ const languages = [
 
   const loadPhrases = async () => {
     try {
-      const translatedPhrases = await Promise.all(
-        basePhrases.map(async (phrase) => {
-          const response = await fetch(
-            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-              phrase.text
-            )}&langpair=en|${target}`
-          );
-
-          const data = await response.json();
-
-          return {
-            ...phrase,
-            translated:
-              data.responseData?.translatedText ||
-              phrase.text
-          };
-        })
-      );
-
+      const result = await traducirBatch({ texts: basePhrases.map(p => p.text), targetLanguage: target, sourceLanguage: 'en' });
+      const translatedPhrases = basePhrases.map((phrase, i) => ({
+        ...phrase,
+        translated: result.data.translatedTexts?.[i] || phrase.text
+      }));
       setPhrases(translatedPhrases);
     } catch (error) {
       console.error(error);

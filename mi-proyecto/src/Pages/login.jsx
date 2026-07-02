@@ -1,7 +1,7 @@
 import '../index.css'
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../services/api";
+import { login } from "../config";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -15,13 +15,13 @@ function Login() {
     setError("");
 
     try {
-      const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.user?.usuarioID ?? res.data.user?.id);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const res = await login({ email, password });
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);
+      localStorage.setItem("user", JSON.stringify(res.user));
       navigate("/home");
     } catch (err) {
-      setError(err.response?.data?.error || "Error al iniciar sesión");
+      setError(err.data?.error || err.message || "Error al iniciar sesión");
     }
   };
 

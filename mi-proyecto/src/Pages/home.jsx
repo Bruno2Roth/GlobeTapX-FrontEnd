@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
-import api from "../services/api";
+import { getUsuario, getPais } from "../config";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 function Home() {
@@ -18,10 +18,10 @@ function Home() {
 
     const fetchData = async () => {
       try {
-        const { data: usuario } = await api.get(`/usuario/${userId}`);
+        const usuario = await getUsuario(userId);
         const paisActual = usuario.paisActual;
 
-        const { data: paisData } = await api.get(`/pais/${paisActual}`);
+        const paisData = await getPais(paisActual);
         setPais(paisData.nombre);
         setHeroImg(paisData.imagen || "");
         setHora(paisData.local_time?.split("T")[1]?.slice(0, 5) || "");

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import "../Styles/clima.css";
 import '../index.css'
-import api from "../services/api";
-import { TRADUCTOR_URL } from "../config";
+import { getUsuario, getPaises, getClima, traducir } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
@@ -36,19 +35,32 @@ function Clima() {
 
     const fetchClima = async () => {
       try {
-        const userRes = await api.get(`/usuario/${userId}`);
-        const userData = userRes.data;
+        console.log("1. Obteniendo usuario...");
+        const userData = await getUsuario(userId);
+        console.log("2. Usuario:", userData);
 
-        const paisesRes = await api.get("/pais");
-        const paises = paisesRes.data;
+        console.log("3. Obteniendo países...");
+        const paises = await getPaises();
+        console.log("4. Países:", paises);
+
+        console.log("5. Buscando país:", userData.paisActual);
         const pais = paises.find((p) => p.ID === userData.paisActual);
         if (!pais) throw new Error("País no encontrado");
+        console.log("6. País encontrado:", pais);
 
-        const tradRes = await fetch(`${TRADUCTOR_URL}?q=${encodeURIComponent(pais.nombre)}&langpair=es|en`);
-        const tradData = await tradRes.json();
-        const nombreEN = tradData.responseData.translatedText;
-        const climaRes = await api.get(`/clima/country?country=${encodeURIComponent(nombreEN)}`);
-        const data = climaRes.data;
+        let nombreEN = pais.nombre;
+        try {
+          console.log("7. Traduciendo...");
+          const trad = await traducir({ text: pais.nombre, targetLanguage: 'en', sourceLanguage: 'es' });
+          console.log("8. Traducción:", trad);
+          nombreEN = trad.data.translatedText;
+        } catch (e) {
+          console.warn("9. Falló traducción, usando nombre original:", nombreEN, e);
+        }
+
+        console.log("10. Consultando clima para:", nombreEN);
+        const data = await getClima(nombreEN);
+        console.log("11. Datos clima:", data);
 
         const codigo = data.current?.weather_code ?? 0;
         const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -71,8 +83,8 @@ function Clima() {
         setCacheTimestamp(Date.now());
         setClima(climaData);
       } catch (err) {
-        console.error(err);
-        setError("No se pudo cargar el clima");
+        console.error("Error en clima:", err);
+        setError(`No se pudo cargar el clima (${err.status || err.message})`);
       }
     };
     fetchClima();

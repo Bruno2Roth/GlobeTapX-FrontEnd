@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../../services/api";
+import { getPaises, register } from "../../config";
 import "./index.css";
 
 const idiomas = [
@@ -55,7 +55,7 @@ function RegisterForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get("/pais").then((res) => setPaises(res.data)).catch(() => setPaisesError("Error al cargar países"));
+    getPaises().then(setPaises).catch(() => setPaisesError("Error al cargar países"));
   }, []);
 
   const set = (field, value) => {
@@ -129,14 +129,14 @@ function RegisterForm() {
     try {
       const body = { ...form, IsAdmin: false };
       if (fotoPerfil) body.fotoPerfil = fotoPreview;
-      const res = await api.post("/auth/register", body);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.user?.usuarioID ?? res.data.user?.id);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const res = await register(body);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);
+      localStorage.setItem("user", JSON.stringify(res.user));
       setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
       setTimeout(() => navigate("/home"), 1500);
     } catch (err) {
-      setApiError(err.response?.data?.error || "Error al registrarse");
+      setApiError(err.data?.error || err.message || "Error al registrarse");
     } finally {
       setLoading(false);
     }

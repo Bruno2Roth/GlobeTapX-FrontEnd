@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaEyeSlash,
@@ -7,12 +7,13 @@ import {
   FaGlobe,
   FaTemperatureHigh,
 } from "react-icons/fa";
-import api from "../services/api";
+import { getUsuario, getPaises, getIdiomaUsuario, updateUsuario, updateUsuarioIdioma } from "../config";
 import "../Styles/perfil.css";
 
 export default function Profile() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
+  const fileRef = useRef();
 
   const languages = [
     { code: "es", name: "🇪🇸 Español" },
@@ -46,31 +47,45 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState("");
 
   useEffect(() => {
     if (!userId) return;
-    Promise.all([
-      api.get(`/usuario/${userId}`),
-      api.get("/pais"),
-      api.get(`/usuario/idioma?usuarioId=${userId}`),
-    ])
-      .then(([userRes, paisRes, idiomaRes]) => {
-        const u = userRes.data;
+    (async () => {
+      try {
+        const [user, paises, idiomaRes] = await Promise.all([
+          getUsuario(userId),
+          getPaises(),
+          getIdiomaUsuario(userId).catch(() => null),
+        ]);
         setForm({
-          nombreCompleto: u.nombreCompleto || u.NombreCompleto || "",
-          mail: u.mail || u.Mail || u.correo || u.Correo || "",
+          nombreCompleto: user.nombreCompleto || user.NombreCompleto || "",
+          mail: user.mail || user.Mail || user.correo || user.Correo || "",
           contrasena: "",
-          paisActual: u.paisActual || u.PaisActual || u.paisID || u.PaisID || "",
-          idioma: idiomaRes.data?.codigoIdioma || idiomaRes.data?.idioma || idiomaRes.data || "es",
+          paisActual: user.paisActual || user.PaisActual || user.paisID || user.PaisID || "",
+          idioma: idiomaRes?.codigoIdioma || idiomaRes?.idioma || idiomaRes || "es",
         });
-        setPaises(paisRes.data);
-      })
-      .catch(() => setMessage("Error al cargar datos"))
-      .finally(() => setLoading(false));
+        setPaises(paises);
+      } catch {
+        setMessage("Error al cargar datos");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [userId]);
 
   const set = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFotoPerfil(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setFotoPreview(ev.target.result);
+    reader.readAsDataURL(file);
   };
 
   const handleSave = async (e) => {
@@ -80,8 +95,11 @@ export default function Profile() {
     try {
       const body = { nombreCompleto: form.nombreCompleto, paisActual: form.paisActual };
       if (form.contrasena) body.contrasena = form.contrasena;
-      await api.put(`/usuario/${userId}`, body);
-      await api.put("/usuario/idioma", { usuarioId: Number(userId), codigoIdioma: form.idioma });
+      if (fotoPerfil) body.fotoPerfil = fotoPreview;
+      await updateUsuario(userId, body);
+      await updateUsuarioIdioma({ usuarioId: Number(userId), codigoIdioma: form.idioma }).catch(() => {});
+      const updated = await getUsuario(userId);
+      localStorage.setItem("user", JSON.stringify(updated));
       setMessage("Cambios guardados");
     } catch {
       setMessage("Error al guardar");
@@ -107,13 +125,18 @@ export default function Profile() {
         Actualiza tu información personal y preferencias de cuenta.
       </p>
 
-      <div className="profile-image">
-        <img src="/images/user.png" alt="Perfil" />
+      <div className="profile-image" onClick={() => fileRef.current.click()} style={{ cursor: "pointer" }}>
+        {fotoPreview ? (
+          <img src={fotoPreview} alt="Perfil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+        ) : (
+          <img src="/images/user.png" alt="Perfil" />
+        )}
       </div>
 
-      <Link to="/cambiar-foto" className="change-photo">
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleFoto} hidden />
+      <span className="change-photo" onClick={() => fileRef.current.click()} style={{ cursor: "pointer" }}>
         Cambiar foto
-      </Link>
+      </span>
 
       {message && (
         <p style={{ textAlign: "center", marginBottom: 12, color: message.includes("Error") ? "#d84d4d" : "#0f766e" }}>

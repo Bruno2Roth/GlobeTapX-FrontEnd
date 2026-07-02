@@ -1,9 +1,5 @@
 .emergencia-container {
-  max-width: 420px;
-  margin: auto;
-  padding: 70px 16px 90px;
-  min-height: 100dvh;
-  background: #f8fafb;
+  padding: 14px 16px 90px;
 }
 
 /* ---------- Header ---------- */

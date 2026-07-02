@@ -35,30 +35,32 @@ function AppContent() {
 
   return (
     <>
-      {mostrarLayout && <><TopBar /><Footer /></>}
+      {mostrarLayout && <TopBar />}
+      <div className={mostrarLayout ? "page-wrapper" : ""}>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
 
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/registro" element={<Registro />} />
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/clima" element={<ProtectedRoute><Clima /></ProtectedRoute>} />
+          <Route path="/cambio" element={<ProtectedRoute><Cambio /></ProtectedRoute>} />
+          <Route path="/numEmergencia" element={<ProtectedRoute><NumEmergencia /></ProtectedRoute>} />
+          <Route path="/idioma" element={<ProtectedRoute><Idioma /></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+          <Route path="/reglas" element={<ProtectedRoute><Reglas /></ProtectedRoute>} />
+          <Route path="/explorar" element={<ProtectedRoute><Explorar /></ProtectedRoute>} />
+          <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
+          <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route path="/historial" element={<ProtectedRoute><Historial /></ProtectedRoute>} />
+          <Route path="/configuracion" element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
+          <Route path="/editarPerfil" element={<ProtectedRoute><EditarPerfil /></ProtectedRoute>} />
+          <Route path="/crearGuia" element={<ProtectedRoute><CrearGuia /></ProtectedRoute>} />
+          <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento /></ProtectedRoute>} />
 
-        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/clima" element={<ProtectedRoute><Clima /></ProtectedRoute>} />
-        <Route path="/cambio" element={<ProtectedRoute><Cambio /></ProtectedRoute>} />
-        <Route path="/numEmergencia" element={<ProtectedRoute><NumEmergencia /></ProtectedRoute>} />
-        <Route path="/idioma" element={<ProtectedRoute><Idioma /></ProtectedRoute>} />
-        <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-        <Route path="/reglas" element={<ProtectedRoute><Reglas /></ProtectedRoute>} />
-        <Route path="/explorar" element={<ProtectedRoute><Explorar /></ProtectedRoute>} />
-        <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
-        <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-        <Route path="/historial" element={<ProtectedRoute><Historial /></ProtectedRoute>} />
-        <Route path="/configuracion" element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
-        <Route path="/editarPerfil" element={<ProtectedRoute><EditarPerfil /></ProtectedRoute>} />
-        <Route path="/crearGuia" element={<ProtectedRoute><CrearGuia /></ProtectedRoute>} />
-        <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento /></ProtectedRoute>} />
-
-        <Route path="*" element={<Navigate to="/home" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Routes>
+      </div>
+      {mostrarLayout && <Footer />}
     </>
   );
 }

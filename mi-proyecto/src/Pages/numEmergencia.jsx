@@ -1,7 +1,7 @@
 import '../index.css'
 import { useEffect, useState } from "react";
 import "../Styles/numEmergencia.css";
-import api from "../services/api";
+import { getUsuario, getPaises, getAllData } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
@@ -21,7 +21,7 @@ function NumEmergencia() {
                 if (!userId) return;
 
                 const cacheKey = `num_cache_${userId}`;
-                const cache = obtenerCache(cacheKey);
+                const cache = obtenerCache(cacheKey, 60000);
                 if (cache) {
                     setPais(cache.data.pais || "");
                     setAmbulancia(cache.data.ambulancia || "");
@@ -33,19 +33,15 @@ function NumEmergencia() {
                     return;
                 }
 
-                const [userRes, paisesRes] = await Promise.all([
-                    api.get(`/usuario/${userId}`),
-                    api.get("/pais"),
+                const [userData, paises] = await Promise.all([
+                    getUsuario(userId),
+                    getPaises(),
                 ]);
-
-                const userData = userRes.data;
-                const paises = paisesRes.data;
                 const paisObj = paises.find(p => p.ID === userData.paisActual);
 
                 if (paisObj) setPais(paisObj.nombre || "");
 
-                const res = await api.get("/data/all");
-                let data = res.data;
+                let data = await getAllData();
 
                 if (data && typeof data === "object" && !Array.isArray(data)) {
                     if (data.data) data = data.data;

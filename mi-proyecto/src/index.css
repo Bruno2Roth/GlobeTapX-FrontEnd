@@ -135,12 +135,12 @@ p {
   margin: 0;
 }
 
-.page-wrapper {
-  max-width: 420px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background: #ffffff;
-  padding-top: 56px;
+.page-wrapper{
+    width:100%;
+    min-height:100dvh;
+    padding-top:56px;
+    padding-bottom:75px;
+    background:#f4f6f9;
 }
 
 /* LOGIN */

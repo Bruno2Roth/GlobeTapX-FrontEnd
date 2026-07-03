@@ -9,6 +9,7 @@ export const getPaises = () => request("/pais");
 export const getPais = (id) => request(`/pais/${id}`);
 export const getAgendaUsuario = (id) => request(`/agendausuario/${id}`);
 export const getClima = (country) => request(`/clima/country?country=${encodeURIComponent(country)}`);
+export const getIdiomas = () => request("/idioma/supported");
 export const getIdiomaUsuario = (userId) => request(`/usuario/idioma?usuarioId=${userId}`);
 export const updateUsuarioIdioma = (data) => request("/usuario/idioma", { method: "PUT", body: JSON.stringify(data) });
 export const getAllData = () => request("/data/all");

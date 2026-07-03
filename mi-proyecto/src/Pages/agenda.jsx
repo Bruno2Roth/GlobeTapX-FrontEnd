@@ -5,8 +5,10 @@ import { getAgendaUsuario, getUsuario, getPaises, traducir } from '../config'
 import { obtenerCache, guardarCache } from '../helpers/cache'
 import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
 
+// Capitaliza la primera letra de un string
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
 
+// Clave de cache por usuario
 const CACHE_KEY = userId => `agenda_${userId}`
 
 function Agenda() {
@@ -18,6 +20,7 @@ function Agenda() {
   const anio = fecha.getFullYear()
   const mes = fecha.getMonth()
 
+  // Carga inicial: intenta cache, si no hay fetchea agenda + feriados
   useEffect(() => {
     if (!userId) return
     const cache = obtenerCache(CACHE_KEY(userId))
@@ -34,6 +37,7 @@ function Agenda() {
           getPaises()
         ])
 
+        // Traduce el pais del usuario para obtener el codigo ISO y buscar feriados
         const userPais = paises.find(p => p.ID === userData.paisActual)
         let codigoPais = 'AR'
         if (userPais) {
@@ -51,12 +55,15 @@ function Agenda() {
           } catch {}
         }
 
+        // Mapea eventos del usuario
         const eventos = (data.agenda || []).map(e => ({
           fecha: (e.fechaInicio || '').split('T')[0],
           titulo: e.eventoNombre || 'Evento',
           desc: e.eventoDescripcion || '',
           lugar: e.ubicacion || ''
         }))
+
+        // Extrae feriados devueltos por la API propia
         const feriados = []
         if (data.feriados) {
           Object.values(data.feriados).forEach(arr => {
@@ -65,6 +72,8 @@ function Agenda() {
             })
           })
         }
+
+        // Fetch de feriados desde Nager.Date API para 2024-2030
         const anios = []
         for (let y = 2024; y <= 2030; y++) anios.push(y)
         const controlador = new AbortController()
@@ -84,6 +93,7 @@ function Agenda() {
             })
           }
         })
+
         const result = { eventos, feriados }
         guardarCache(CACHE_KEY(userId), result)
         setItems(result)
@@ -95,19 +105,23 @@ function Agenda() {
     fetchData()
   }, [userId])
 
+  // Helpers de fecha
   const f = (v) => (v || '').split('T')[0]
   const prefijo = `${anio}-${String(mes + 1).padStart(2, '0')}`
   const enMes = (v) => f(v).startsWith(prefijo)
   const enDia = (v, d) => f(v) === `${prefijo}-${String(d).padStart(2, '0')}`
 
+  // Filtra eventos y feriados del mes actual
   const eventosMes = items.eventos.filter(e => enMes(e.fecha))
   const feriadosMes = items.feriados.filter(e => enMes(e.fecha))
 
+  // Calculos del calendario
   const diasEnMes = new Date(anio, mes + 1, 0).getDate()
   const inicio = new Date(anio, mes, 1).getDay()
   const hoy = new Date()
   const esHoy = (d) => d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()
 
+  // Construye las celdas del calendario
   const celdas = []
   const filas = 6;
   for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd cd-empty" />)
@@ -154,10 +168,12 @@ function Agenda() {
     )
   }
 
+  // Formatea nombre del mes y dia de la semana
   const fmtMes = (i) => cap(new Date(anio, i, 1).toLocaleDateString('es-ES', { month: 'long' }))
   const fmtDia = (i) => cap(new Date(2024, 0, i + 1).toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3))
   const diasHeader = Array.from({ length: 7 }, (_, i) => fmtDia(i))
 
+  // Muestra detalles del dia seleccionado
   const handleDayClick = (d) => {
     const evs = items.eventos.filter(e => enDia(e.fecha, d))
     const fers = items.feriados.filter(e => enDia(e.fecha, d))
@@ -175,6 +191,7 @@ function Agenda() {
 
   return (
     <div className="agenda">
+      {/* Encabezado */}
       <div className="h-card">
         <span className="badge">📅 Agenda</span>
         <h1>Mi Agenda</h1>
@@ -182,6 +199,7 @@ function Agenda() {
         {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </div>
 
+      {/* Calendario */}
       <div className="cal">
         <div className="cal-h">
           <button className="btn" onClick={() => setFecha(new Date(anio, mes - 1, 1))} aria-label="Mes anterior">‹</button>
@@ -201,6 +219,7 @@ function Agenda() {
             </div>      
         </div>
 
+      {/* Lista de eventos y feriados del mes */}
       {eventosMes.length === 0 && feriadosMes.length === 0 && 
         (
           <div className="vacio">
@@ -230,6 +249,7 @@ function Agenda() {
 
 </div>
 )}
+      {/* Modal de detalle del dia */}
       {selectedDay && (
         <div className="dm-overlay" onClick={cerrarModal}>
           <div className="dm-modal" onClick={e => e.stopPropagation()}>

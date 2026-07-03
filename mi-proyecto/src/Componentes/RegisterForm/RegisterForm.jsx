@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getPaises, register } from "../../config";
+import { getPaises, getIdiomas, register } from "../../config";
 import "./index.css";
 
-const idiomas = [
-  { value: "es", label: "Español" },
-  { value: "en", label: "Inglés" },
-  { value: "fr", label: "Francés" },
-  { value: "pt", label: "Portugués" },
-  { value: "he", label: "Hebreo" },
-];
-
+// Validación simple de formato de email
 const validarEmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
 
+// Componente reutilizable de input con label y mensaje de error
 function InputField({ field, type, placeholder, label, value, error, touched, onChange, onBlur }) {
   return (
     <div className="rg-field">
@@ -32,6 +26,7 @@ function InputField({ field, type, placeholder, label, value, error, touched, on
 }
 
 function RegisterForm() {
+  // Estado del formulario
   const [form, setForm] = useState({
     nombre: "",
     mail: "",
@@ -45,24 +40,42 @@ function RegisterForm() {
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fotoPreview, setFotoPreview] = useState("");
   const [paises, setPaises] = useState([]);
+  const [idiomas, setIdiomas] = useState([]);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [apiError, setApiError] = useState("");
   const [paisesError, setPaisesError] = useState("");
+  const [idiomasError, setIdiomasError] = useState("");
   const fileRef = useRef();
   const navigate = useNavigate();
 
+  // Al montar, carga países e idiomas desde el backend
   useEffect(() => {
-    getPaises().then(setPaises).catch(() => setPaisesError("Error al cargar países"));
+    getPaises()
+      .then(setPaises)
+      .catch(() => setPaisesError("Error al cargar países — recargá la página"));
+    getIdiomas()
+      .then((data) => {
+        console.log("📦 getIdiomas response:", data);
+        let lista = data;
+        if (!Array.isArray(lista)) {
+          lista = data.data || data.idiomas || data.records || data.result || data.items || [];
+        }
+        if (Array.isArray(lista) && lista.length > 0) setIdiomas(lista);
+        else setIdiomasError("No se encontraron idiomas disponibles");
+      })
+      .catch(() => setIdiomasError("Error al cargar idiomas — recargá la página"));
   }, []);
 
+  // Actualiza un campo y ejecuta validación si ya fue tocado
   const set = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (touched[field]) validarCampo(field, value);
   };
 
+  // Validación individual por campo
   const validarCampo = (field, value) => {
     let error = "";
     const v = value ?? form[field];
@@ -99,11 +112,13 @@ function RegisterForm() {
     return !error;
   };
 
+  // Marca campo como tocado al salir del foco
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validarCampo(field);
   };
 
+  // Previsualiza la foto seleccionada
   const handleFoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -113,11 +128,13 @@ function RegisterForm() {
     reader.readAsDataURL(file);
   };
 
+  // Envía el formulario: valida todo, llama al register y redirige
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError("");
     setSuccessMsg("");
 
+    // Marcar todos los campos como tocados para mostrar errores
     const allFields = Object.keys(form);
     setTouched(allFields.reduce((acc, f) => ({ ...acc, [f]: true }), {}));
 
@@ -170,9 +187,10 @@ function RegisterForm() {
             className={"rg-input" + (errors.idiomaPreferido && touched.idiomaPreferido ? " rg-input--error" : "")}
           >
             <option value="">Seleccionar idioma</option>
-            {idiomas.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
+            {idiomas.map((i) => <option key={i.codigo} value={i.codigo}>{i.nombre}</option>)}
           </select>
           {errors.idiomaPreferido && touched.idiomaPreferido && <p className="rg-field-error">{errors.idiomaPreferido}</p>}
+          {idiomasError && <p className="rg-field-error">{idiomasError}</p>}
         </div>
 
         <div className="rg-field">

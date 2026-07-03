@@ -10,6 +10,7 @@ function Login() {
 
   const navigate = useNavigate();
 
+  // Envía credenciales al backend; si ok guarda token en localStorage y redirige a home
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");

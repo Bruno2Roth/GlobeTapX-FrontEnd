@@ -5,6 +5,7 @@ import { getUsuario, getPaises, getClima, traducir } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
+// Mapeo de códigos numéricos de clima a descripciones en español
 const descClima = {
   0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado",
   3: "Nublado", 45: "Niebla", 48: "Niebla con escarcha",
@@ -15,7 +16,12 @@ const descClima = {
   95: "Tormenta", 96: "Tormenta con granizo", 99: "Tormenta con granizo intenso",
 };
 
-const CACHE_KEY = "clima_cache";
+// Cache del pais traducido (24h) — evita llamar a la API de traducción en cada fetch
+const CACHE_PAIS_KEY = userId => `clima_pais_${userId}`;
+const CACHE_PAIS_TTL = 86400000;
+
+// Cache del clima (1h por defecto)
+const CACHE_CLIMA_KEY = userId => `clima_${userId}`;
 
 function Clima() {
   const userId = localStorage.getItem("userId");
@@ -26,7 +32,8 @@ function Clima() {
   useEffect(() => {
     if (!userId) return;
 
-    const cache = obtenerCache(CACHE_KEY);
+    // 1. Intentar cache del clima
+    const cache = obtenerCache(CACHE_CLIMA_KEY(userId));
     if (cache) {
       setClima(cache.data);
       setCacheTimestamp(cache.timestamp);
@@ -35,33 +42,33 @@ function Clima() {
 
     const fetchClima = async () => {
       try {
-        console.log("1. Obteniendo usuario...");
-        const userData = await getUsuario(userId);
-        console.log("2. Usuario:", userData);
+        // 2. Intentar cache del nombre del pais traducido para saltar pasos
+        const cachePais = obtenerCache(CACHE_PAIS_KEY(userId), CACHE_PAIS_TTL);
+        let nombreEN = cachePais?.data?.nombreEN;
 
-        console.log("3. Obteniendo países...");
-        const paises = await getPaises();
-        console.log("4. Países:", paises);
+        if (!nombreEN) {
+          // 3. Cache de pais no disponible → obtener usuario y países
+          const userData = await getUsuario(userId);
+          const paises = await getPaises();
+          const pais = paises.find((p) => p.ID === userData.paisActual);
+          if (!pais) throw new Error("País no encontrado");
 
-        console.log("5. Buscando país:", userData.paisActual);
-        const pais = paises.find((p) => p.ID === userData.paisActual);
-        if (!pais) throw new Error("País no encontrado");
-        console.log("6. País encontrado:", pais);
+          nombreEN = pais.nombre;
+          try {
+            const trad = await traducir({ text: pais.nombre, targetLanguage: 'en', sourceLanguage: 'es' });
+            nombreEN = trad.data.translatedText;
+          } catch (e) {
+            console.warn("Falló traducción, usando nombre original:", nombreEN, e);
+          }
 
-        let nombreEN = pais.nombre;
-        try {
-          console.log("7. Traduciendo...");
-          const trad = await traducir({ text: pais.nombre, targetLanguage: 'en', sourceLanguage: 'es' });
-          console.log("8. Traducción:", trad);
-          nombreEN = trad.data.translatedText;
-        } catch (e) {
-          console.warn("9. Falló traducción, usando nombre original:", nombreEN, e);
+          // Cachear el nombre traducido para el próximo fetch
+          guardarCache(CACHE_PAIS_KEY(userId), { nombreEN });
         }
 
-        console.log("10. Consultando clima para:", nombreEN);
+        // 4. Consultar clima con el nombre del país en inglés
         const data = await getClima(nombreEN);
-        console.log("11. Datos clima:", data);
 
+        // 5. Procesar respuesta
         const codigo = data.current?.weather_code ?? 0;
         const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
         const pronostico = (data.daily?.time || []).slice(0, 5).map((fecha, i) => ({
@@ -79,7 +86,8 @@ function Clima() {
           pronostico,
         };
 
-        guardarCache(CACHE_KEY, climaData);
+        // 6. Cachear resultado final
+        guardarCache(CACHE_CLIMA_KEY(userId), climaData);
         setCacheTimestamp(Date.now());
         setClima(climaData);
       } catch (err) {
@@ -93,17 +101,20 @@ function Clima() {
   if (error) return <div className="clima-error">{error}</div>;
   if (!clima) return <div className="clima-loading">Cargando clima...</div>;
 
+  // Direcciones del viento en español
   const dirViento = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
   const dirIdx = Math.round(clima.windDirection / 45) % 8;
 
   return (
     <div className="clima-container">
+      {/* Bloque principal: descripción + temperatura */}
       <section className="weather-main">
         <h1 className="weather-title">{clima.descripcion}</h1>
         <div className="temp">{clima.temperatura}°</div>
         {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </section>
 
+      {/* Cards informativas */}
       <section className="weather-cards">
         <div className="small-card">
           <h3>{clima.viento} km/h</h3>
@@ -111,6 +122,7 @@ function Clima() {
         </div>
       </section>
 
+      {/* Pronóstico 5 días */}
       <section className="forecast">
         <h2>Pronóstico 5 días</h2>
         {clima.pronostico.map((dia, i) => (

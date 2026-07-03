@@ -3,7 +3,28 @@ import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
 import { getUsuario, getPais } from "../config";
+import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+
+function calcularHoraGMT(gmt) {
+  if (gmt == null) return "";
+  let offset = 0;
+  if (typeof gmt === "number") {
+    offset = gmt;
+  } else if (typeof gmt === "string") {
+    const m = gmt.match(/([+-])(\d{1,2}):?(\d{2})?/);
+    if (m) {
+      offset = parseFloat(m[2]) + (m[3] ? parseFloat(m[3]) / 60 : 0);
+      if (m[1] === "-") offset = -offset;
+    } else {
+      const m2 = gmt.match(/(?:UTC|GMT)([+-]\d{1,2})/);
+      if (m2) offset = parseFloat(m2[1]);
+    }
+  }
+  const utc = Date.now() + new Date().getTimezoneOffset() * 60000;
+  return new Date(utc + offset * 3600000)
+    .toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+}
 
 function Home() {
   const userId = localStorage.getItem("userId");
@@ -11,10 +32,22 @@ function Home() {
   const [pais, setPais] = useState("");
   const [hora, setHora] = useState("");
   const [heroImg, setHeroImg] = useState("");
+  const [nombreUsuario, setNombreUsuario] = useState("");
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
+
+    const cacheKey = "home_cache_" + userId;
+    const cache = obtenerCache(cacheKey);
+    if (cache) {
+      setPais(cache.data.pais);
+      setHeroImg(cache.data.heroImg);
+      setNombreUsuario(cache.data.nombreUsuario);
+      setHora(calcularHoraGMT(cache.data.gmt));
+      setCacheTimestamp(cache.timestamp);
+      return;
+    }
 
     const fetchData = async () => {
       try {
@@ -22,9 +55,20 @@ function Home() {
         const paisActual = usuario.paisActual;
 
         const paisData = await getPais(paisActual);
+        const gmt = paisData.gmt ?? 0;
+
         setPais(paisData.nombre);
         setHeroImg(paisData.imagen || "");
-        setHora(paisData.local_time?.split("T")[1]?.slice(0, 5) || "");
+        setNombreUsuario(usuario.nombre || usuario.username || usuario.email || "");
+        setHora(calcularHoraGMT(gmt));
+
+        guardarCache(cacheKey, {
+          pais: paisData.nombre,
+          heroImg: paisData.imagen || "",
+          nombreUsuario: usuario.nombre || usuario.username || usuario.email || "",
+          gmt,
+        });
+        setCacheTimestamp(Date.now());
       } catch (error) {
         console.log(error);
       }

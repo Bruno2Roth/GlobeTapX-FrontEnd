@@ -56,17 +56,36 @@ function RegisterForm() {
     getPaises()
       .then(setPaises)
       .catch(() => setPaisesError("Error al cargar países — recargá la página"));
+
     getIdiomas()
       .then((data) => {
         console.log("📦 getIdiomas response:", data);
+
         let lista = data;
+
         if (!Array.isArray(lista)) {
           lista = data.data || data.idiomas || data.records || data.result || data.items || [];
         }
-        if (Array.isArray(lista) && lista.length > 0) setIdiomas(lista);
-        else setIdiomasError("No se encontraron idiomas disponibles");
+
+        // Si el backend devuelve un objeto ({ es: {...}, en: {...} })
+        if (!Array.isArray(lista) && lista && typeof lista === "object") {
+          lista = Object.entries(lista).map(([codigo, value]) => ({
+            codigo,
+            ...value,
+          }));
+        }
+
+        console.log("📦 Lista final:", lista);
+
+        if (Array.isArray(lista) && lista.length > 0) {
+          setIdiomas(lista);
+        } else {
+          setIdiomasError("No se encontraron idiomas disponibles");
+        }
       })
-      .catch(() => setIdiomasError("Error al cargar idiomas — recargá la página"));
+      .catch(() => {
+        setIdiomasError("Error al cargar idiomas — recargá la página");
+      });
   }, []);
 
   // Actualiza un campo y ejecuta validación si ya fue tocado
@@ -146,6 +165,7 @@ function RegisterForm() {
     try {
       const body = { ...form, IsAdmin: false };
       if (fotoPerfil) body.fotoPerfil = fotoPreview;
+      console.log("BODY:", body);
       const res = await register(body);
       localStorage.setItem("token", res.token);
       localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);

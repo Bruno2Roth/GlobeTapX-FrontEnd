@@ -4,7 +4,7 @@ import "./index.css";
 export const Sidebar = () => {
   const links = [
     { to: "/home", icon: "🏠", label: "Home" },
-    { to: "/explorar", icon: "🔍", label: "Explorar" },
+
     { to: "/agenda", icon: "📅", label: "Agenda" },
     { to: "/favoritos", icon: "❤️", label: "Favoritos" },
     { to: "/perfil", icon: "👤", label: "Perfil" }

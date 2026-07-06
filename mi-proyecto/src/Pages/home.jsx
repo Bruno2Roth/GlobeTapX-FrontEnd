@@ -59,13 +59,13 @@ function Home() {
 
         setPais(paisData.nombre);
         setHeroImg(paisData.imagen || "");
-        setNombreUsuario(usuario.nombre || usuario.username || usuario.email || "");
+        setNombreUsuario(usuario.nombre || usuario.username || usuario.mail || "");
         setHora(calcularHoraGMT(gmt));
 
         guardarCache(cacheKey, {
           pais: paisData.nombre,
           heroImg: paisData.imagen || "",
-          nombreUsuario: usuario.nombre || usuario.username || usuario.email || "",
+          nombreUsuario: usuario.nombre || usuario.username || usuario.mail || "",
           gmt,
         });
         setCacheTimestamp(Date.now());

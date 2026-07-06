@@ -8,8 +8,8 @@ function LoginForm() {
       <h1>Iniciar Sesión</h1>
 
       <input
-        type='email'
-        placeholder='Email'
+        type='mail'
+        placeholder='mail'
       />
 
       <input

@@ -15,7 +15,7 @@ function ProfileCard() {
 
       <h2>{user?.nombre || "Usuario"}</h2>
 
-      <p>{user?.email || ""}</p>
+      <p>{user?.mail || ""}</p>
 
       <p className="role-badge">{user?.IsAdmin ? "Admin" : "Viajero"}</p>
 

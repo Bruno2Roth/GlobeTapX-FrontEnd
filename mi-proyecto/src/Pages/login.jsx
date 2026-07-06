@@ -1,11 +1,11 @@
 import '../index.css'
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../config";
+import { login, getFotoPerfil } from "../config";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [mail, setmail] = useState("");
+  const [contrasena, setcontrasena] = useState("");
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -15,11 +15,23 @@ function Login() {
     e.preventDefault();
     setError("");
 
+    localStorage.removeItem("token");
+
     try {
-      const res = await login({ email, password });
+      const res = await login({ mail, contrasena });
+      if (!res.token || res.token.length > 5000) {
+        setError("Token inválido del servidor");
+        return;
+      }
       localStorage.setItem("token", res.token);
       localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);
       localStorage.setItem("user", JSON.stringify(res.user));
+      getFotoPerfil(res.user?.usuarioID ?? res.user?.id)
+        .then((f) => {
+          if (f?.fotoPerfil) localStorage.setItem("fotoPerfil", f.fotoPerfil);
+          else localStorage.removeItem("fotoPerfil");
+        })
+        .catch(() => localStorage.removeItem("fotoPerfil"));
       navigate("/home");
     } catch (err) {
       setError(err.data?.error || err.message || "Error al iniciar sesión");
@@ -37,12 +49,12 @@ function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Email</label>
+            <label>mail</label>
             <input
               type="text"
-              placeholder="usuario@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="usuario@mail.com"
+              value={mail}
+              onChange={(e) => setmail(e.target.value)}
             />
           </div>
 
@@ -51,8 +63,8 @@ function Login() {
             <input
               type="password"
               placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={contrasena}
+              onChange={(e) => setcontrasena(e.target.value)}
             />
           </div>
 

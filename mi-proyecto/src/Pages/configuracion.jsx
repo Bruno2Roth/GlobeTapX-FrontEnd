@@ -24,15 +24,19 @@ function Switch({ texto }) {
 }
 
 function Configuracion() {
-  const foto = "";
-  const usuario = { nombreCompleto: "Usuario", email: "correo@ejemplo.com" };
+  const fotoRaw = localStorage.getItem("fotoPerfil");
+  const foto = fotoRaw && fotoRaw !== "null" && fotoRaw !== "undefined" ? fotoRaw : "";
+  const nombre = localStorage.getItem("user");
+  const usuario = nombre ? (() => { try { return JSON.parse(nombre); } catch { return {}; } })() : {};
+  usuario.nombreCompleto = usuario.nombreCompleto || usuario.NombreCompleto || usuario.nombre || "Usuario";
+  usuario.mail = usuario.mail || usuario.Mail || usuario.correo || "correo@ejemplo.com";
 
   return (
     <div className="config">
       <div className="perfil-card">
         <img src={foto} alt="perfil" />
         <h2>{usuario.nombreCompleto}</h2>
-        <p>{usuario.email}</p>
+        <p>{usuario.mail}</p>
         <button>Editar perfil</button>
       </div>
 

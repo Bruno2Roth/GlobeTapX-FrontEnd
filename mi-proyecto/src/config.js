@@ -1,8 +1,6 @@
-export const HOST = "A-PHZ2-CIDI-18";
-export const PORT = 3000;
-export const API = `http://${HOST}:${PORT}/api`;
-export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) });
-export const register = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data) });
+export const API = "/api";
+export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data), noAuth: true });
+export const register = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data), noAuth: true });
 export const getUsuario = (id) => request(`/usuario/${id}`);
 export const updateUsuario = (id, data) => request(`/usuario/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const getPaises = () => request("/pais");
@@ -15,12 +13,41 @@ export const updateUsuarioIdioma = (data) => request("/usuario/idioma", { method
 export const getAllData = () => request("/data/all");
 export const traducir = (body) => request("/traduccion", { method: "POST", body: JSON.stringify(body) });
 export const traducirBatch = (body) => request("/traduccion/batch", { method: "POST", body: JSON.stringify(body) });
-const request = async (path, options = {}) => {
+export const getFotoPerfil = (userId) => request(`/auth/foto/${userId}`, { noAuth: true });
+export const getEventos = () => request("/evento");
+export const getEvento = (id) => request(`/evento/${id}`);
+export const getEventosPorPais = (idPais) => request(`/evento/pais/${idPais}`);
+export const getEventosPorCategoria = (idCategoria) => request(`/evento/categoria/${idCategoria}`);
+export const getEventosPorFecha = (desde, hasta) => request(`/evento/fecha?desde=${desde}&hasta=${hasta}`);
+export const crearEvento = (data) => request("/evento", { method: "POST", body: JSON.stringify(data) });
+export const actualizarEvento = (id, data) => request(`/evento/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const eliminarEvento = (id) => request(`/evento/${id}`, { method: "DELETE" });
+export const crearAgendaUsuario = (data) => request("/agendausuario", { method: "POST", body: JSON.stringify(data) });
+export const eliminarAgendaUsuario = (id) => request(`/agendausuario/${id}`, { method: "DELETE" });
+export const getCategorias = async () => {
+  const res = await request("/categoria");
+  return res?.data || res || [];
+};
+export const request = async (path, options = {}) => {
     const token = localStorage.getItem("token");
+    if (token && token.length > 5000) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
+        window.location.href = "/";
+        return;
+    }
     const headers = { ...options.headers };
     if (options.body) headers["Content-Type"] = "application/json";
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (token && !options.noAuth) headers["Authorization"] = `Bearer ${token}`;
     const res = await fetch(`${API}${path}`, { ...options, headers });
+    if (res.status === 431) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
+        window.location.href = "/";
+        return;
+    }
     if (!res.ok) {
         const err = new Error(`Error ${res.status}`);
         err.status = res.status;

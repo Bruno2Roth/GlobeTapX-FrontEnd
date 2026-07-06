@@ -8,14 +8,14 @@ import {
   MdEmergency,
   MdTranslate,
   MdEvent,
-  MdTravelExplore,
+  MdEventAvailable,
   MdFavorite,
   MdPerson,
   MdSettings,
   MdArticle,
   MdChevronRight,
 } from "react-icons/md";
-import { getUsuario } from "../../config";
+import { getUsuario, getFotoPerfil } from "../../config";
 import "./index.css";
 
 const links = [
@@ -25,7 +25,7 @@ const links = [
   { to: "/numEmergencia", icon: <MdEmergency />, label: "Ayuda" },
   { to: "/idioma", icon: <MdTranslate />, label: "Idioma" },
   { to: "/agenda", icon: <MdEvent />, label: "Agenda" },
-  { to: "/explorar", icon: <MdTravelExplore />, label: "Explorar" },
+  { to: "/eventos", icon: <MdEventAvailable />, label: "Eventos" },
   { to: "/favoritos", icon: <MdFavorite />, label: "Favoritos" },
   { to: "/perfil", icon: <MdPerson />, label: "Perfil" },
   { to: "/configuracion", icon: <MdSettings />, label: "Configuración" },
@@ -34,6 +34,10 @@ const links = [
 function TopBar() {
   const { pathname } = useLocation();
   const [usuario, setUsuario] = useState(null);
+  const [fotoPerfil, setFotoPerfil] = useState((() => {
+    const f = localStorage.getItem("fotoPerfil");
+    return f && f !== "null" && f !== "undefined" ? f : "";
+  })());
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -86,9 +90,11 @@ function TopBar() {
         </h1>
 
         <Link to="/perfil" className="top-bar-avatar">
-          {(usuario?.nombre || usuario?.Nombre || "U")
-            .charAt(0)
-            .toUpperCase()}
+          {fotoPerfil ? (
+            <img src={fotoPerfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+          ) : (
+            (usuario?.nombre || usuario?.Nombre || "U").charAt(0).toUpperCase()
+          )}
         </Link>
       </header>
 
@@ -102,7 +108,11 @@ function TopBar() {
       <nav className={`top-bar-nav ${menuOpen ? "open" : ""}`}>
         <div className="nav-profile">
           <div className="nav-avatar">
-            {(usuario?.nombre || "U").charAt(0).toUpperCase()}
+            {fotoPerfil ? (
+              <img src={fotoPerfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+            ) : (
+              (usuario?.nombre || "U").charAt(0).toUpperCase()
+            )}
           </div>
 
           <div className="nav-info">

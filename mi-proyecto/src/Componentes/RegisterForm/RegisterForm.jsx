@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getPaises, getIdiomas, register } from "../../config";
+import { getPaises, getIdiomas, register, getFotoPerfil } from "../../config";
 import "./index.css";
 
-// Validación simple de formato de email
-const validarEmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
+// Validación simple de formato de mail
+const validarmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
 
 // Componente reutilizable de input con label y mensaje de error
 function InputField({ field, type, placeholder, label, value, error, touched, onChange, onBlur }) {
@@ -104,7 +104,7 @@ function RegisterForm() {
         break;
       case "mail":
         if (!v.trim()) error = "El correo es obligatorio";
-        else if (!validarEmail(v)) error = "Formato de correo inválido";
+        else if (!validarmail(v)) error = "Formato de correo inválido";
         break;
       case "contrasena":
         if (!v) error = "La contraseña es obligatoria";
@@ -170,6 +170,12 @@ function RegisterForm() {
       localStorage.setItem("token", res.token);
       localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);
       localStorage.setItem("user", JSON.stringify(res.user));
+      getFotoPerfil(res.user?.usuarioID ?? res.user?.id)
+        .then((f) => {
+          if (f?.fotoPerfil) localStorage.setItem("fotoPerfil", f.fotoPerfil);
+          else localStorage.removeItem("fotoPerfil");
+        })
+        .catch(() => localStorage.removeItem("fotoPerfil"));
       setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
       setTimeout(() => navigate("/home"), 1500);
     } catch (err) {
@@ -189,7 +195,7 @@ function RegisterForm() {
         {successMsg && <p className="rg-msg rg-msg--success">{successMsg}</p>}
 
         <InputField field="nombre" type="text" placeholder="usuario123" label="Nombre de usuario" value={form.nombre} error={errors.nombre} touched={touched.nombre} onChange={(e) => set("nombre", e.target.value)} onBlur={() => handleBlur("nombre")} />
-        <InputField field="mail" type="email" placeholder="ejemplo@correo.com" label="Correo electrónico" value={form.mail} error={errors.mail} touched={touched.mail} onChange={(e) => set("mail", e.target.value)} onBlur={() => handleBlur("mail")} />
+        <InputField field="mail" type="mail" placeholder="ejemplo@correo.com" label="Correo electrónico" value={form.mail} error={errors.mail} touched={touched.mail} onChange={(e) => set("mail", e.target.value)} onBlur={() => handleBlur("mail")} />
         <InputField field="nombreCompleto" type="text" placeholder="Juan Pérez" label="Nombre completo" value={form.nombreCompleto} error={errors.nombreCompleto} touched={touched.nombreCompleto} onChange={(e) => set("nombreCompleto", e.target.value)} onBlur={() => handleBlur("nombreCompleto")} />
 
         <InputField field="numeroContacto" type="tel" placeholder="+54 11 1234-5678" label="Número de contacto" value={form.numeroContacto} error={errors.numeroContacto} touched={touched.numeroContacto} onChange={(e) => set("numeroContacto", e.target.value)} onBlur={() => handleBlur("numeroContacto")} />

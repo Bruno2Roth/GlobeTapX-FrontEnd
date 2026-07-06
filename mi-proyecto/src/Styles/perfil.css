@@ -100,15 +100,15 @@
   cursor: not-allowed;
 }
 
-.password-box {
+.contrasena-box {
   position: relative;
 }
 
-.password-box input {
+.contrasena-box input {
   width: 100%;
 }
 
-.password-box button {
+.contrasena-box button {
   position: absolute;
   top: 50%;
   right: 15px;

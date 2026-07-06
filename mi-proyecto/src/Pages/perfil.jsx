@@ -7,7 +7,8 @@ import {
   FaGlobe,
   FaTemperatureHigh,
 } from "react-icons/fa";
-import { getUsuario, getPaises, getIdiomaUsuario, updateUsuario, updateUsuarioIdioma } from "../config";
+import { getUsuario, getPaises, getIdiomaUsuario, updateUsuario, updateUsuarioIdioma, getFotoPerfil } from "../config";
+import { obtenerCache, guardarCache } from "../helpers/cache";
 import "../Styles/perfil.css";
 
 export default function Profile() {
@@ -27,13 +28,7 @@ export default function Profile() {
     { code: "zh-CN", name: "🇨🇳 中文" },
     { code: "ru", name: "🇷🇺 Русский" },
     { code: "ar", name: "🇸🇦 العربية" },
-    { code: "hi", name: "🇮🇳 हिन्दी" },
-    { code: "tr", name: "🇹🇷 Türkçe" },
-    { code: "nl", name: "🇳🇱 Nederlands" },
-    { code: "sv", name: "🇸🇪 Svenska" },
-    { code: "pl", name: "🇵🇱 Polski" },
-    { code: "el", name: "🇬🇷 Ελληνικά" },
-  ];
+    { code: "tr", name: "🇹🇷 Türkçe" },];
 
   const [form, setForm] = useState({
     nombreCompleto: "",
@@ -43,15 +38,30 @@ export default function Profile() {
     idioma: "",
   });
   const [paises, setPaises] = useState([]);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showcontrasena, setShowcontrasena] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState(null);
-  const [fotoPreview, setFotoPreview] = useState("");
+  const [fotoPreview, setFotoPreview] = useState((() => {
+    const f = localStorage.getItem("fotoPerfil");
+    return f && f !== "null" && f !== "undefined" ? f : "";
+  })());
 
   useEffect(() => {
     if (!userId) return;
+
+    const cacheKey = "perfil_cache_" + userId;
+    const cache = obtenerCache(cacheKey);
+    if (cache) {
+      setForm(cache.data.form);
+      setPaises(cache.data.paises || []);
+      setFotoPreview(cache.data.fotoPreview || "");
+      if (cache.data.fotoPreview && cache.data.fotoPreview !== "null" && cache.data.fotoPreview !== "undefined") localStorage.setItem("fotoPerfil", cache.data.fotoPreview);
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       try {
         const [user, paises, idiomaRes] = await Promise.all([
@@ -59,14 +69,24 @@ export default function Profile() {
           getPaises(),
           getIdiomaUsuario(userId).catch(() => null),
         ]);
-        setForm({
+        const formData = {
           nombreCompleto: user.nombreCompleto || user.NombreCompleto || "",
           mail: user.mail || user.Mail || user.correo || user.Correo || "",
           contrasena: "",
           paisActual: user.paisActual || user.PaisActual || user.paisID || user.PaisID || "",
           idioma: idiomaRes?.codigoIdioma || idiomaRes?.idioma || idiomaRes || "es",
-        });
+        };
+        setForm(formData);
         setPaises(paises);
+        let fotoUrl = "";
+        try {
+          const f = await getFotoPerfil(userId);
+          fotoUrl = f.fotoPerfil || "";
+          setFotoPreview(fotoUrl);
+          localStorage.setItem("fotoPerfil", fotoUrl);
+        } catch {}
+
+        guardarCache(cacheKey, { form: formData, paises, fotoPreview: fotoUrl });
       } catch {
         setMessage("Error al cargar datos");
       } finally {
@@ -100,6 +120,16 @@ export default function Profile() {
       await updateUsuarioIdioma({ usuarioId: Number(userId), codigoIdioma: form.idioma }).catch(() => {});
       const updated = await getUsuario(userId);
       localStorage.setItem("user", JSON.stringify(updated));
+      if (fotoPerfil) {
+        const res = await getFotoPerfil(userId);
+        const url = res.fotoPerfil;
+        localStorage.setItem("fotoPerfil", url);
+        setFotoPreview(url);
+      }
+      const perfilCacheKey = "perfil_cache_" + userId;
+      const homeCacheKey = "home_cache_" + userId;
+      localStorage.removeItem(perfilCacheKey);
+      localStorage.removeItem(homeCacheKey);
       setMessage("Cambios guardados");
     } catch {
       setMessage("Error al guardar");
@@ -112,6 +142,7 @@ export default function Profile() {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("user");
+    localStorage.removeItem("fotoPerfil");
     navigate("/");
   };
 
@@ -155,7 +186,7 @@ export default function Profile() {
 
         <label>Correo electrónico</label>
         <input
-          type="email"
+          type="mail"
           placeholder="Ingrese su correo electrónico"
           value={form.mail}
           readOnly
@@ -186,15 +217,15 @@ export default function Profile() {
         </select>
 
         <label>Contraseña</label>
-        <div className="password-box">
+        <div className="contrasena-box">
           <input
-            type={showPassword ? "text" : "password"}
+            type={showcontrasena ? "text" : "password"}
             placeholder="Ingrese una nueva contraseña"
             value={form.contrasena}
             onChange={(e) => set("contrasena", e.target.value)}
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <FaEye /> : <FaEyeSlash />}
+          <button type="button" onClick={() => setShowcontrasena(!showcontrasena)}>
+            {showcontrasena ? <FaEye /> : <FaEyeSlash />}
           </button>
         </div>
 

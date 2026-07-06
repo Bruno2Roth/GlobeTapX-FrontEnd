@@ -1,25 +1,37 @@
-import './index.css'
+import { Link } from "react-router-dom";
+import "./index.css";
 
-function CardEvento() {
+function CardEvento({ evento, nombrePais }) {
+  if (!evento) return null;
+
+  const formatearFecha = (f) => {
+    if (!f) return "";
+    return new Date(f).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
-    <div className='cardEvento'>
-
-      <img
-        src='https://images.unsplash.com/photo-1492684223066-81342ee5ff30'
-        alt='evento'
-      />
-
-      <div className='eventoInfo'>
-
-        <h3>Festival de Luces</h3>
-
-        <p>12 Octubre 2025</p>
-
+    <Link to={`/evento/${evento.ID}`} className="cardEvento">
+      <div className="cardEvento-img">
+        {evento.imagen ? (
+          <img src={evento.imagen} alt={evento.nombre} />
+        ) : (
+          <div className="cardEvento-placeholder">📅</div>
+        )}
       </div>
-
-    </div>
-  )
+      <div className="eventoInfo">
+        <h3 className="cardEvento-titulo">{evento.nombre}</h3>
+        {nombrePais && <p className="cardEvento-pais">{nombrePais}</p>}
+        <p className="cardEvento-fecha">{formatearFecha(evento.fechaInicio)}</p>
+        {evento.categoria && (
+          <span className="cardEvento-categoria">{evento.categoria}</span>
+        )}
+      </div>
+    </Link>
+  );
 }
 
-export default CardEvento
+export default CardEvento;

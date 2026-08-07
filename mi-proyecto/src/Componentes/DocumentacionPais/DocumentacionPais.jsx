@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { getCountryDocumentation } from "../../services/countryDocumentationService";
 import Loader from "../Loader/Loader";
 import "./index.css";
@@ -64,6 +65,15 @@ function ImagePlaceholder({ name }) {
   );
 }
 
+function normalizeDailyProblems(value) {
+  if (typeof value !== "string") return [];
+
+  return value
+    .split(/\r?\n/)
+    .map((problem) => problem.trim().replace(/^•\s*/, "").trim())
+    .filter(Boolean);
+}
+
 export default function DocumentacionPais({ paisId }) {
   const [data, setData] = useState(null);
   const [requestState, setRequestState] = useState({ paisId: null, status: "empty", error: "" });
@@ -112,6 +122,7 @@ export default function DocumentacionPais({ paisId }) {
 
   const hasImage = typeof data.imagen === "string" && data.imagen.trim() && !imageFailed;
   const hasDocumentation = typeof data.documentacion === "string" && data.documentacion.trim();
+  const dailyProblems = normalizeDailyProblems(data.vidaDiaria);
   const documentationIsHtml = hasDocumentation && looksLikeHtml(data.documentacion);
   const sanitizedDocumentation = documentationIsHtml
     ? sanitizeHtml(data.documentacion)
@@ -145,6 +156,24 @@ export default function DocumentacionPais({ paisId }) {
             <p>{EMPTY_DOCUMENTATION}</p>
           )}
         </div>
+
+        <section className="country-documentation__daily-life" aria-labelledby="daily-life-title">
+          <h3 id="daily-life-title">Problemas De La Vida Diaria</h3>
+          {dailyProblems.length ? (
+            <ul className="country-documentation__problems">
+              {dailyProblems.map((problem, index) => (
+                <li key={`${problem}-${index}`} className="country-documentation__problem">
+                  <AlertTriangle size={17} strokeWidth={1.8} aria-hidden="true" />
+                  <span>{problem}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="country-documentation__problems-empty">
+              No hay información de problemas de la vida diaria para este país.
+            </p>
+          )}
+        </section>
       </div>
     </article>
   );

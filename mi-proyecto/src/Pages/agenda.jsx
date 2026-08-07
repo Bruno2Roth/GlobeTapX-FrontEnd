@@ -1,279 +1,430 @@
-import { useEffect, useState } from 'react'
-import '../Styles/agenda.css'
-import '../index.css'
-import { getAgendaUsuario, getUsuario, getPaises, traducir } from '../config'
-import { obtenerCache, guardarCache } from '../helpers/cache'
-import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
+import { useEffect, useState } from "react";
+import {
+  CalendarDays,
+  CalendarX,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  X,
+} from "lucide-react";
+import "../Styles/agenda.css";
+import "../index.css";
+import { getAgendaUsuario, getUsuario, getPaises, traducir } from "../config";
+import { obtenerCache, guardarCache } from "../helpers/cache";
+import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
-// Capitaliza la primera letra de un string
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
-
-// Clave de cache por usuario
-const CACHE_KEY = userId => `agenda_${userId}`
+const cap = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
+const CACHE_KEY = (userId) => `agenda_${userId}`;
 
 function Agenda() {
-  const userId = localStorage.getItem("userId")
-  const [items, setItems] = useState({ eventos: [], feriados: [] })
-  const [fecha, setFecha] = useState(new Date())
-  const [selectedDay, setSelectedDay] = useState(null)
-  const [cacheTimestamp, setCacheTimestamp] = useState(null)
-  const anio = fecha.getFullYear()
-  const mes = fecha.getMonth()
+  const userId = localStorage.getItem("userId");
+  const [items, setItems] = useState({ eventos: [], feriados: [] });
+  const [fecha, setFecha] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
-  // Carga inicial: intenta cache, si no hay fetchea agenda + feriados
+  const anio = fecha.getFullYear();
+  const mes = fecha.getMonth();
+
   useEffect(() => {
-    if (!userId) return
-    const cache = obtenerCache(CACHE_KEY(userId))
+    if (!userId) return;
+
+    const cache = obtenerCache(CACHE_KEY(userId));
+
     if (cache) {
-      setItems(cache.data)
-      setCacheTimestamp(cache.timestamp)
-      return
+      setItems(cache.data);
+      setCacheTimestamp(cache.timestamp);
+      return;
     }
+
     const fetchData = async () => {
       try {
         const [data, userData, paises] = await Promise.all([
           getAgendaUsuario(userId),
           getUsuario(userId),
-          getPaises()
-        ])
+          getPaises(),
+        ]);
 
-        // Traduce el pais del usuario para obtener el codigo ISO y buscar feriados
-        const userPais = paises.find(p => p.ID === userData.paisActual)
-        let codigoPais = 'AR'
+        const userPais = paises.find((pais) => pais.ID === userData.paisActual);
+        let codigoPais = "AR";
+
         if (userPais) {
           try {
             const [tradRes, dispRes] = await Promise.all([
-              traducir({ text: userPais.nombre, targetLanguage: 'en' }).catch(() => null),
-              fetch('https://date.nager.at/api/v3/AvailableCountries')
-            ])
+              traducir({
+                text: userPais.nombre,
+                targetLanguage: "en",
+              }).catch(() => null),
+              fetch("https://date.nager.at/api/v3/AvailableCountries"),
+            ]);
+
             if (tradRes && dispRes.ok) {
-              const nombreEN = tradRes.data.translatedText
-              const disp = await dispRes.json()
-              const match = disp.find(p => p.name === nombreEN)
-              if (match) codigoPais = match.countryCode
+              const nombreEN = tradRes.data.translatedText;
+              const disponibles = await dispRes.json();
+              const match = disponibles.find((pais) => pais.name === nombreEN);
+
+              if (match) codigoPais = match.countryCode;
             }
-          } catch {}
+          } catch {
+            console.warn("No fue posible determinar el país para los feriados.");
+          }
         }
 
-        // Mapea eventos del usuario
-        const eventos = (data.agenda || []).map(e => ({
-          fecha: (e.fechaInicio || '').split('T')[0],
-          titulo: e.eventoNombre || 'Evento',
-          desc: e.eventoDescripcion || '',
-          lugar: e.ubicacion || ''
-        }))
+        const eventos = (data.agenda || []).map((evento) => ({
+          fecha: (evento.fechaInicio || "").split("T")[0],
+          titulo: evento.eventoNombre || "Evento",
+          desc: evento.eventoDescripcion || "",
+          lugar: evento.ubicacion || "",
+        }));
 
-        // Extrae feriados devueltos por la API propia
-        const feriados = []
+        const feriados = [];
+
         if (data.feriados) {
-          Object.values(data.feriados).forEach(arr => {
-            if (Array.isArray(arr)) arr.forEach(f => {
-              feriados.push({ fecha: f.date, titulo: f.localName || f.name })
-            })
-          })
+          Object.values(data.feriados).forEach((lista) => {
+            if (Array.isArray(lista)) {
+              lista.forEach((feriado) => {
+                feriados.push({
+                  fecha: feriado.date,
+                  titulo: feriado.localName || feriado.name,
+                });
+              });
+            }
+          });
         }
 
-        // Fetch de feriados desde Nager.Date API para 2024-2030
-        const anios = []
-        for (let y = 2024; y <= 2030; y++) anios.push(y)
-        const controlador = new AbortController()
-        setTimeout(() => controlador.abort(), 5000)
+        const anios = [];
+        for (let year = 2024; year <= 2030; year += 1) anios.push(year);
+
+        const controlador = new AbortController();
+        setTimeout(() => controlador.abort(), 5000);
+
         const resultados = await Promise.allSettled(
-          anios.map(y =>
-            fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/${codigoPais}`, { signal: controlador.signal })
-              .then(r => r.ok ? r.json() : [])
+          anios.map((year) =>
+            fetch(
+              `https://date.nager.at/api/v3/PublicHolidays/${year}/${codigoPais}`,
+              { signal: controlador.signal }
+            )
+              .then((response) => (response.ok ? response.json() : []))
               .catch(() => [])
           )
-        )
-        resultados.forEach(r => {
-          if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-            r.value.forEach(f => {
-              if (!feriados.some(ex => ex.fecha === f.date))
-                feriados.push({ fecha: f.date, titulo: f.localName || f.name })
-            })
+        );
+
+        resultados.forEach((resultado) => {
+          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) {
+            resultado.value.forEach((feriado) => {
+              if (!feriados.some((existente) => existente.fecha === feriado.date)) {
+                feriados.push({
+                  fecha: feriado.date,
+                  titulo: feriado.localName || feriado.name,
+                });
+              }
+            });
           }
-        })
+        });
 
-        const result = { eventos, feriados }
-        guardarCache(CACHE_KEY(userId), result)
-        setItems(result)
-        setCacheTimestamp(Date.now())
-      } catch (err) {
-        console.error(err)
+        const result = { eventos, feriados };
+
+        guardarCache(CACHE_KEY(userId), result);
+        setItems(result);
+        setCacheTimestamp(Date.now());
+      } catch (error) {
+        console.error("Error al cargar agenda:", error);
       }
-    }
-    fetchData()
-  }, [userId])
+    };
 
-  // Helpers de fecha
-  const f = (v) => (v || '').split('T')[0]
-  const prefijo = `${anio}-${String(mes + 1).padStart(2, '0')}`
-  const enMes = (v) => f(v).startsWith(prefijo)
-  const enDia = (v, d) => f(v) === `${prefijo}-${String(d).padStart(2, '0')}`
+    fetchData();
+  }, [userId]);
 
-  // Filtra eventos y feriados del mes actual
-  const eventosMes = items.eventos.filter(e => enMes(e.fecha))
-  const feriadosMes = items.feriados.filter(e => enMes(e.fecha))
+  const normalizarFecha = (valor) => (valor || "").split("T")[0];
+  const prefijo = `${anio}-${String(mes + 1).padStart(2, "0")}`;
 
-  // Calculos del calendario
-  const diasEnMes = new Date(anio, mes + 1, 0).getDate()
-  const inicio = new Date(anio, mes, 1).getDay()
-  const hoy = new Date()
-  const esHoy = (d) => d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()
+  const enMes = (valor) => normalizarFecha(valor).startsWith(prefijo);
+  const enDia = (valor, dia) =>
+    normalizarFecha(valor) === `${prefijo}-${String(dia).padStart(2, "0")}`;
 
-  // Construye las celdas del calendario
-  const celdas = []
-  const filas = 6;
-  for (let i = 0; i < inicio; i++) celdas.push(<div key={`e${i}`} className="cd cd-empty" />)
-  for (let d = 1; d <= diasEnMes; d++) {
-    const evs = items.eventos.filter(e => enDia(e.fecha, d))
-    const fers = items.feriados.filter(e => enDia(e.fecha, d))
-    const cls = ['cd']
-    if (esHoy(d)) cls.push('hoy')
-    if (fers.length) cls.push('feriado')
-    if (evs.length) cls.push('evento')
-    celdas.push(
-      <div key={d} className={cls.join(' ')} onClick={() => handleDayClick(d)}>
-        <span className="num">{d}</span>
-<div className="tags">
+  const eventosMes = items.eventos.filter((evento) => enMes(evento.fecha));
+  const feriadosMes = items.feriados.filter((feriado) => enMes(feriado.fecha));
 
-  {fers.slice(0,1).map((f, i) => (
-    <span
-      key={`f${i}`}
-      className="tag f-tag"
-      title={f.titulo}
-    >
-      {f.titulo}
-    </span>
-  ))}
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  const inicio = new Date(anio, mes, 1).getDay();
+  const hoy = new Date();
 
-  {evs.slice(0,1).map((e, i) => (
-    <span
-      key={`e${i}`}
-      className="tag e-tag"
-      title={e.titulo}
-    >
-      {e.titulo}
-    </span>
-  ))}
+  const esHoy = (dia) =>
+    dia === hoy.getDate() &&
+    mes === hoy.getMonth() &&
+    anio === hoy.getFullYear();
 
-  {(fers.length + evs.length) > 1 && (
-    <span className="tag tag-more">
-      +{fers.length + evs.length - 1}
-    </span>
-  )}
-
-</div>
-      </div>
-    )
-  }
-
-  // Formatea nombre del mes y dia de la semana
-  const fmtMes = (i) => cap(new Date(anio, i, 1).toLocaleDateString('es-ES', { month: 'long' }))
-  const fmtDia = (i) => cap(new Date(2024, 0, i + 1).toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3))
-  const diasHeader = Array.from({ length: 7 }, (_, i) => fmtDia(i))
-
-  // Muestra detalles del dia seleccionado
-  const handleDayClick = (d) => {
-    const evs = items.eventos.filter(e => enDia(e.fecha, d))
-    const fers = items.feriados.filter(e => enDia(e.fecha, d))
-    if (evs.length > 0 || fers.length > 0) {
-      setSelectedDay({
-        dia: d,
-        eventos: evs,
-        feriados: fers,
-        fecha: `${d} de ${fmtMes(mes)} de ${anio}`
+  const fmtMes = (indice) =>
+    cap(
+      new Date(anio, indice, 1).toLocaleDateString("es-ES", {
+        month: "long",
       })
-    }
+    );
+
+  const fmtDia = (indice) =>
+    cap(
+      new Date(2024, 0, indice + 1)
+        .toLocaleDateString("es-ES", { weekday: "short" })
+        .slice(0, 3)
+    );
+
+  const diasHeader = Array.from({ length: 7 }, (_, indice) => fmtDia(indice));
+
+  const handleDayClick = (dia) => {
+    const eventos = items.eventos.filter((evento) => enDia(evento.fecha, dia));
+    const feriados = items.feriados.filter((feriado) => enDia(feriado.fecha, dia));
+
+    if (!eventos.length && !feriados.length) return;
+
+    setSelectedDay({
+      dia,
+      eventos,
+      feriados,
+      fecha: `${dia} de ${fmtMes(mes)} de ${anio}`,
+    });
+  };
+
+  const cerrarModal = () => setSelectedDay(null);
+
+  const celdas = [];
+
+  for (let indice = 0; indice < inicio; indice += 1) {
+    celdas.push(<div key={`empty-${indice}`} className="cd cd-empty" />);
   }
 
-  const cerrarModal = () => setSelectedDay(null)
+  for (let dia = 1; dia <= diasEnMes; dia += 1) {
+    const eventos = items.eventos.filter((evento) => enDia(evento.fecha, dia));
+    const feriados = items.feriados.filter((feriado) => enDia(feriado.fecha, dia));
+    const tieneContenido = eventos.length > 0 || feriados.length > 0;
+
+    const clases = ["cd"];
+
+    if (esHoy(dia)) clases.push("hoy");
+    if (feriados.length) clases.push("feriado");
+    if (eventos.length) clases.push("evento");
+    if (selectedDay?.dia === dia) clases.push("selected");
+
+    celdas.push(
+      <button
+        key={dia}
+        type="button"
+        className={clases.join(" ")}
+        onClick={() => handleDayClick(dia)}
+        disabled={!tieneContenido}
+        aria-label={
+          tieneContenido
+            ? `Ver actividades del ${dia} de ${fmtMes(mes)}`
+            : `${dia} de ${fmtMes(mes)}`
+        }
+      >
+        <span className="num">{dia}</span>
+
+        <span className="tags">
+          {feriados.slice(0, 1).map((feriado, indice) => (
+            <span
+              key={`feriado-${indice}`}
+              className="tag f-tag"
+              title={feriado.titulo}
+            >
+              {feriado.titulo}
+            </span>
+          ))}
+
+          {eventos.slice(0, 1).map((evento, indice) => (
+            <span
+              key={`evento-${indice}`}
+              className="tag e-tag"
+              title={evento.titulo}
+            >
+              {evento.titulo}
+            </span>
+          ))}
+
+          {feriados.length + eventos.length > 1 && (
+            <span className="tag tag-more">
+              +{feriados.length + eventos.length - 1}
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
-    <div className="agenda">
-      {/* Encabezado */}
-      <div className="h-card">
-        <span className="badge">📅 Agenda</span>
-        <h1>Mi Agenda</h1>
-        <p>Organizá tus viajes</p>
-        {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
-      </div>
+    <main className="agenda">
+      <section className="h-card">
+        <div className="h-card-content">
+          <span className="badge">
+            <CalendarDays size={14} />
+            Agenda
+          </span>
 
-      {/* Calendario */}
-      <div className="cal">
+          <h1>Mi agenda</h1>
+          <p>Organizá tus viajes, eventos y días importantes.</p>
+
+          {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
+        </div>
+
+        <div className="agenda-hero-icon">
+          <CalendarDays size={42} strokeWidth={1.5} />
+        </div>
+      </section>
+
+      <section className="cal">
         <div className="cal-h">
-          <button className="btn" onClick={() => setFecha(new Date(anio, mes - 1, 1))} aria-label="Mes anterior">‹</button>
-          <h3>{fmtMes(mes)} <span className="anio">{anio}</span></h3>
-          <button className="btn" onClick={() => setFecha(new Date(anio, mes + 1, 1))} aria-label="Mes siguiente">›</button>
+          <button
+            className="btn"
+            type="button"
+            onClick={() => setFecha(new Date(anio, mes - 1, 1))}
+            aria-label="Mes anterior"
+          >
+            <ChevronLeft size={21} />
+          </button>
+
+          <div>
+            <span className="cal-eyebrow">Calendario</span>
+            <h3>
+              {fmtMes(mes)} <span className="anio">{anio}</span>
+            </h3>
+          </div>
+
+          <button
+            className="btn"
+            type="button"
+            onClick={() => setFecha(new Date(anio, mes + 1, 1))}
+            aria-label="Mes siguiente"
+          >
+            <ChevronRight size={21} />
+          </button>
         </div>
+
         <div className="cal-dias">
-          {diasHeader.map(d => <span key={d} className="dl">{d}</span>)}
-        </div>
-            <div
-                className="cal-grid"
-                style={{
-                    gridTemplateRows: `repeat(${filas}, 52px)`
-                }}
-            >
-                {celdas}
-            </div>      
+          {diasHeader.map((dia) => (
+            <span key={dia} className="dl">
+              {dia}
+            </span>
+          ))}
         </div>
 
-      {/* Lista de eventos y feriados del mes */}
-      {eventosMes.length === 0 && feriadosMes.length === 0 && 
-        (
-          <div className="vacio">
-              <h3>📭 Sin actividades</h3>
-              <p>No hay eventos ni feriados para este mes.</p>
-          </div>      
-        )
-      }
+        <div
+          className="cal-grid"
+          style={{ gridTemplateRows: "repeat(6, 52px)" }}
+        >
+          {celdas}
+        </div>
+      </section>
+
+      {eventosMes.length === 0 && feriadosMes.length === 0 && (
+        <section className="vacio">
+          <div className="empty-icon">
+            <CalendarX size={25} />
+          </div>
+          <h3>Sin actividades</h3>
+          <p>No hay eventos ni feriados para este mes.</p>
+        </section>
+      )}
+
       {(eventosMes.length > 0 || feriadosMes.length > 0) && (
-<div className="lista-eventos">
+        <section className="lista-eventos">
+          <div className="lista-header">
+            <span>Este mes</span>
+            <h2>Próximas actividades</h2>
+          </div>
 
-    {feriadosMes.map((f,i)=>(
-        <div className="item-feriado" key={i}>
-            📅 {f.titulo}
-        </div>
-    ))}
+          {feriadosMes.map((feriado, indice) => (
+            <article className="item-feriado" key={`feriado-${indice}`}>
+              <div className="list-icon">
+                <CalendarDays size={18} />
+              </div>
+              <span>{feriado.titulo}</span>
+            </article>
+          ))}
 
-    {eventosMes.map((e,i)=>(
-        <div className="item-evento" key={i}>
-            <strong>{e.titulo}</strong>
+          {eventosMes.map((evento, indice) => (
+            <article className="item-evento" key={`evento-${indice}`}>
+              <div className="list-icon">
+                <CalendarDays size={18} />
+              </div>
 
-            {e.desc && <p>{e.desc}</p>}
+              <div>
+                <strong>{evento.titulo}</strong>
+                {evento.desc && <p>{evento.desc}</p>}
 
-            {e.lugar && <small>📍 {e.lugar}</small>}
-        </div>
-    ))}
+                {evento.lugar && (
+                  <small>
+                    <MapPin size={13} />
+                    {evento.lugar}
+                  </small>
+                )}
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
 
-</div>
-)}
-      {/* Modal de detalle del dia */}
       {selectedDay && (
-        <div className="dm-overlay" onClick={cerrarModal}>
-          <div className="dm-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="dm-overlay"
+          onClick={cerrarModal}
+          role="presentation"
+        >
+          <section
+            className="dm-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Actividades del ${selectedDay.fecha}`}
+          >
             <div className="dm-h">
-              <span className="dm-fecha">{selectedDay.fecha}</span>
-              <button className="dm-x" onClick={cerrarModal}>✕</button>
+              <div>
+                <span className="dm-label">Actividades del día</span>
+                <span className="dm-fecha">{selectedDay.fecha}</span>
+              </div>
+
+              <button
+                className="dm-x"
+                type="button"
+                onClick={cerrarModal}
+                aria-label="Cerrar"
+              >
+                <X size={18} />
+              </button>
             </div>
+
             <div className="dm-body">
-              {selectedDay.feriados.map((f, i) => (
-                <div key={`mf${i}`} className="dm-feriado">📅 {f.titulo}</div>
+              {selectedDay.feriados.map((feriado, indice) => (
+                <div key={`modal-feriado-${indice}`} className="dm-feriado">
+                  <CalendarDays size={17} />
+                  <span>{feriado.titulo}</span>
+                </div>
               ))}
-              {selectedDay.eventos.map((e, i) => (
-                <div key={`me${i}`} className="dm-evento">
-                  <div className="dm-evento-titulo">{e.titulo}</div>
-                  {e.desc && <div className="dm-evento-desc">{e.desc}</div>}
-                  {e.lugar && <div className="dm-evento-lugar">📍 {e.lugar}</div>}
+
+              {selectedDay.eventos.map((evento, indice) => (
+                <div key={`modal-evento-${indice}`} className="dm-evento">
+                  <CalendarDays size={18} className="dm-evento-icon" />
+
+                  <div>
+                    <div className="dm-evento-titulo">{evento.titulo}</div>
+
+                    {evento.desc && (
+                      <div className="dm-evento-desc">{evento.desc}</div>
+                    )}
+
+                    {evento.lugar && (
+                      <div className="dm-evento-lugar">
+                        <MapPin size={13} />
+                        {evento.lugar}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         </div>
       )}
-    </div>
-  )
+    </main>
+  );
 }
 
-export default Agenda
+export default Agenda;

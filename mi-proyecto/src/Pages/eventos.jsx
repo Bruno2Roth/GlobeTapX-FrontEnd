@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
 import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha } from "../services/evento";
-import { getPaises, getCategorias, traducirBatch } from "../config";
+import { getPaises, getCategorias } from "../config";
+import { translateBatch } from "../services/languageService";
 
 function Eventos() {
   const userId = localStorage.getItem("userId");
@@ -49,7 +50,7 @@ function Eventos() {
           try {
             const textos = data.flatMap((e) => [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean));
             if (textos.length) {
-              const trad = await traducirBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
+              const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
               if (trad?.data?.translations) {
                 let idx = 0;
                 data = data.map((e) => ({

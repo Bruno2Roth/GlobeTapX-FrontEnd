@@ -16,6 +16,7 @@ import {
   MdChevronRight,
 } from "react-icons/md";
 import { getUsuario, getFotoPerfil } from "../../config";
+import LanguageSelector from "../LanguageSelector/LanguageSelector";
 import "./index.css";
 
 const links = [
@@ -26,6 +27,7 @@ const links = [
   { to: "/idioma", icon: <MdTranslate />, label: "Idioma" },
   { to: "/agenda", icon: <MdEvent />, label: "Agenda" },
   { to: "/eventos", icon: <MdEventAvailable />, label: "Eventos" },
+  { to: "/documentacion", icon: <MdArticle />, label: "Documentación" },
   { to: "/favoritos", icon: <MdFavorite />, label: "Favoritos" },
   { to: "/perfil", icon: <MdPerson />, label: "Perfil" },
   { to: "/configuracion", icon: <MdSettings />, label: "Configuración" },
@@ -124,6 +126,8 @@ function TopBar() {
         </div>
 
         <div className="nav-divider" />
+
+        <LanguageSelector />
 
         {links.map((l) => (
           <Link

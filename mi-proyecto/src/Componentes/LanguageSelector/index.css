@@ -1,9 +1,26 @@
-.languageSelector {
+.language-selector-control {
+  display: block;
+  margin: 12px 0 16px;
+  padding: 0 14px;
+}
+
+.language-selector-control__label {
+  display: block;
+  margin-bottom: 6px;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.language-selector-control select {
   width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: #f1f1f1;
-  margin-top: 20px;
-  font-size: 15px;
+  padding: 10px 11px;
+  border: 1px solid #dbe3eb;
+  border-radius: 10px;
+  color: #344054;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
 }

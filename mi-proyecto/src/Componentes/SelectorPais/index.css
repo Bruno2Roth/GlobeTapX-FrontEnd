@@ -1,0 +1,57 @@
+.selector-card{
+
+    background:white;
+
+    padding:20px;
+
+    border-radius:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+    0 6px 18px rgba(0,0,0,.05);
+
+}
+
+
+
+.selector-card label{
+
+    display:block;
+
+    color:#0E7C66;
+
+    font-weight:700;
+
+    margin-bottom:10px;
+
+}
+
+
+
+.selector-card select{
+
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:14px;
+
+    border:1px solid #ddd;
+
+    background:#fafafa;
+
+    font-size:15px;
+
+}
+
+
+
+.selector-card select:focus{
+
+    outline:none;
+
+    border-color:#0E7C66;
+
+}

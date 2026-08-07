@@ -1,0 +1,148 @@
+.horario{
+    max-width:390px;
+    min-height:100dvh;
+    margin:auto;
+    padding:80px 15px 110px;
+    background:linear-gradient(180deg,#E8F5F1 0%,#F7F7F7 45%);
+}
+
+/* HEADER */
+
+.horario-header{
+    background:linear-gradient(135deg,#0E7C66,#0B5A4C);
+    border-radius:24px;
+    padding:28px 22px;
+    color:white;
+    margin-bottom:22px;
+    box-shadow:0 10px 28px rgba(14,124,102,.25);
+}
+
+.badge{
+    display:inline-block;
+    background:rgba(255,255,255,.15);
+    padding:7px 15px;
+    border-radius:30px;
+    font-size:13px;
+    margin-bottom:15px;
+    backdrop-filter:blur(6px);
+}
+
+.horario-header h1{
+    font-size:31px;
+    margin-bottom:8px;
+    font-weight:800;
+}
+
+.horario-header p{
+    opacity:.9;
+    font-size:15px;
+}
+
+/* RELOJ */
+
+.hora-principal{
+    background:white;
+    border-radius:22px;
+    padding:28px;
+    text-align:center;
+    margin-bottom:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+.hora-principal h2{
+    color:#0E7C66;
+    font-size:22px;
+    margin-bottom:14px;
+}
+
+.hora{
+    font-size:58px;
+    font-weight:800;
+    color:#111827;
+    letter-spacing:2px;
+    margin-bottom:10px;
+    font-variant-numeric:tabular-nums;
+}
+
+.hora-principal span{
+    color:#667085;
+    font-size:14px;
+}
+
+/* CARDS */
+
+.cards{
+    display:flex;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.small-card{
+    flex:1;
+    background:white;
+    border-radius:18px;
+    padding:18px;
+    text-align:center;
+    box-shadow:0 5px 16px rgba(0,0,0,.05);
+}
+
+.small-card h3{
+    color:#0E7C66;
+    font-size:16px;
+    margin-bottom:8px;
+}
+
+.small-card p{
+    color:#374151;
+    font-size:18px;
+    font-weight:700;
+}
+
+/* INFORMACIÓN */
+
+.info-card{
+    background:white;
+    border-radius:20px;
+    padding:22px;
+    box-shadow:0 5px 18px rgba(0,0,0,.05);
+}
+
+.info-card h3{
+    color:#0E7C66;
+    margin-bottom:10px;
+}
+
+.info-card p{
+    color:#667085;
+    line-height:1.6;
+    font-size:14px;
+}
+
+/* LOADING */
+
+.horario-loading{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100dvh;
+    color:#555;
+    font-size:18px;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:370px){
+
+    .cards{
+        flex-direction:column;
+    }
+
+    .hora{
+        font-size:45px;
+    }
+
+    .horario-header h1{
+        font-size:27px;
+    }
+
+}

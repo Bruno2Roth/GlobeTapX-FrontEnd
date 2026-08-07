@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -12,6 +13,15 @@ import "../index.css";
 import { getAgendaUsuario, getUsuario, getPaises, traducir } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+=======
+import { useEffect, useState } from 'react'
+import '../Styles/agenda.css'
+import '../index.css'
+import { getAgendaUsuario, getUsuario, getPaises } from '../config'
+import { translateText } from '../services/languageService'
+import { obtenerCache, guardarCache } from '../helpers/cache'
+import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
+>>>>>>> f488b59285e8019d63d66236b40cc0941b634b78
 
 const cap = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
 const CACHE_KEY = (userId) => `agenda_${userId}`;
@@ -51,6 +61,7 @@ function Agenda() {
         if (userPais) {
           try {
             const [tradRes, dispRes] = await Promise.all([
+<<<<<<< HEAD
               traducir({
                 text: userPais.nombre,
                 targetLanguage: "en",
@@ -58,6 +69,11 @@ function Agenda() {
               fetch("https://date.nager.at/api/v3/AvailableCountries"),
             ]);
 
+=======
+              translateText({ text: userPais.nombre, targetLanguage: 'en' }).catch(() => null),
+              fetch('https://date.nager.at/api/v3/AvailableCountries')
+            ])
+>>>>>>> f488b59285e8019d63d66236b40cc0941b634b78
             if (tradRes && dispRes.ok) {
               const nombreEN = tradRes.data.translatedText;
               const disponibles = await dispRes.json();

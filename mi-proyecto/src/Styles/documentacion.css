@@ -1,0 +1,47 @@
+.documentation-page {
+  width: min(100%, 920px);
+  margin: 0 auto;
+  padding: 28px 20px 36px;
+  color: #1f2937;
+}
+
+.documentation-page__header {
+  margin-bottom: 22px;
+}
+
+.documentation-page__eyebrow {
+  margin-bottom: 5px;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.documentation-page h1 {
+  margin: 0 0 8px;
+  color: #172b4d;
+  font-size: clamp(26px, 5vw, 38px);
+  line-height: 1.1;
+}
+
+.documentation-page__header > p:last-child {
+  color: #68778a;
+  font-size: 14px;
+}
+
+.documentation-page__label {
+  display: block;
+  margin-bottom: 7px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.documentation-page__error {
+  padding: 16px;
+  border: 1px solid #f3caca;
+  border-radius: 12px;
+  color: #a52828;
+  background: #fff7f7;
+}

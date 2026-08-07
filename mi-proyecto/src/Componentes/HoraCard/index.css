@@ -1,0 +1,88 @@
+.hora-card{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:30px;
+
+    text-align:center;
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,.07);
+
+    animation:
+    aparecer .4s ease;
+
+}
+
+
+
+.hora-icono{
+
+    font-size:42px;
+
+    margin-bottom:12px;
+
+}
+
+
+
+.hora-card h2{
+
+    color:#0E7C66;
+
+    font-size:23px;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.hora-valor{
+
+    font-size:55px;
+
+    font-weight:800;
+
+    color:#111827;
+
+    letter-spacing:2px;
+
+}
+
+
+
+.hora-card p{
+
+    margin-top:12px;
+
+    color:#667085;
+
+    font-size:14px;
+
+}
+
+
+
+@keyframes aparecer{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(15px);
+
+    }
+
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}

@@ -1,0 +1,64 @@
+.diferencia-card{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    box-shadow:
+    0 6px 18px rgba(0,0,0,.06);
+
+}
+
+
+
+.diferencia-icono{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    background:#E8F5F1;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:28px;
+
+}
+
+
+
+.diferencia-card h3{
+
+    color:#0E7C66;
+
+    font-size:17px;
+
+    margin:0;
+
+}
+
+
+
+.diferencia-card p{
+
+    margin-top:5px;
+
+    color:#374151;
+
+    font-weight:700;
+
+}

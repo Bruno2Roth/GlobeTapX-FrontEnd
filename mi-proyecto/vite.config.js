@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://A-PHZ2-CIDI-17:3000",
+        target: "http://A-PHZ2-CIDI-36:3000",
         changeOrigin: true,
       },
     },

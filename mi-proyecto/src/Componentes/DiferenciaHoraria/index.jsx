@@ -1,25 +1,15 @@
 import "./index.css";
 
 
-function DiferenciaHoraria({
+function DiferenciaHoraria({ diferencia }) {
 
-    diferencia
-
-}){
-
-
-    return(
+    return (
 
         <div className="diferencia-card">
 
-
             <div className="diferencia-icono">
-
                 🌎
-
             </div>
-
-
 
             <div>
 
@@ -27,15 +17,11 @@ function DiferenciaHoraria({
                     Diferencia horaria
                 </h3>
 
-
                 <p>
-
                     {diferencia}
-
                 </p>
 
             </div>
-
 
         </div>
 

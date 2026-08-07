@@ -21,6 +21,7 @@ import CrearGuia from "./Pages/crearGuia";
 import Alojamiento from "./Pages/alojamiento";
 import Eventos from "./Pages/eventos";
 import DetalleEvento from "./Pages/detalleEvento";
+import Horario from "./Pages/horario";
 import Documentacion from "./Pages/documentacion";
 
 function ProtectedRoute({ children }) {
@@ -59,7 +60,8 @@ function AppContent() {
           <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento /></ProtectedRoute>} />
           <Route path="/eventos" element={<ProtectedRoute><Eventos /></ProtectedRoute>} />
           <Route path="/evento/:id" element={<ProtectedRoute><DetalleEvento /></ProtectedRoute>} />
-          <Route path="/documentacion" element={<ProtectedRoute><Documentacion /></ProtectedRoute>} />
+          <Route path="/horario/:id" element={<ProtectedRoute><Horario/></ProtectedRoute>} />
+          <Route path="/documentacion" element={<ProtectedRoute><Documentacion/></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>

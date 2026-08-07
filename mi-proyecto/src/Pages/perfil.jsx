@@ -7,7 +7,8 @@ import {
   FaGlobe,
   FaTemperatureHigh,
 } from "react-icons/fa";
-import { getUsuario, getPaises, getIdiomaUsuario, updateUsuario, updateUsuarioIdioma, getFotoPerfil } from "../config";
+import { getUsuario, getPaises, updateUsuario, getFotoPerfil } from "../config";
+import { getPreferredLanguage, updatePreferredLanguage } from "../services/languageService";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import "../Styles/perfil.css";
 
@@ -68,14 +69,14 @@ const languages = [
         const [user, paises, idiomaRes] = await Promise.all([
           getUsuario(userId),
           getPaises(),
-          getIdiomaUsuario(userId).catch(() => null),
+          getPreferredLanguage(userId).catch(() => null),
         ]);
         const formData = {
           nombreCompleto: user.nombreCompleto || user.NombreCompleto || "",
           mail: user.mail || user.Mail || user.correo || user.Correo || "",
           contrasena: "",
           paisActual: user.paisActual || user.PaisActual || user.paisID || user.PaisID || "",
-          idioma: idiomaRes?.codigoIdioma || idiomaRes?.idioma || idiomaRes || "es",
+          idioma: idiomaRes?.codigoIdioma || idiomaRes?.idioma || idiomaRes?.code || idiomaRes || "es",
         };
         setForm(formData);
         setPaises(paises);
@@ -118,7 +119,7 @@ const languages = [
       if (form.contrasena) body.contrasena = form.contrasena;
       if (fotoPerfil) body.fotoPerfil = fotoPreview;
       await updateUsuario(userId, body);
-      await updateUsuarioIdioma({ usuarioId: Number(userId), codigoIdioma: form.idioma }).catch(() => {});
+      await updatePreferredLanguage({ usuarioId: Number(userId), codigoIdioma: form.idioma }).catch(() => {});
       const updated = await getUsuario(userId);
       localStorage.setItem("user", JSON.stringify(updated));
       if (fotoPerfil) {

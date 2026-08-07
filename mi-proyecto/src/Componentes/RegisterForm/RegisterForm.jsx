@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getPaises, getIdiomas, register, getFotoPerfil } from "../../config";
+import { getPaises, register, getFotoPerfil } from "../../config";
+import { getSupportedLanguages } from "../../services/languageService";
 import "./index.css";
 
 // Validación simple de formato de mail
@@ -57,7 +58,7 @@ function RegisterForm() {
       .then(setPaises)
       .catch(() => setPaisesError("Error al cargar países — recargá la página"));
 
-    getIdiomas()
+    getSupportedLanguages()
       .then((data) => {
         console.log("📦 getIdiomas response:", data);
 

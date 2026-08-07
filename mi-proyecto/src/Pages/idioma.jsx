@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import "../Styles/idioma.css";
 import "../index.css";
-import { traducir, traducirBatch } from "../config";
+import { translateText as translateTextRequest, translateBatch } from "../services/languageService";
 
 function Idioma() {
   const [text, setText] = useState("");
@@ -73,7 +73,7 @@ function Idioma() {
     }
 
     try {
-      const data = await traducir({
+      const data = await translateTextRequest({
         text,
         targetLanguage: target,
         sourceLanguage: source,
@@ -88,7 +88,7 @@ function Idioma() {
 
   const loadPhrases = async () => {
     try {
-      const result = await traducirBatch({
+      const result = await translateBatch({
         texts: basePhrases.map((phrase) => phrase.text),
         targetLanguage: target,
         sourceLanguage: "en",

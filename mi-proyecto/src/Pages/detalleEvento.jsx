@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
 import { getEvento } from "../services/evento";
-import { getPaises, getAgendaUsuario, traducirBatch, traducir } from "../config";
+import { getPaises, getAgendaUsuario } from "../config";
+import { translateBatch } from "../services/languageService";
 import { agregarEventoAAgenda, eliminarEventoDeAgenda } from "../services/evento";
 
 function DetalleEvento() {
@@ -38,7 +39,7 @@ function DetalleEvento() {
           try {
             const textos = [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean);
             if (textos.length) {
-              const trad = await traducirBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
+              const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
               if (trad?.data?.translations) {
                 let idx = 0;
                 e.nombre = trad.data.translations[idx++] || e.nombre;

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import '../Styles/agenda.css'
 import '../index.css'
-import { getAgendaUsuario, getUsuario, getPaises, traducir } from '../config'
+import { getAgendaUsuario, getUsuario, getPaises } from '../config'
+import { translateText } from '../services/languageService'
 import { obtenerCache, guardarCache } from '../helpers/cache'
 import CacheTimer from '../Componentes/CacheTimer/CacheTimer'
 
@@ -43,7 +44,7 @@ function Agenda() {
         if (userPais) {
           try {
             const [tradRes, dispRes] = await Promise.all([
-              traducir({ text: userPais.nombre, targetLanguage: 'en' }).catch(() => null),
+              translateText({ text: userPais.nombre, targetLanguage: 'en' }).catch(() => null),
               fetch('https://date.nager.at/api/v3/AvailableCountries')
             ])
             if (tradRes && dispRes.ok) {

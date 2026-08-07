@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import "../Styles/clima.css";
 import "../index.css";
-import { getUsuario, getPaises, getClima, traducir } from "../config";
+import { getUsuario, getPaises, getClima } from "../config";
+import { translateText } from "../services/languageService";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
@@ -95,7 +96,7 @@ function Clima() {
           nombreEN = pais.nombre;
 
           try {
-            const trad = await traducir({
+            const trad = await translateText({
               text: pais.nombre,
               targetLanguage: "en",
               sourceLanguage: "es",

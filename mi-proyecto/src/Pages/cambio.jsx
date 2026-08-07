@@ -1,24 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
+import {
+  ArrowLeftRight,
+  BadgeDollarSign,
+  ChartNoAxesCombined,
+  CircleDollarSign,
+  LoaderCircle,
+  TrendingUp,
+} from "lucide-react";
 import "../Styles/cambio.css";
-import '../index.css'
+import "../index.css";
 
 const monedas = [
-  { code: "USD", name: "Dólar Estadounidense", flag: "🇺🇸" },
-  { code: "EUR", name: "Euro", flag: "🇪🇺" },
-  { code: "ARS", name: "Peso Argentino", flag: "🇦🇷" },
-  { code: "BRL", name: "Real Brasileño", flag: "🇧🇷" },
-  { code: "GBP", name: "Libra Esterlina", flag: "🇬🇧" },
-  { code: "CLP", name: "Peso Chileno", flag: "🇨🇱" },
-  { code: "CNY", name: "Yuan Chino", flag: "🇨🇳" },
-  { code: "KRW", name: "Won Surcoreano", flag: "🇰🇷" },
-  { code: "JPY", name: "Yen Japonés", flag: "🇯🇵" },
-  { code: "MXN", name: "Peso Mexicano", flag: "🇲🇽" },
-  { code: "COP", name: "Peso Colombiano", flag: "🇨🇴" },
-  { code: "PEN", name: "Sol Peruano", flag: "🇵🇪" },
-  { code: "AUD", name: "Dólar Australiano", flag: "🇦🇺" },
-  { code: "CAD", name: "Dólar Canadiense", flag: "🇨🇦" },
-  { code: "CHF", name: "Franco Suizo", flag: "🇨🇭" },
-  { code: "ILS", name: "Shekel Israeli", flag: "🇮🇱" },
+  { code: "USD", name: "Dólar estadounidense" },
+  { code: "EUR", name: "Euro" },
+  { code: "ARS", name: "Peso argentino" },
+  { code: "BRL", name: "Real brasileño" },
+  { code: "GBP", name: "Libra esterlina" },
+  { code: "CLP", name: "Peso chileno" },
+  { code: "CNY", name: "Yuan chino" },
+  { code: "KRW", name: "Won surcoreano" },
+  { code: "JPY", name: "Yen japonés" },
+  { code: "MXN", name: "Peso mexicano" },
+  { code: "COP", name: "Peso colombiano" },
+  { code: "PEN", name: "Sol peruano" },
+  { code: "AUD", name: "Dólar australiano" },
+  { code: "CAD", name: "Dólar canadiense" },
+  { code: "CHF", name: "Franco suizo" },
+  { code: "ILS", name: "Shekel israelí" },
 ];
 
 function Cambio() {
@@ -28,20 +36,34 @@ function Cambio() {
   const [resultado, setResultado] = useState(null);
   const [tasa, setTasa] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState("");
 
   const convertir = useCallback(async () => {
-    if (!monto || monto <= 0) return;
+    if (!monto || Number(monto) <= 0) {
+      setResultado(null);
+      setTasa(null);
+      return;
+    }
+
     setCargando(true);
+    setError("");
+
     try {
       const res = await fetch(`https://open.er-api.com/v6/latest/${origen}`);
       const data = await res.json();
-      if (data.result === "success") {
-        const rate = data.rates[destino];
-        setTasa(rate);
-        setResultado((monto * rate).toFixed(2));
+
+      if (data.result !== "success" || !data.rates[destino]) {
+        throw new Error("Cotización no disponible");
       }
-    } catch {
-      console.error("Error al obtener cotización");
+
+      const rate = data.rates[destino];
+      setTasa(rate);
+      setResultado((Number(monto) * rate).toFixed(2));
+    } catch (err) {
+      console.error("Error al obtener cotización:", err);
+      setError("No pudimos obtener la cotización.");
+      setResultado(null);
+      setTasa(null);
     } finally {
       setCargando(false);
     }
@@ -57,75 +79,133 @@ function Cambio() {
   };
 
   return (
-    <div className="cambio-container">
-      <div className="cambio-hero">
-        <span className="cambio-badge">💱 Conversor</span>
-        <h1>Cambio de Moneda</h1>
-        <p>Convertí valores entre distintas monedas del mundo al instante.</p>
-      </div>
+    <main className="cambio-container">
+      <section className="cambio-hero">
+        <div className="cambio-hero-content">
+          <span className="cambio-badge">
+            <ChartNoAxesCombined size={14} />
+            Conversor
+          </span>
 
-      <div className="cambio-card">
+          <h1>Cambio de moneda</h1>
+          <p>Consultá conversiones entre monedas internacionales.</p>
+        </div>
+
+        <div className="cambio-hero-icon">
+          <BadgeDollarSign size={45} strokeWidth={1.5} />
+        </div>
+      </section>
+
+      <section className="cambio-card">
         <div className="cambio-section">
-          <label className="cambio-label">Monto</label>
-          <input
-            type="number"
-            className="cambio-monto"
-            value={monto}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.length <= 8) setMonto(val);
-            }}
-            min="0"
-            step="any"
-          />
+          <label className="cambio-label" htmlFor="cambio-monto">
+            Monto a convertir
+          </label>
+
+          <div className="cambio-input-wrap">
+            <CircleDollarSign size={20} />
+            <input
+              id="cambio-monto"
+              type="number"
+              className="cambio-monto"
+              value={monto}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.length <= 8) setMonto(val);
+              }}
+              min="0"
+              step="any"
+              inputMode="decimal"
+            />
+          </div>
         </div>
 
         <div className="cambio-pares">
           <div className="cambio-select-group">
-            <label className="cambio-label">De</label>
-            <select value={origen} onChange={(e) => setOrigen(e.target.value)} className="cambio-select">
-              {monedas.map((m) => (
-                <option key={m.code} value={m.code}>{m.flag} {m.code} — {m.name}</option>
+            <label className="cambio-label" htmlFor="moneda-origen">
+              Desde
+            </label>
+
+            <select
+              id="moneda-origen"
+              value={origen}
+              onChange={(e) => setOrigen(e.target.value)}
+              className="cambio-select"
+            >
+              {monedas.map((moneda) => (
+                <option key={moneda.code} value={moneda.code}>
+                  {moneda.code} · {moneda.name}
+                </option>
               ))}
             </select>
           </div>
 
-          <button className="cambio-swap" onClick={intercambiar} aria-label="Intercambiar monedas">⇄</button>
+          <button
+            className="cambio-swap"
+            type="button"
+            onClick={intercambiar}
+            aria-label="Intercambiar monedas"
+            title="Intercambiar monedas"
+          >
+            <ArrowLeftRight size={19} />
+          </button>
 
           <div className="cambio-select-group">
-            <label className="cambio-label">A</label>
-            <select value={destino} onChange={(e) => setDestino(e.target.value)} className="cambio-select">
-              {monedas.map((m) => (
-                <option key={m.code} value={m.code}>{m.flag} {m.code} — {m.name}</option>
+            <label className="cambio-label" htmlFor="moneda-destino">
+              Hacia
+            </label>
+
+            <select
+              id="moneda-destino"
+              value={destino}
+              onChange={(e) => setDestino(e.target.value)}
+              className="cambio-select"
+            >
+              {monedas.map((moneda) => (
+                <option key={moneda.code} value={moneda.code}>
+                  {moneda.code} · {moneda.name}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="cambio-resultado">
+        <section className="cambio-resultado" aria-live="polite">
+          <span className="resultado-label">Recibís aproximadamente</span>
+
           {cargando ? (
-            <span className="cambio-cargando">Calculando...</span>
+            <span className="cambio-cargando">
+              <LoaderCircle size={19} />
+              Calculando cotización
+            </span>
           ) : resultado !== null ? (
-            <>
+            <div className="resultado-valor">
               <span className="cambio-resultado-monto">{resultado}</span>
               <span className="cambio-resultado-code">{destino}</span>
-            </>
+            </div>
           ) : (
             <span className="cambio-resultado-placeholder">0.00</span>
           )}
-        </div>
+        </section>
 
-        {tasa && (
+        {error && <p className="cambio-error">{error}</p>}
+
+        {tasa && !error && (
           <div className="cambio-tasa">
-            1 {origen} = {tasa} {destino}
+            <TrendingUp size={15} />
+            <span>
+              1 {origen} equivale a {tasa.toFixed(4)} {destino}
+            </span>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="cambio-footer">
-        <p>Datos provistos por <strong>ExchangeRate-API</strong></p>
-      </div>
-    </div>
+      <footer className="cambio-footer">
+        <p>
+          Cotizaciones provistas por <strong>ExchangeRate-API</strong>
+        </p>
+      </footer>
+    </main>
   );
 }
 

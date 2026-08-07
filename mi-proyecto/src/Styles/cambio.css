@@ -1,173 +1,238 @@
+/* =============================
+   CAMBIO DE MONEDA
+   ============================= */
+
 .cambio-container {
-  padding: 14px 16px 90px;
+  min-height: 100dvh;
+  padding: 16px 16px 96px;
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(15, 118, 110, .14), transparent 23rem),
+    radial-gradient(circle at 0% 55%, rgba(3, 37, 84, .08), transparent 21rem),
+    #f7f9fc;
 }
 
-/* ---------- Hero ---------- */
+/* Hero */
 .cambio-hero {
-  background: linear-gradient(135deg, #0E7C66, #0B5A4C);
-  border-radius: 20px;
-  padding: 22px 24px;
-  margin-bottom: 16px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 165px;
+  margin-bottom: 17px;
+  padding: 23px 22px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-radius: 25px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #0f766e, #075e58);
+  box-shadow: 0 17px 34px rgba(15, 118, 110, .2);
+  animation: cambioEnter .65s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .cambio-hero::before {
-  content: '';
   position: absolute;
-  top: -40%;
-  right: -15%;
-  width: 160px;
-  height: 160px;
-  background: rgba(255,255,255,0.05);
+  top: -110px;
+  right: -65px;
+  width: 220px;
+  height: 220px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, .15);
   border-radius: 50%;
 }
 
 .cambio-hero::after {
-  content: '';
   position: absolute;
-  bottom: -25%;
-  left: -8%;
-  width: 120px;
-  height: 120px;
-  background: rgba(255,255,255,0.05);
+  bottom: -105px;
+  left: -50px;
+  width: 175px;
+  height: 175px;
+  content: "";
   border-radius: 50%;
+  background: rgba(255, 255, 255, .055);
+}
+
+.cambio-hero-content,
+.cambio-hero-icon {
+  position: relative;
+  z-index: 1;
 }
 
 .cambio-badge {
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  position: relative;
-  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 8px;
+  color: #d8f2ed;
+  background: rgba(255, 255, 255, .08);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
 }
 
 .cambio-hero h1 {
+  margin: 12px 0 5px;
   color: #fff;
-  font-size: 24px;
-  font-weight: 800;
-  margin: 8px 0 2px;
-  position: relative;
-  z-index: 1;
+  font-size: clamp(25px, 6vw, 30px);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -.045em;
 }
 
 .cambio-hero p {
-  color: #c8f0e8;
-  font-size: 13px;
+  max-width: 255px;
   margin: 0;
-  position: relative;
-  z-index: 1;
+  color: #c8eae5;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-/* ---------- Card ---------- */
-.cambio-card {
-  background: #fff;
+.cambio-hero-icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(255, 255, 255, .15);
   border-radius: 20px;
-  padding: 22px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  place-items: center;
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+  transform: rotate(-8deg);
+}
+
+/* Formulario */
+.cambio-card {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
+  padding: 21px;
+  border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 22px;
+  box-shadow: 0 14px 30px rgba(3, 37, 84, .08);
+  background: rgba(255, 255, 255, .88);
+  animation: fadeUp .6s .12s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .cambio-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
+  display: block;
+  margin-bottom: 7px;
+  color: #718096;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-/* ---------- Amount input ---------- */
+.cambio-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #e1e8ef;
+  border-radius: 15px;
+  color: #0f766e;
+  background: #f8fafc;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.cambio-input-wrap:focus-within {
+  border-color: #0f766e;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, .1);
+}
+
 .cambio-monto {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 14px;
-  font-size: 28px;
-  font-weight: 700;
-  color: #0f172a;
+  padding: 14px 0;
+  border: none;
   outline: none;
-  background: #fff;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
+  color: #172033;
+  background: transparent;
+  font: inherit;
+  font-size: 29px;
+  font-weight: 780;
+  letter-spacing: -.04em;
 }
 
-.cambio-monto:focus {
-  border-color: #0E7C66;
-}
-
-.cambio-monto::placeholder {
-  color: #94a3b8;
-}
-
-/* ---------- Currency pair ---------- */
+/* Monedas */
 .cambio-pares {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 9px;
 }
 
 .cambio-select-group {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  min-width: 0;
 }
 
 .cambio-select {
   width: 100%;
   padding: 12px 10px;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e1e8ef;
   border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #1e293b;
-  background: #fff;
   outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
+  color: #26354b;
+  background: #f8fafc;
   box-sizing: border-box;
-  appearance: auto;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
 .cambio-select:focus {
-  border-color: #0E7C66;
+  border-color: #0f766e;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, .1);
 }
 
 .cambio-swap {
+  display: grid;
   width: 42px;
   height: 42px;
-  border: none;
-  border-radius: 50%;
-  background: #f1f5f9;
-  color: #0E7C66;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0;
+  border: 1px solid #cde4df;
+  border-radius: 13px;
+  place-items: center;
+  color: #0f766e;
+  background: #edf9f6;
   cursor: pointer;
   flex-shrink: 0;
-  margin-bottom: 0;
-  transition: background 0.2s, transform 0.2s;
+  transition: background .2s ease, color .2s ease, transform .25s ease, box-shadow .2s ease;
 }
 
 .cambio-swap:hover {
-  background: #0E7C66;
+  box-shadow: 0 8px 16px rgba(15, 118, 110, .18);
   color: #fff;
+  background: #0f766e;
   transform: rotate(180deg);
 }
 
-/* ---------- Result ---------- */
+/* Resultado */
 .cambio-resultado {
-  background: #f0fdfa;
-  border: 2px solid #ccfbf1;
-  border-radius: 16px;
-  padding: 20px;
+  padding: 20px 16px;
+  border: 1px solid #bee4dc;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #effbf8, #e0f4ef);
   text-align: center;
+}
+
+.resultado-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #62817b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.resultado-valor {
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -175,48 +240,157 @@
 }
 
 .cambio-resultado-monto {
-  font-size: 34px;
+  color: #12312d;
+  font-size: clamp(31px, 8vw, 39px);
   font-weight: 800;
-  color: #0f172a;
+  letter-spacing: -.05em;
 }
 
 .cambio-resultado-code {
-  font-size: 18px;
-  font-weight: 600;
-  color: #0E7C66;
+  color: #0f766e;
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .cambio-resultado-placeholder {
-  font-size: 28px;
-  font-weight: 700;
-  color: #94a3b8;
+  color: #9caca9;
+  font-size: 32px;
+  font-weight: 750;
 }
 
 .cambio-cargando {
-  font-size: 16px;
-  color: #94a3b8;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f766e;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-/* ---------- Rate ---------- */
+.cambio-cargando svg {
+  animation: spin 1s linear infinite;
+}
+
 .cambio-tasa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px;
+  border-radius: 11px;
+  color: #58726e;
+  background: #f4f8f8;
+  font-size: 12px;
+  font-weight: 650;
   text-align: center;
-  padding: 10px 14px;
-  background: #f8fafc;
-  border-radius: 12px;
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
 }
 
-/* ---------- Footer ---------- */
-.cambio-footer {
+.cambio-tasa svg {
+  color: #0f766e;
+}
+
+.cambio-error {
+  margin: -8px 0 0;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 650;
   text-align: center;
-  padding: 12px;
+}
+
+.cambio-footer {
+  padding: 14px 8px 0;
+  color: #8b98a8;
   font-size: 11px;
-  color: #94a3b8;
+  text-align: center;
+}
+
+.cambio-footer p {
+  margin: 0;
 }
 
 .cambio-footer strong {
   color: #64748b;
+}
+
+/* Animaciones */
+@keyframes cambioEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-13px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cambio-hero,
+  .cambio-card {
+    animation: none;
+  }
+
+  .cambio-swap,
+  .cambio-cargando svg {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .cambio-container {
+    padding-inline: 12px;
+  }
+
+  .cambio-card {
+    padding: 17px;
+  }
+
+  .cambio-hero-icon {
+    width: 58px;
+    height: 58px;
+  }
+
+  .cambio-select {
+    font-size: 11px;
+  }
+  .cambio-container {
+  min-height: 100dvh;
+  padding: 16px 16px 28px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(15, 118, 110, .14), transparent 23rem),
+    radial-gradient(circle at 0% 55%, rgba(3, 37, 84, .08), transparent 21rem),
+    #f7f9fc;
+}
+
+.cambio-footer {
+  margin-top: auto;
+  padding: 22px 8px 8px;
+  color: #8b98a8;
+  font-size: 11px;
+  text-align: center;
+}
 }

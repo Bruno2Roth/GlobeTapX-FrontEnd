@@ -16,7 +16,11 @@ export const getPreferredLanguage = async (usuarioId) => {
 
 export const updatePreferredLanguage = async (data) => {
   const response = await api.put("/idioma/preferred", data);
-  return unwrap(response);
+  const payload = response.data?.data ?? response.data;
+  if (response.data?.success === false || payload?.success === false) {
+    throw new Error(payload?.error || response.data.error || "No se pudo guardar el idioma");
+  }
+  return payload;
 };
 
 export const translateText = async (data) => {

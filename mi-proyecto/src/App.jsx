@@ -15,7 +15,6 @@ import Reglas from "./Pages/reglas";
 import Favoritos from "./Pages/favoritos";
 import Perfil from "./Pages/perfil";
 import Historial from "./Pages/historial";
-import Configuracion from "./Pages/configuracion";
 import EditarPerfil from "./Pages/editarPerfil";
 import CrearGuia from "./Pages/crearGuia";
 import Alojamiento from "./Pages/alojamiento";
@@ -23,6 +22,7 @@ import Eventos from "./Pages/eventos";
 import DetalleEvento from "./Pages/detalleEvento";
 import Horario from "./Pages/horario";
 import Documentacion from "./Pages/documentacion";
+import VidaDiaria from "./Pages/vidaDiaria";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -54,7 +54,7 @@ function AppContent() {
           <Route path="/favoritos" element={<ProtectedRoute><Favoritos/></ProtectedRoute>}/>
           <Route path="/perfil" element={<ProtectedRoute><Perfil/></ProtectedRoute>}/>
           <Route path="/historial" element={<ProtectedRoute><Historial/></ProtectedRoute>}/>
-          <Route path="/configuracion" element={<ProtectedRoute><Configuracion/></ProtectedRoute>}/>
+          <Route path="/configuracion" element={<Navigate to="/perfil" replace />} />
           <Route path="/editarPerfil" element={<ProtectedRoute><EditarPerfil/></ProtectedRoute>}/>
           <Route path="/crearGuia" element={<ProtectedRoute><CrearGuia/></ProtectedRoute>}/>
           <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento/></ProtectedRoute>}/>
@@ -62,6 +62,8 @@ function AppContent() {
           <Route path="/evento/:id" element={<ProtectedRoute><DetalleEvento/></ProtectedRoute>}/>
           <Route path="/horario/" element={<ProtectedRoute><Horario/></ProtectedRoute>}/>
           <Route path="/documentacion" element={<ProtectedRoute><Documentacion/></ProtectedRoute>}/>
+          <Route path="/vida" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>
+          <Route path="/vidaDiaria" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>
 
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>

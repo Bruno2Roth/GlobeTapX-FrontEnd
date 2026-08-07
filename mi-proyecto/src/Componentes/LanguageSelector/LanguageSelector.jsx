@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPreferredLanguage, getSupportedLanguages, updatePreferredLanguage } from "../../services/languageService";
+import { initLanguageSelector, normalizeLanguageCode, translatePage } from "../../helpers/translatePage";
 import "./index.css";
 
 const FALLBACK_LANGUAGES = [
@@ -21,12 +22,14 @@ function normalizePreferred(response) {
   return response?.codigoIdioma || response?.codigo || response?.idioma || response?.code || "";
 }
 
-export default function LanguageSelector() {
+export default function LanguageSelector({ className = "" }) {
   const userId = localStorage.getItem("userId");
   const [languages, setLanguages] = useState(FALLBACK_LANGUAGES);
   const [selectedLanguage, setSelectedLanguage] = useState(
     () => localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
   );
+
+  useEffect(() => initLanguageSelector("language-selector"), []);
 
   useEffect(() => {
     getSupportedLanguages().then((response) => {
@@ -37,15 +40,17 @@ export default function LanguageSelector() {
     if (userId) {
       getPreferredLanguage(userId).then((response) => {
         const preferred = normalizePreferred(response);
-        if (preferred) setSelectedLanguage(preferred);
+        if (preferred) setSelectedLanguage(normalizeLanguageCode(preferred));
       }).catch(() => {});
     }
   }, [userId]);
 
   useEffect(() => {
-    document.documentElement.lang = selectedLanguage;
-    localStorage.setItem("preferredLanguage", selectedLanguage);
+    const normalized = normalizeLanguageCode(selectedLanguage);
+    document.documentElement.lang = normalized;
+    localStorage.setItem("preferredLanguage", normalized);
     window.dispatchEvent(new CustomEvent("preferredlanguagechange", { detail: selectedLanguage }));
+    void translatePage(normalized).catch((error) => console.warn("No se pudo traducir la interfaz:", error));
   }, [selectedLanguage]);
 
   const handleChange = async (event) => {
@@ -60,9 +65,9 @@ export default function LanguageSelector() {
   };
 
   return (
-    <label className="language-selector-control">
-      <span className="language-selector-control__label">Idioma</span>
-      <select value={selectedLanguage} onChange={handleChange} aria-label="Seleccionar idioma de la interfaz">
+    <label className={`language-selector-control ${className}`.trim()}>
+      <span className="language-selector-control__label" data-translate="Idioma">Idioma</span>
+      <select id="language-selector" value={selectedLanguage} onChange={handleChange} aria-label="Seleccionar idioma de la interfaz">
         {languages.map((language) => (
           <option key={language.code} value={language.code}>{language.name}</option>
         ))}
@@ -70,4 +75,3 @@ export default function LanguageSelector() {
     </label>
   );
 }
-

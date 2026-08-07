@@ -11,12 +11,10 @@ import {
   MdEventAvailable,
   MdFavorite,
   MdPerson,
-  MdSettings,
   MdArticle,
   MdChevronRight,
 } from "react-icons/md";
-import { getUsuario, getFotoPerfil } from "../../config";
-import LanguageSelector from "../LanguageSelector/LanguageSelector";
+import { getUsuario } from "../../config";
 import "./index.css";
 
 const links = [
@@ -30,52 +28,47 @@ const links = [
   { to: "/documentacion", icon: <MdArticle />, label: "Documentación" },
   { to: "/favoritos", icon: <MdFavorite />, label: "Favoritos" },
   { to: "/perfil", icon: <MdPerson />, label: "Perfil" },
-  { to: "/configuracion", icon: <MdSettings />, label: "Configuración" },
 ];
+
+function normalizeUser(user) {
+  if (!user) return null;
+  const name = user.nombreCompleto || user.NombreCompleto || user.nombre || user.Nombre || "";
+  return { ...user, nombre: name.split(" ")[0] || "Usuario" };
+}
+
+function getCachedUser() {
+  const cached = localStorage.getItem("user");
+  if (!cached) return null;
+  try {
+    return normalizeUser(JSON.parse(cached));
+  } catch {
+    return null;
+  }
+}
 
 function TopBar() {
   const { pathname } = useLocation();
-  const [usuario, setUsuario] = useState(null);
-  const [fotoPerfil, setFotoPerfil] = useState((() => {
+  const userId = localStorage.getItem("userId");
+  const [usuario, setUsuario] = useState(getCachedUser);
+  const fotoPerfil = (() => {
     const f = localStorage.getItem("fotoPerfil");
     return f && f !== "null" && f !== "undefined" ? f : "";
-  })());
+  })();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
     if (!userId) return;
 
-    const cached = localStorage.getItem("user");
-    if (cached) {
-      try {
-        const u = JSON.parse(cached);
-        const nc =
-          u.nombreCompleto ||
-          u.NombreCompleto ||
-          u.nombre ||
-          u.Nombre ||
-          "";
-        u.nombre = nc.split(" ")[0] || "Usuario";
-        setUsuario(u);
-        return;
-      } catch {}
-    }
+    if (usuario) return;
 
     getUsuario(userId)
       .then((u) => {
-        const nc =
-          u.nombreCompleto ||
-          u.NombreCompleto ||
-          u.nombre ||
-          u.Nombre ||
-          "";
-        u.nombre = nc.split(" ")[0] || "Usuario";
-        setUsuario(u);
-        localStorage.setItem("user", JSON.stringify(u));
+        const normalizedUser = normalizeUser(u);
+        setUsuario(normalizedUser);
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
       })
       .catch(() => {});
-  }, []);
+  }, [userId, usuario]);
 
   return (
     <>
@@ -88,7 +81,7 @@ function TopBar() {
         </button>
 
         <h1 className="top-bar-title">
-          Hola, {usuario?.nombre || usuario?.Nombre || "Usuario"}
+          <span data-translate="Hola">Hola</span>, {usuario?.nombre || usuario?.Nombre || "Usuario"}
         </h1>
 
         <Link to="/perfil" className="top-bar-avatar">
@@ -127,8 +120,6 @@ function TopBar() {
 
         <div className="nav-divider" />
 
-        <LanguageSelector />
-
         {links.map((l) => (
           <Link
             key={l.to}
@@ -137,7 +128,7 @@ function TopBar() {
             onClick={() => setMenuOpen(false)}
           >
             <span className="nav-icon">{l.icon}</span>
-            <span className="nav-label">{l.label}</span>
+            <span className="nav-label" data-translate={l.label}>{l.label}</span>
             <span className="nav-arrow">
               <MdChevronRight />
             </span>
@@ -154,7 +145,7 @@ function TopBar() {
             <MdArticle />
           </span>
 
-          <span className="nav-label">Reglas</span>
+          <span className="nav-label" data-translate="Reglas">Reglas</span>
 
           <span className="nav-arrow">
             <MdChevronRight />

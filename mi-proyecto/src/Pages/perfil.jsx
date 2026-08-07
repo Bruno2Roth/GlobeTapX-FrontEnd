@@ -16,19 +16,20 @@ export default function Profile() {
   const userId = localStorage.getItem("userId");
   const fileRef = useRef();
 
-  const languages = [
-    { code: "es", name: "🇪🇸 Español" },
-    { code: "en", name: "🇺🇸 English" },
-    { code: "fr", name: "🇫🇷 Français" },
-    { code: "it", name: "🇮🇹 Italiano" },
-    { code: "pt", name: "🇵🇹 Português" },
-    { code: "de", name: "🇩🇪 Deutsch" },
-    { code: "ja", name: "🇯🇵 日本語" },
-    { code: "ko", name: "🇰🇷 한국어" },
-    { code: "zh-CN", name: "🇨🇳 中文" },
-    { code: "ru", name: "🇷🇺 Русский" },
-    { code: "ar", name: "🇸🇦 العربية" },
-    { code: "tr", name: "🇹🇷 Türkçe" },];
+const languages = [
+  { code: "es", name: "Español" },
+  { code: "en", name: "English" },
+  { code: "fr", name: "Français" },
+  { code: "it", name: "Italiano" },
+  { code: "pt", name: "Português" },
+  { code: "de", name: "Deutsch" },
+  { code: "ja", name: "日本語" },
+  { code: "ko", name: "한국어" },
+  { code: "zh-CN", name: "中文" },
+  { code: "ru", name: "Русский" },
+  { code: "ar", name: "العربية" },
+  { code: "tr", name: "Türkçe" },
+];
 
   const [form, setForm] = useState({
     nombreCompleto: "",

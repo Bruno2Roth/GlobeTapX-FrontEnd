@@ -60,7 +60,7 @@ function AppContent() {
           <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento/></ProtectedRoute>}/>
           <Route path="/eventos" element={<ProtectedRoute><Eventos/></ProtectedRoute>}/>
           <Route path="/evento/:id" element={<ProtectedRoute><DetalleEvento/></ProtectedRoute>}/>
-          <Route path="/horario/" element={<ProtectedRoute><Horario/></ProtectedRoute>}/>
+          <Route path="/horario" element={<Horario />} />          
           <Route path="/documentacion" element={<ProtectedRoute><Documentacion/></ProtectedRoute>}/>
           <Route path="/vida" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>
           <Route path="/vidaDiaria" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>

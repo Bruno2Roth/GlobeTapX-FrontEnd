@@ -14,7 +14,7 @@ import {
   MdArticle,
   MdChevronRight,
 } from "react-icons/md";
-import { getUsuario } from "../../config";
+import { getAuthSession, getStoredUser, subscribeAuthSession } from "../../services/authSession";
 import "./index.css";
 
 const links = [
@@ -48,27 +48,23 @@ function getCachedUser() {
 
 function TopBar() {
   const { pathname } = useLocation();
-  const userId = localStorage.getItem("userId");
-  const [usuario, setUsuario] = useState(getCachedUser);
-  const fotoPerfil = (() => {
-    const f = localStorage.getItem("fotoPerfil");
-    return f && f !== "null" && f !== "undefined" ? f : "";
-  })();
+  const [session, setSession] = useState(() => {
+    const current = getAuthSession();
+    return { user: current.user || getCachedUser() || getStoredUser(), photo: current.photo || "" };
+  });
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!userId) return;
+    return subscribeAuthSession((nextSession) => {
+      setSession({
+        user: normalizeUser(nextSession.user),
+        photo: nextSession.photo || "",
+      });
+    });
+  }, []);
 
-    if (usuario) return;
-
-    getUsuario(userId)
-      .then((u) => {
-        const normalizedUser = normalizeUser(u);
-        setUsuario(normalizedUser);
-        localStorage.setItem("user", JSON.stringify(normalizedUser));
-      })
-      .catch(() => {});
-  }, [userId, usuario]);
+  const usuario = normalizeUser(session.user);
+  const fotoPerfil = session.photo;
 
   return (
     <>

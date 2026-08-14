@@ -18,6 +18,14 @@
   box-sizing: border-box;
 }
 
+.rg-brand {
+  margin-bottom: 28px;
+  color: #0e7c66;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+}
+
 .rg-title {
   font-size: 24px;
   font-weight: 700;
@@ -117,7 +125,7 @@
 .rg-foto {
   width: 90px;
   height: 90px;
-  border-radius: 50%;
+  border-radius: 10px;
   border: 2px dashed #d1d5db;
   display: flex;
   align-items: center;

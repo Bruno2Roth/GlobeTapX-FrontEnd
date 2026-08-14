@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { getCountryDocumentation } from "../../services/countryDocumentationService";
+import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
 import Loader from "../Loader/Loader";
 import "./index.css";
 
 const EMPTY_DOCUMENTATION = "La documentación de este país aún no está disponible.";
 
-function errorMessage(error) {
-  switch (error?.response?.status ?? error?.status) {
-    case 400: return "El identificador del país no es válido.";
-    case 404: return "El país no fue encontrado.";
-    case 500: return "El servidor no pudo cargar la documentación. Intentá nuevamente.";
-    default: return "No se pudo conectar con el servicio de documentación.";
-  }
+function errorMessage() {
+  return CONNECTION_ERROR_MESSAGE;
 }
 
 function looksLikeHtml(value) { return /<\/?[a-z][\s\S]*>/i.test(value); }

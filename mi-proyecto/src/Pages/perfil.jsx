@@ -8,70 +8,59 @@ import {
   FaSignOutAlt,
   FaTemperatureHigh,
 } from "react-icons/fa";
-import { getFotoPerfil, getPaises, getUsuario, updateUsuario } from "../config";
+import { getCurrentUser, getFotoPerfil, getPaises, updateUsuario, uploadFotoPerfil } from "../config";
 import { getPreferredLanguage, updatePreferredLanguage } from "../services/languageService";
-import { normalizeLanguageCode, setPreferredLanguage, translatePage } from "../helpers/translatePage";
+import { LANGUAGE_OPTIONS, normalizeLanguageCode, setPreferredLanguage, translatePage } from "../helpers/translatePage";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import { clearAuthSession, getAuthSession, setAuthSession, subscribeAuthSession } from "../services/authSession";
 import "../Styles/perfil.css";
 
-const languages = [
-  { code: "es", name: "Español" },
-  { code: "en", name: "English" },
-  { code: "fr", name: "Français" },
-  { code: "it", name: "Italiano" },
-  { code: "pt", name: "Português" },
-  { code: "de", name: "Deutsch" },
-  { code: "ja", name: "日本語" },
-  { code: "ko", name: "한국어" },
-  { code: "zh", name: "中文" },
-  { code: "ru", name: "Русский" },
-  { code: "ar", name: "العربية" },
-  { code: "tr", name: "Türkçe" },
-];
-
-function prepareProfileImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
-    reader.onload = () => {
-      const image = new Image();
-      image.onerror = () => reject(new Error("La imagen no es válida"));
-      image.onload = () => {
-        const maxSize = 1000;
-        const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(image.width * scale));
-        canvas.height = Math.max(1, Math.round(image.height * scale));
-        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      image.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
+const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 function preferredCode(response) {
-  return response?.codigoIdioma || response?.idioma || response?.code || response || "es";
+  const payload = response?.data ?? response;
+  if (typeof payload === "string") return payload;
+  const preferred = payload?.idiomaPreferido;
+  return payload?.codigoIdioma || (typeof preferred === "object" ? preferred.codigoIdioma : preferred) || payload?.idioma || payload?.code || "es";
+}
+
+function photoFromResponse(response) {
+  const payload = response?.data ?? response;
+  return typeof payload?.fotoPerfil === "string" ? payload.fotoPerfil : "";
 }
 
 export default function Profile() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
   const fileRef = useRef();
+  const [usuario, setUsuario] = useState(() => getAuthSession().user);
   const [form, setForm] = useState({ nombreCompleto: "", mail: "", contrasena: "", paisActual: "", idioma: "es" });
   const [paises, setPaises] = useState([]);
   const [showcontrasena, setShowcontrasena] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [fotoPreview, setFotoPreview] = useState(() => localStorage.getItem("fotoPerfil") || "");
+  const [fotoPreview, setFotoPreview] = useState(() => getAuthSession().photo || "");
 
-  const applyPreferredLanguage = (response) => {
+  useEffect(() => subscribeAuthSession((session) => {
+    if (!session.user || String(session.user.id) === String(userId)) {
+      setUsuario(session.user);
+      setFotoPreview(session.photo || "");
+    }
+  }), [userId]);
+
+  const applyPreferredLanguage = async (response) => {
+    if (!response) return;
     const language = normalizeLanguageCode(preferredCode(response));
-    setForm((previous) => ({ ...previous, idioma: language }));
-    setPreferredLanguage(language);
-    void translatePage(language).catch((error) => console.warn("No se pudo traducir el perfil:", error));
+    try {
+      const appliedLanguage = await translatePage(language);
+      setForm((previous) => ({ ...previous, idioma: appliedLanguage }));
+      setPreferredLanguage(appliedLanguage);
+    } catch (error) {
+      console.warn("No se pudo traducir el perfil:", error);
+    }
   };
 
   useEffect(() => {
@@ -82,75 +71,90 @@ export default function Profile() {
 
     const cacheKey = `perfil_cache_${userId}`;
     const cache = obtenerCache(cacheKey);
-    if (cache) {
-      setForm(cache.data.form);
-      setPaises(cache.data.paises || []);
-      setFotoPreview(cache.data.fotoPreview || "");
-      setLoading(false);
-      getPreferredLanguage(userId).then(applyPreferredLanguage).catch(() => {});
-      return;
-    }
 
-    (async () => {
+    const loadProfile = async () => {
       try {
-        const [user, countryList, languageResponse] = await Promise.all([
-          getUsuario(userId),
+        const [user, countryList] = await Promise.all([
+          getCurrentUser(),
           getPaises(),
-          getPreferredLanguage(userId).catch(() => null),
         ]);
-        const formData = {
-          nombreCompleto: user.nombreCompleto || user.NombreCompleto || "",
-          mail: user.mail || user.Mail || user.correo || user.Correo || "",
-          contrasena: "",
-          paisActual: user.paisActual || user.PaisActual || user.paisID || user.PaisID || "",
-          idioma: normalizeLanguageCode(preferredCode(languageResponse)),
-        };
-        setForm(formData);
-        setPaises(countryList);
-        applyPreferredLanguage(languageResponse);
-
-        let photoUrl = "";
+        const serverUser = user?.user || user?.data?.user || user?.data || user;
+        if (!serverUser?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
+        const countries = Array.isArray(countryList) ? countryList : countryList?.data || countryList?.items || [];
+        let languageResponse = null;
         try {
-          const photoResponse = await getFotoPerfil(userId);
-          photoUrl = photoResponse.fotoPerfil || "";
-          setFotoPreview(photoUrl);
-          localStorage.setItem("fotoPerfil", photoUrl);
+          languageResponse = await getPreferredLanguage(serverUser.id);
+        } catch (languageError) {
+          console.warn("No se pudo cargar el idioma preferido:", languageError);
+          setMessage(CONNECTION_ERROR_MESSAGE);
+        }
+        const language = normalizeLanguageCode(
+          languageResponse ? preferredCode(languageResponse) : preferredCode(serverUser),
+        );
+        const formData = {
+          nombreCompleto: serverUser.nombreCompleto || serverUser.NombreCompleto || "",
+          mail: serverUser.mail || serverUser.Mail || serverUser.correo || serverUser.Correo || "",
+          contrasena: "",
+          paisActual: serverUser.paisActual || serverUser.PaisActual || serverUser.paisID || serverUser.PaisID || "",
+          idioma: language,
+        };
+        setUsuario(serverUser);
+        setForm(formData);
+        setPaises(countries);
+        await applyPreferredLanguage({ codigoIdioma: language });
+
+        let photoUrl = photoFromResponse(serverUser);
+        try {
+          const photoResponse = await getFotoPerfil(serverUser.id);
+          photoUrl = photoFromResponse(photoResponse) || photoUrl;
         } catch (photoError) {
           console.warn("No se pudo cargar la foto de perfil:", photoError);
         }
-        guardarCache(cacheKey, { form: formData, paises: countryList, fotoPreview: photoUrl });
-      } catch {
-        setMessage("Error al cargar datos");
+        setFotoPreview(photoUrl);
+        setAuthSession(serverUser, photoUrl);
+        guardarCache(cacheKey, { form: formData, paises: countries, fotoPreview: "" });
+      } catch (error) {
+        console.warn("No se pudo cargar el perfil:", error);
+        if (cache) {
+          setUsuario(getAuthSession().user);
+          setForm(cache.data.form);
+          setPaises(cache.data.paises || []);
+          setFotoPreview(getAuthSession().photo || "");
+        }
+        setMessage(CONNECTION_ERROR_MESSAGE);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    void loadProfile();
   }, [userId]);
 
   const updateForm = (field, value) => setForm((previous) => ({ ...previous, [field]: value }));
 
   const saveUserChanges = async (changes) => {
-    if (!userId || !Object.keys(changes).length) return;
+    const currentUserId = usuario?.id ?? userId;
+    if (!currentUserId || !Object.keys(changes).length) return;
     setSaving(true);
     setMessage("Guardando...");
     try {
-      await updateUsuario(userId, {
+      await updateUsuario(currentUserId, {
         nombreCompleto: changes.nombreCompleto ?? form.nombreCompleto,
         paisActual: changes.paisActual ?? form.paisActual,
         ...changes,
       });
-      if (changes.fotoPerfil) {
-        setFotoPreview(changes.fotoPerfil);
-        localStorage.setItem("fotoPerfil", changes.fotoPerfil);
+      const updatedUserResponse = await getCurrentUser().catch(() => null);
+      const updatedUser = updatedUserResponse?.user || updatedUserResponse?.data?.user || updatedUserResponse?.data || updatedUserResponse;
+      if (updatedUser?.id) {
+        setUsuario(updatedUser);
+        setAuthSession(updatedUser, fotoPreview);
       }
-      const updatedUser = await getUsuario(userId).catch(() => null);
-      if (updatedUser) localStorage.setItem("user", JSON.stringify(updatedUser));
-      localStorage.removeItem(`perfil_cache_${userId}`);
-      localStorage.removeItem(`home_cache_${userId}`);
+      localStorage.removeItem(`perfil_cache_${currentUserId}`);
+      localStorage.removeItem(`home_cache_${currentUserId}`);
       setMessage("Guardado automáticamente");
       if (changes.contrasena) updateForm("contrasena", "");
     } catch {
-      setMessage("No se pudo guardar el cambio");
+      setMessage(CONNECTION_ERROR_MESSAGE);
     } finally {
       setSaving(false);
     }
@@ -159,26 +163,53 @@ export default function Profile() {
   const handlePhoto = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    prepareProfileImage(file)
-      .then((photo) => saveUserChanges({ fotoPerfil: photo }))
-      .catch(() => setMessage("No se pudo procesar la imagen seleccionada"));
+    const currentUserId = usuario?.id ?? userId;
+    if (!currentUserId) {
+      setMessage(CONNECTION_ERROR_MESSAGE);
+      event.target.value = "";
+      return;
+    }
+    if (!ACCEPTED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE) {
+      setMessage("La foto debe ser JPG, PNG, WEBP, GIF o AVIF y pesar como máximo 5 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setSaving(true);
+    setMessage("Guardando foto...");
+    uploadFotoPerfil(currentUserId, file)
+      .then((response) => {
+        const photo = photoFromResponse(response);
+        setUsuario((previous) => ({ ...(previous || {}), fotoPerfil: photo }));
+        setFotoPreview(photo);
+        setAuthSession({ ...(usuario || {}), id: currentUserId, fotoPerfil: photo }, photo);
+        localStorage.removeItem(`perfil_cache_${currentUserId}`);
+        setMessage("Foto guardada");
+      })
+      .catch((error) => {
+        console.error("Profile photo upload failed", error);
+        setMessage(CONNECTION_ERROR_MESSAGE);
+      })
+      .finally(() => setSaving(false));
     event.target.value = "";
   };
 
   const handleLanguageChange = async (event) => {
     const language = normalizeLanguageCode(event.target.value);
-    updateForm("idioma", language);
     setSaving(true);
     setMessage("Guardando idioma...");
     try {
-      const response = await updatePreferredLanguage({ usuarioId: Number(userId), codigoIdioma: language });
-      const savedLanguage = normalizeLanguageCode(preferredCode(response));
-      updateForm("idioma", savedLanguage);
-      setPreferredLanguage(savedLanguage);
-      await translatePage(savedLanguage);
+      const rawUserId = usuario?.id ?? userId;
+      const usuarioId = Number.isNaN(Number(rawUserId)) ? rawUserId : Number(rawUserId);
+      await updatePreferredLanguage({ usuarioId, codigoIdioma: language });
+      updateForm("idioma", language);
+      setPreferredLanguage(language);
+      setAuthSession({ ...(usuario || {}), id: rawUserId, idiomaPreferido: language }, fotoPreview);
+      await translatePage(language);
       setMessage("Idioma guardado");
-    } catch {
-      setMessage("No se pudo guardar el idioma");
+    } catch (error) {
+      console.error("Preferred language update failed", error);
+      setMessage(CONNECTION_ERROR_MESSAGE);
     } finally {
       setSaving(false);
     }
@@ -198,13 +229,13 @@ export default function Profile() {
           {fotoPreview ? <img src={fotoPreview} alt="Perfil" /> : <span className="profile-image__fallback">U</span>}
           <span className="profile-image__badge" aria-hidden="true">✎</span>
         </div>
-        <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} hidden />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={handlePhoto} hidden />
         <button className="change-photo" type="button" onClick={() => fileRef.current?.click()} data-translate="Cambiar foto">
           Cambiar foto
         </button>
       </section>
 
-      {message && <p className={`profile-message${message.includes("No se pudo") ? " profile-message--error" : ""}`} role="status">{message}</p>}
+      {message && <p className={`profile-message${message === CONNECTION_ERROR_MESSAGE ? " profile-message--error" : ""}`} role="status">{message}</p>}
 
       <form className="profile-form" onSubmit={(event) => event.preventDefault()}>
         <div className="profile-form__intro">
@@ -226,7 +257,7 @@ export default function Profile() {
 
         <label data-translate="Idioma preferido">Idioma preferido</label>
         <select value={form.idioma} onChange={handleLanguageChange} className="profile-form-select" disabled={saving}>
-          {languages.map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}
+          {LANGUAGE_OPTIONS.map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}
         </select>
 
         <label>Contraseña</label>
@@ -239,7 +270,7 @@ export default function Profile() {
       </form>
 
       <button onClick={() => {
-        ["token", "userId", "user", "fotoPerfil", "preferredLanguage"].forEach((key) => localStorage.removeItem(key));
+        clearAuthSession();
         navigate("/");
       }} className="logout">
         <FaSignOutAlt />

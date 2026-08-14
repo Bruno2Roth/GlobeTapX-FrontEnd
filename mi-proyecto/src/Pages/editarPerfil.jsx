@@ -1,21 +1,7 @@
-import '../index.css'
-import Header from '../Componentes/Header/Header'
-import EditProfileForm from '../Componentes/EditProfileForm/EditProfileForm'
+import { Navigate } from "react-router-dom";
 
 function EditarPerfil() {
-
-  return (
-    <div className='page'>
-
-      <Header
-        title='Editar Perfil'
-        subtitle='Actualizá tus datos'
-      />
-
-      <EditProfileForm />
-
-    </div>
-  )
+  return <Navigate to="/perfil" replace />;
 }
 
-export default EditarPerfil
+export default EditarPerfil;

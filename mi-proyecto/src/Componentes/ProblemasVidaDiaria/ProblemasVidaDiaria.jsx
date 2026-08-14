@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { getCountryDocumentation } from "../../services/countryDocumentationService";
+import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
 import Loader from "../Loader/Loader";
 import "./index.css";
 
@@ -9,12 +10,8 @@ function parseProblems(value) {
   return value.split(/\r?\n/).map((item) => item.trim().replace(/^•\s*/, "").trim()).filter(Boolean);
 }
 
-function errorMessage(error) {
-  const status = error?.response?.status ?? error?.status;
-  if (status === 400) return "El identificador del país no es válido.";
-  if (status === 404) return "El país no fue encontrado.";
-  if (status === 500) return "El servidor no pudo cargar esta información. Intentá nuevamente.";
-  return "No se pudo conectar con el servicio de vida diaria.";
+function errorMessage() {
+  return CONNECTION_ERROR_MESSAGE;
 }
 
 export default function ProblemasVidaDiaria({ paisId }) {

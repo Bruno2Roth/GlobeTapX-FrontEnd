@@ -1,8 +1,11 @@
 import "./index.css";
+import { useEffect, useState } from "react";
+import { getAuthSession, subscribeAuthSession } from "../../services/authSession";
 
 export const Header = ({ title, subtitle }) => {
-  const fotoRaw = localStorage.getItem("fotoPerfil");
-  const foto = fotoRaw && fotoRaw !== "null" && fotoRaw !== "undefined" ? fotoRaw : "";
+  const [foto, setFoto] = useState(() => getAuthSession().photo || "");
+
+  useEffect(() => subscribeAuthSession((session) => setFoto(session.photo || "")), []);
 
   return (
     <header className="page-header">

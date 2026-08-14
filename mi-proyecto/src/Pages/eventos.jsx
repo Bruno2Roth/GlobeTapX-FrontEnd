@@ -5,6 +5,7 @@ import "../index.css";
 import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha } from "../services/evento";
 import { getPaises, getCategorias } from "../config";
 import { translateBatch } from "../services/languageService";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 
 function Eventos() {
   const userId = localStorage.getItem("userId");
@@ -72,7 +73,8 @@ function Eventos() {
 
         setEventos(data);
       } catch (err) {
-        setError(err.data?.error || err.message || "Error al cargar eventos");
+        console.error("Error al cargar eventos:", err);
+        setError(CONNECTION_ERROR_MESSAGE);
       } finally {
         setCargando(false);
       }

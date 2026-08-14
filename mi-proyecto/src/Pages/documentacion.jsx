@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getUsuario } from "../config";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import DocumentacionPais from "../Componentes/DocumentacionPais/DocumentacionPais";
 import Loader from "../Componentes/Loader/Loader";
 import "../Styles/documentacion.css";
@@ -26,7 +27,7 @@ export default function Documentacion() {
         if (active) setCountryId(currentCountryId(user));
       })
       .catch(() => {
-        if (active) setError("No se pudo cargar el país actual del perfil.");
+        if (active) setError(CONNECTION_ERROR_MESSAGE);
       })
       .finally(() => {
         if (active) setLoading(false);

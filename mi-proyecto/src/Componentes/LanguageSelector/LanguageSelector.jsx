@@ -1,66 +1,93 @@
 import { useEffect, useState } from "react";
 import { getPreferredLanguage, getSupportedLanguages, updatePreferredLanguage } from "../../services/languageService";
-import { initLanguageSelector, normalizeLanguageCode, translatePage } from "../../helpers/translatePage";
+import {
+  LANGUAGE_OPTIONS,
+  normalizeLanguageCode,
+  normalizeSupportedLanguages,
+  setPreferredLanguage,
+  translatePage,
+} from "../../helpers/translatePage";
+import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
+import { getAuthSession, setAuthSession } from "../../services/authSession";
 import "./index.css";
 
-const FALLBACK_LANGUAGES = [
-  { code: "es", name: "Español" },
-  { code: "en", name: "English" },
-  { code: "pt", name: "Português" },
-];
-
-function normalizeLanguages(response) {
-  const list = Array.isArray(response) ? response : response?.idiomas || response?.languages || response?.items || [];
-  return list.map((language) => ({
-    code: language.codigo || language.code || language.codigoIdioma,
-    name: language.nombre || language.name || language.nombreIdioma,
-  })).filter((language) => language.code && language.name);
+function preferredCode(response) {
+  const payload = response?.data ?? response;
+  if (typeof payload === "string") return payload;
+  const preferred = payload?.idiomaPreferido;
+  return payload?.codigoIdioma || (typeof preferred === "object" ? preferred.codigoIdioma : preferred) || payload?.idioma || payload?.code || "";
 }
 
-function normalizePreferred(response) {
-  if (typeof response === "string") return response;
-  return response?.codigoIdioma || response?.codigo || response?.idioma || response?.code || "";
+function getUserId() {
+  return getAuthSession().user?.id ?? localStorage.getItem("userId");
 }
 
 export default function LanguageSelector({ className = "" }) {
-  const userId = localStorage.getItem("userId");
-  const [languages, setLanguages] = useState(FALLBACK_LANGUAGES);
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    () => localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
-  );
-
-  useEffect(() => initLanguageSelector("language-selector"), []);
+  const userId = getUserId();
+  const [languages, setLanguages] = useState(LANGUAGE_OPTIONS);
+  const [selectedLanguage, setSelectedLanguage] = useState(() => normalizeLanguageCode(
+    localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
+  ));
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getSupportedLanguages().then((response) => {
-      const list = normalizeLanguages(response);
-      if (list.length) setLanguages(list);
-    }).catch(() => {});
+    let active = true;
 
-    if (userId) {
-      getPreferredLanguage(userId).then((response) => {
-        const preferred = normalizePreferred(response);
-        if (preferred) setSelectedLanguage(normalizeLanguageCode(preferred));
-      }).catch(() => {});
-    }
+    getSupportedLanguages()
+      .then((response) => {
+        const list = normalizeSupportedLanguages(response);
+        if (active && list.length) setLanguages(list);
+      })
+      .catch(() => {
+        if (active) setError(CONNECTION_ERROR_MESSAGE);
+      });
+
+    if (!userId) return () => { active = false; };
+
+    getPreferredLanguage(userId)
+      .then(async (response) => {
+        if (!active) return;
+        const preferred = normalizeLanguageCode(preferredCode(response));
+        setSelectedLanguage(preferred);
+        try {
+          await translatePage(preferred);
+          if (active) setPreferredLanguage(preferred);
+        } catch {
+          if (active) setError(CONNECTION_ERROR_MESSAGE);
+        }
+      })
+      .catch(() => {
+        if (active) setError(CONNECTION_ERROR_MESSAGE);
+      });
+
+    return () => { active = false; };
   }, [userId]);
 
-  useEffect(() => {
-    const normalized = normalizeLanguageCode(selectedLanguage);
-    document.documentElement.lang = normalized;
-    localStorage.setItem("preferredLanguage", normalized);
-    window.dispatchEvent(new CustomEvent("preferredlanguagechange", { detail: selectedLanguage }));
-    void translatePage(normalized).catch((error) => console.warn("No se pudo traducir la interfaz:", error));
-  }, [selectedLanguage]);
-
   const handleChange = async (event) => {
-    const nextLanguage = event.target.value;
-    setSelectedLanguage(nextLanguage);
-    if (!userId) return;
+    const nextLanguage = normalizeLanguageCode(event.target.value);
+    const rawUserId = getUserId();
+    setError("");
+
     try {
-      await updatePreferredLanguage({ usuarioId: Number(userId), codigoIdioma: nextLanguage });
-    } catch {
-      // La preferencia local sigue disponible si falla el guardado remoto.
+      if (!rawUserId) throw new Error(CONNECTION_ERROR_MESSAGE);
+      const numericUserId = Number(rawUserId);
+      await updatePreferredLanguage({
+        usuarioId: Number.isNaN(numericUserId) ? rawUserId : numericUserId,
+        codigoIdioma: nextLanguage,
+      });
+
+      // El selector y la caché solo cambian después de que el PUT terminó en 2xx.
+      setSelectedLanguage(nextLanguage);
+      setPreferredLanguage(nextLanguage);
+      await translatePage(nextLanguage);
+
+      const currentUser = getAuthSession().user;
+      if (currentUser?.id) {
+        setAuthSession({ ...currentUser, idiomaPreferido: nextLanguage }, getAuthSession().photo);
+      }
+    } catch (changeError) {
+      console.error("Preferred language update failed", changeError);
+      setError(CONNECTION_ERROR_MESSAGE);
     }
   };
 
@@ -72,6 +99,7 @@ export default function LanguageSelector({ className = "" }) {
           <option key={language.code} value={language.code}>{language.name}</option>
         ))}
       </select>
+      {error && <small className="language-selector-control__error">{error}</small>}
     </label>
   );
 }

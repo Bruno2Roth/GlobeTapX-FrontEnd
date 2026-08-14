@@ -1,14 +1,22 @@
+import { CONNECTION_ERROR_MESSAGE } from "./helpers/errorMessages";
+
 export const API = "/api";
-export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data), noAuth: true });
-export const register = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data), noAuth: true });
+export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) });
+export const register = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data) });
+export const getCurrentUser = () => request("/auth/me");
 export const getUsuario = (id) => request(`/usuario/${id}`);
 export const updateUsuario = (id, data) => request(`/usuario/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const uploadFotoPerfil = (userId, file) => {
+  const formData = new FormData();
+  formData.append("fotoPerfil", file);
+  return request(`/usuario/${userId}/foto`, { method: "PUT", body: formData });
+};
 export const getPaises = () => request("/pais");
 export const getPais = (id) => request(`/pais/${id}`);
 export const getAgendaUsuario = (id) => request(`/agendausuario/${id}`);
 export const getClima = (country) => request(`/clima/country?country=${encodeURIComponent(country)}`);
 export const getAllData = () => request("/data/all");
-export const getFotoPerfil = (userId) => request(`/auth/foto/${userId}`, { noAuth: true });
+export const getFotoPerfil = (userId) => request(`/auth/foto/${userId}`);
 export const getEventos = () => request("/evento");
 export const getEvento = (id) => request(`/evento/${id}`);
 export const getEventosPorPais = (idPais) => request(`/evento/pais/${idPais}`);
@@ -33,9 +41,17 @@ export const request = async (path, options = {}) => {
         return;
     }
     const headers = { ...options.headers };
-    if (options.body) headers["Content-Type"] = "application/json";
-    if (token && !options.noAuth) headers["Authorization"] = `Bearer ${token}`;
-    const res = await fetch(`${API}${path}`, { ...options, headers });
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+    if (options.body && !isFormData) headers["Content-Type"] = "application/json";
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    let res;
+    try {
+        res = await fetch(`${API}${path}`, { ...options, headers });
+    } catch (cause) {
+        const err = new Error(CONNECTION_ERROR_MESSAGE);
+        err.cause = cause;
+        throw err;
+    }
     if (res.status === 431) {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
@@ -44,9 +60,9 @@ export const request = async (path, options = {}) => {
         return;
     }
     if (!res.ok) {
-        const err = new Error(`Error ${res.status}`);
+        const err = new Error(CONNECTION_ERROR_MESSAGE);
         err.status = res.status;
-        try { err.data = await res.json(); } catch { }
+        try { err.data = await res.json(); } catch { /* respuesta sin JSON */ }
         throw err;
     }
     const text = await res.text();

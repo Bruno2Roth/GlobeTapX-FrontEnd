@@ -18,6 +18,7 @@ import "../index.css";
 import { getUsuario, getPaises, getClima } from "../config";
 import { translateText } from "../services/languageService";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 const descClima = {
@@ -143,7 +144,7 @@ function Clima() {
         setClima(climaData);
       } catch (err) {
         console.error("Error en clima:", err);
-        setError(`No se pudo cargar el clima (${err.status || err.message})`);
+        setError(CONNECTION_ERROR_MESSAGE);
       }
     };
 

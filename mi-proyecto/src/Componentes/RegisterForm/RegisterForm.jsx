@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getPaises, register, getFotoPerfil } from "../../config";
+import { getPaises, register, uploadFotoPerfil } from "../../config";
 import { getSupportedLanguages } from "../../services/languageService";
+import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
+import { LANGUAGE_OPTIONS, normalizeSupportedLanguages } from "../../helpers/translatePage";
+import { setAuthSession } from "../../services/authSession";
 import "./index.css";
 
 // Validación simple de formato de mail
 const validarmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
+const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 // Componente reutilizable de input con label y mensaje de error
 function InputField({ field, type, placeholder, label, value, error, touched, onChange, onBlur }) {
@@ -41,51 +46,45 @@ function RegisterForm() {
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fotoPreview, setFotoPreview] = useState("");
   const [paises, setPaises] = useState([]);
-  const [idiomas, setIdiomas] = useState([]);
+  const [idiomas, setIdiomas] = useState(LANGUAGE_OPTIONS);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [apiError, setApiError] = useState("");
-  const [paisesError, setPaisesError] = useState("");
-  const [idiomasError, setIdiomasError] = useState("");
+  const [fotoError, setFotoError] = useState("");
+  const [apiError, setApiErrorState] = useState("");
+  const [paisesError, setPaisesErrorState] = useState("");
+  const [idiomasError, setIdiomasErrorState] = useState("");
+  const setApiError = (message) => setApiErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
+  const setPaisesError = (message) => setPaisesErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
+  const setIdiomasError = (message) => setIdiomasErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
   const fileRef = useRef();
   const navigate = useNavigate();
+
+  useEffect(() => () => {
+    if (fotoPreview.startsWith("blob:")) URL.revokeObjectURL(fotoPreview);
+  }, [fotoPreview]);
 
   // Al montar, carga países e idiomas desde el backend
   useEffect(() => {
     getPaises()
       .then(setPaises)
-      .catch(() => setPaisesError("Error al cargar países — recargá la página"));
+      .catch(() => setPaisesError(CONNECTION_ERROR_MESSAGE));
 
     getSupportedLanguages()
       .then((data) => {
         console.log("📦 getIdiomas response:", data);
 
-        let lista = data;
-
-        if (!Array.isArray(lista)) {
-          lista = data.data || data.idiomas || data.records || data.result || data.items || [];
-        }
-
-        // Si el backend devuelve un objeto ({ es: {...}, en: {...} })
-        if (!Array.isArray(lista) && lista && typeof lista === "object") {
-          lista = Object.entries(lista).map(([codigo, value]) => ({
-            codigo,
-            ...value,
-          }));
-        }
+        const lista = normalizeSupportedLanguages(data);
 
         console.log("📦 Lista final:", lista);
 
-        if (Array.isArray(lista) && lista.length > 0) {
-          setIdiomas(lista);
-        } else {
-          setIdiomasError("No se encontraron idiomas disponibles");
-        }
+        setIdiomas(lista.length ? lista : LANGUAGE_OPTIONS);
+        setIdiomasError("");
       })
       .catch(() => {
-        setIdiomasError("Error al cargar idiomas — recargá la página");
+        setIdiomas(LANGUAGE_OPTIONS);
+        setIdiomasError(CONNECTION_ERROR_MESSAGE);
       });
   }, []);
 
@@ -140,12 +139,16 @@ function RegisterForm() {
 
   // Previsualiza la foto seleccionada
   const handleFoto = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
+    if (!ACCEPTED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_SIZE) {
+      setFotoError("La foto debe ser JPG, PNG, WEBP, GIF o AVIF y pesar como máximo 5 MB.");
+      e.target.value = "";
+      return;
+    }
+    setFotoError("");
     setFotoPerfil(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setFotoPreview(ev.target.result);
-    reader.readAsDataURL(file);
+    setFotoPreview(URL.createObjectURL(file));
   };
 
   // Envía el formulario: valida todo, llama al register y redirige
@@ -165,22 +168,29 @@ function RegisterForm() {
     setLoading(true);
     try {
       const body = { ...form, IsAdmin: false };
-      if (fotoPerfil) body.fotoPerfil = fotoPreview;
-      console.log("BODY:", body);
-      const res = await register(body);
+      const response = await register(body);
+      const res = response?.data?.token && !response.token ? response.data : response;
+      const user = res?.user;
+      if (!res?.token || !user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
       localStorage.setItem("token", res.token);
-      localStorage.setItem("userId", res.user?.usuarioID ?? res.user?.id);
-      localStorage.setItem("user", JSON.stringify(res.user));
-      getFotoPerfil(res.user?.usuarioID ?? res.user?.id)
-        .then((f) => {
-          if (f?.fotoPerfil) localStorage.setItem("fotoPerfil", f.fotoPerfil);
-          else localStorage.removeItem("fotoPerfil");
-        })
-        .catch(() => localStorage.removeItem("fotoPerfil"));
+      let photo = typeof user.fotoPerfil === "string" ? user.fotoPerfil : "";
+      let photoUploadFailed = false;
+      if (fotoPerfil) {
+        try {
+          const photoResponse = await uploadFotoPerfil(user.id, fotoPerfil);
+          photo = photoResponse?.fotoPerfil || photoResponse?.data?.fotoPerfil || photo;
+        } catch (photoError) {
+          console.error("Register photo upload failed", photoError);
+          photoUploadFailed = true;
+        }
+      }
+      setAuthSession({ ...user, fotoPerfil: photo }, photo);
+      if (photoUploadFailed) setApiError(CONNECTION_ERROR_MESSAGE);
       setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
       setTimeout(() => navigate("/home"), 1500);
     } catch (err) {
-      setApiError(err.data?.error || err.message || "Error al registrarse");
+      console.error("Register request failed", err);
+      setApiError(CONNECTION_ERROR_MESSAGE);
     } finally {
       setLoading(false);
     }
@@ -189,6 +199,10 @@ function RegisterForm() {
   return (
     <div className="rg">
       <form className="rg-form" onSubmit={handleSubmit} noValidate>
+        <div className="rg-brand auth-brand">
+          <span className="auth-brand__mark">G</span>
+          <span>GlobeTapX</span>
+        </div>
         <h1 className="rg-title">Crear Cuenta</h1>
         <p className="rg-subtitle">Completá tus datos para registrarte</p>
 
@@ -214,7 +228,7 @@ function RegisterForm() {
             className={"rg-input" + (errors.idiomaPreferido && touched.idiomaPreferido ? " rg-input--error" : "")}
           >
             <option value="">Seleccionar idioma</option>
-            {idiomas.map((i) => <option key={i.codigo} value={i.codigo}>{i.nombre}</option>)}
+            {idiomas.map((i) => <option key={i.code} value={i.code}>{i.name}</option>)}
           </select>
           {errors.idiomaPreferido && touched.idiomaPreferido && <p className="rg-field-error">{errors.idiomaPreferido}</p>}
           {idiomasError && <p className="rg-field-error">{idiomasError}</p>}
@@ -245,7 +259,8 @@ function RegisterForm() {
               <div className="rg-foto-placeholder">+</div>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFoto} hidden />
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={handleFoto} hidden />
+          {fotoError && <p className="rg-field-error">{fotoError}</p>}
         </div>
 
         <button type="submit" className="rg-btn" disabled={loading}>

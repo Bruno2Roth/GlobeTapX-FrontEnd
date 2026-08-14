@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import "../Styles/cambio.css";
 import "../index.css";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 
 const monedas = [
   { code: "USD", name: "Dólar estadounidense" },
@@ -61,7 +62,7 @@ function Cambio() {
       setResultado((Number(monto) * rate).toFixed(2));
     } catch (err) {
       console.error("Error al obtener cotización:", err);
-      setError("No pudimos obtener la cotización.");
+      setError(CONNECTION_ERROR_MESSAGE);
       setResultado(null);
       setTasa(null);
     } finally {

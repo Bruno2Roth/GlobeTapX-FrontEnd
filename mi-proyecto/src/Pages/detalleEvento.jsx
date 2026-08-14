@@ -6,6 +6,7 @@ import { getEvento } from "../services/evento";
 import { getPaises, getAgendaUsuario } from "../config";
 import { translateBatch } from "../services/languageService";
 import { agregarEventoAAgenda, eliminarEventoDeAgenda } from "../services/evento";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 
 function DetalleEvento() {
   const { id } = useParams();
@@ -59,7 +60,8 @@ function DetalleEvento() {
           setAgendaId(match.ID);
         }
       } catch (err) {
-        setError(err.data?.error || err.message || "Error al cargar evento");
+        console.error("Error al cargar evento:", err);
+        setError(CONNECTION_ERROR_MESSAGE);
       } finally {
         setCargando(false);
       }
@@ -77,7 +79,8 @@ function DetalleEvento() {
       setAccionMsg("Evento agregado a tu agenda");
       setTimeout(() => setAccionMsg(""), 3000);
     } catch (err) {
-      setAccionMsg("Error al agregar a la agenda");
+      console.error("Error al agregar a la agenda:", err);
+      setAccionMsg(CONNECTION_ERROR_MESSAGE);
       setTimeout(() => setAccionMsg(""), 3000);
     }
   };
@@ -91,7 +94,8 @@ function DetalleEvento() {
       setAccionMsg("Evento eliminado de tu agenda");
       setTimeout(() => setAccionMsg(""), 3000);
     } catch (err) {
-      setAccionMsg("Error al eliminar de la agenda");
+      console.error("Error al eliminar de la agenda:", err);
+      setAccionMsg(CONNECTION_ERROR_MESSAGE);
       setTimeout(() => setAccionMsg(""), 3000);
     }
   };

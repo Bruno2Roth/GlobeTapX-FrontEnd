@@ -1,4 +1,5 @@
 import api from "./api";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 
 const unwrap = (response) => response.data?.data ?? response.data;
 
@@ -8,17 +9,17 @@ export const getSupportedLanguages = async () => {
 };
 
 export const getPreferredLanguage = async (usuarioId) => {
-  const response = await api.get("/idioma/preferred", {
+  const response = await api.get("/usuario/idioma", {
     params: { usuarioId },
   });
   return unwrap(response);
 };
 
 export const updatePreferredLanguage = async (data) => {
-  const response = await api.put("/idioma/preferred", data);
+  const response = await api.put("/usuario/idioma", data);
   const payload = response.data?.data ?? response.data;
-  if (response.data?.success === false || payload?.success === false) {
-    throw new Error(payload?.error || response.data.error || "No se pudo guardar el idioma");
+  if (response.status !== 200 || response.data?.success === false || payload?.success === false) {
+    throw new Error(CONNECTION_ERROR_MESSAGE);
   }
   return payload;
 };

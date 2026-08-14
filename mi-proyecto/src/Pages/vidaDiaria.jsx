@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getUsuario } from "../config";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import ProblemasVidaDiaria from "../Componentes/ProblemasVidaDiaria/ProblemasVidaDiaria";
 import Loader from "../Componentes/Loader/Loader";
 import "../Styles/documentacion.css";
@@ -19,7 +20,7 @@ export default function VidaDiaria() {
     let active = true;
     getUsuario(userId)
       .then((user) => { if (active) setCountryId(currentCountryId(user)); })
-      .catch(() => { if (active) setError("No se pudo cargar el país actual del perfil."); })
+      .catch(() => { if (active) setError(CONNECTION_ERROR_MESSAGE); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [userId]);

@@ -6,6 +6,7 @@ import { getPais } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+import { localizeCountryName } from "../helpers/translatePage";
 
 const REVALIDATION_MIN_MS = 45 * 1000;
 const REVALIDATION_MAX_MS = 75 * 1000;
@@ -36,6 +37,7 @@ function Home() {
   const initialCache = userId ? obtenerCache(cacheKey) : null;
 
   const [pais, setPais] = useState(() => initialCache?.data?.pais || "");
+  const [paisCodigo, setPaisCodigo] = useState(() => initialCache?.data?.countryCode || "");
   const [hora, setHora] = useState(() => calcularHoraGMT(initialCache?.data?.gmt));
   const [heroImg, setHeroImg] = useState(() => initialCache?.data?.heroImg || "");
   const [cacheTimestamp, setCacheTimestamp] = useState(() => initialCache?.timestamp || null);
@@ -60,11 +62,13 @@ function Home() {
         if (!active) return;
 
         setPais(paisData.nombre);
+        setPaisCodigo(paisData.codigo || paisData.code || "");
         setHeroImg(heroImage);
         setHora(calcularHoraGMT(gmt));
 
         guardarCache(cacheKey, {
           pais: paisData.nombre,
+          countryCode: paisData.codigo || paisData.code || "",
           heroImg: heroImage,
           nombreUsuario: usuario.nombre || usuario.username || usuario.mail || "",
           gmt,
@@ -84,7 +88,8 @@ function Home() {
       }, delay);
     };
 
-    if (!obtenerCache(cacheKey)) void fetchData();
+    const cachedHome = obtenerCache(cacheKey);
+    if (!cachedHome || !cachedHome.data?.countryCode) void fetchData();
     scheduleRefresh();
 
     return () => {
@@ -108,51 +113,57 @@ function Home() {
         }
       >
         <div className="hero-content">
-          <h2>Tu viaje global comienza aquí</h2>
+          <h2 data-translate="Tu viaje global comienza aquí">Tu viaje global comienza aquí</h2>
           <input
             type="text"
             placeholder="¿A dónde vamos ahora?"
+            data-translate="¿A dónde vamos ahora?"
             className="search"
           />
         </div>
       </div>
 
       <div className="location">
-        <p className="label">CURRENTLY EXPLORING</p>
-        <h3>{pais || "Cargando..."}</h3>
+        <p className="label" data-translate="CURRENTLY EXPLORING">CURRENTLY EXPLORING</p>
+        <h3 data-country-code={paisCodigo || undefined}>
+          {pais ? localizeCountryName(paisCodigo, pais) : "Cargando..."}
+        </h3>
         <p className="time">
-          {pais || "..."} · {hora || "..."} LOCAL
+          <span data-country-code={paisCodigo || undefined}>
+            {pais ? localizeCountryName(paisCodigo, pais) : "..."}
+          </span>
+          · {hora || "..."} <span data-translate="LOCAL">LOCAL</span>
         </p>
         {cacheTimestamp && <CacheTimer timestamp={cacheTimestamp} />}
       </div>
 
       <div className="cards">
         <Link to="/numEmergencia" className="card red">
-          <p>Emergencias y Seguridad</p>
+          <p data-translate="Emergencias y Seguridad">Emergencias y Seguridad</p>
         </Link>
         <Link to="/vida" className="card orange">
-          <p>Vida diaria</p>
+          <p data-translate="Vida diaria">Vida diaria</p>
         </Link>
         <Link to="/cambio" className="card green">
-          <p>Cambio</p>
+          <p data-translate="Cambio">Cambio</p>
         </Link>
         <Link to="/documentacion" className="card blue">
-          <p>Documentación</p>
+          <p data-translate="Documentación">Documentación</p>
         </Link>
       </div>
 
       <div className="mini-buttons">
         <Link to="/clima" className="mini-btn">
-          <p>Clima</p>
+          <p data-translate="Clima">Clima</p>
         </Link>
         <Link to="/idioma" className="mini-btn">
-          <p>Idioma</p>
+          <p data-translate="Idioma">Idioma</p>
         </Link>
         <div className="mini-btn">
-          <p>Reglas</p>
+          <p data-translate="Reglas">Reglas</p>
         </div>
         <Link to="/Agenda" className="mini-btn">
-          <p>Agenda</p>
+          <p data-translate="Agenda">Agenda</p>
         </Link>
       </div>
     </div>

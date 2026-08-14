@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getLanguageCatalog, getPreferredLanguage, updatePreferredLanguage } from "../../services/languageService";
 import {
   LANGUAGE_OPTIONS,
@@ -27,13 +27,16 @@ export default function LanguageSelector({ className = "" }) {
   const [languages, setLanguages] = useState(LANGUAGE_OPTIONS);
   const [selectedLanguageId, setSelectedLanguageId] = useState(() => String(initialLanguageSelection().idiomaId));
   const [error, setError] = useState("");
+  const languageChangeVersion = useRef(0);
 
   useEffect(() => {
     let active = true;
+    const requestVersion = languageChangeVersion.current;
 
     const preferenceRequest = userId ? getPreferredLanguage(userId) : Promise.resolve(null);
     Promise.allSettled([getLanguageCatalog(), preferenceRequest]).then(([catalogResult, preferenceResult]) => {
       if (!active) return;
+      if (languageChangeVersion.current !== requestVersion) return;
 
       const catalog = catalogResult.status === "fulfilled" ? normalizeLanguageCatalog(catalogResult.value) : [];
       if (catalog.length) setLanguages(catalog);
@@ -59,24 +62,26 @@ export default function LanguageSelector({ className = "" }) {
 
   const handleChange = async (event) => {
     const nextLanguage = resolveLanguageSelection(event.target.value, languages);
+    const changeVersion = languageChangeVersion.current + 1;
+    languageChangeVersion.current = changeVersion;
     const rawUserId = getUserId();
     setError("");
 
     try {
       if (!rawUserId) throw new Error(CONNECTION_ERROR_MESSAGE);
       const numericUserId = Number(rawUserId);
+      setSelectedLanguageId(String(nextLanguage.idiomaId));
+      setPreferredLanguage(nextLanguage.codigoIdioma, nextLanguage.idiomaId);
+      void translatePage(nextLanguage.idiomaId).catch((translationError) => {
+        console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
+      });
       await updatePreferredLanguage({
         usuarioId: Number.isNaN(numericUserId) ? rawUserId : numericUserId,
         idiomaId: nextLanguage.idiomaId,
       });
 
-      // El selector y la caché solo cambian después de que el PUT terminó en 2xx.
-      setSelectedLanguageId(String(nextLanguage.idiomaId));
-      setPreferredLanguage(nextLanguage.codigoIdioma, nextLanguage.idiomaId);
-      await translatePage(nextLanguage.idiomaId);
-
       const currentUser = getAuthSession().user;
-      if (currentUser?.id) {
+      if (currentUser?.id && languageChangeVersion.current === changeVersion) {
         setAuthSession({
           ...currentUser,
           idiomaPreferido: { idiomaId: nextLanguage.idiomaId, codigoIdioma: nextLanguage.codigoIdioma },
@@ -84,7 +89,7 @@ export default function LanguageSelector({ className = "" }) {
       }
     } catch (changeError) {
       console.error("Preferred language update failed", changeError);
-      setError(getUserFacingError(changeError));
+      if (languageChangeVersion.current === changeVersion) setError(getUserFacingError(changeError));
     }
   };
 

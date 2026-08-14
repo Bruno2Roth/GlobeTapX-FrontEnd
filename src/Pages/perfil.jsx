@@ -14,6 +14,7 @@ import {
   LANGUAGE_OPTIONS,
   normalizeLanguageCatalog,
   resolveLanguageSelection,
+  localizeCountryName,
   setPreferredLanguage,
   translatePage,
 } from "../helpers/translatePage";
@@ -98,6 +99,7 @@ export default function Profile() {
   const [countriesError, setCountriesError] = useState("");
   const [countriesRetry, setCountriesRetry] = useState(0);
   const [profileRetry, setProfileRetry] = useState(0);
+  const languageChangeVersion = useRef(0);
 
   useEffect(() => subscribeAuthSession((session) => {
     if (!session.user || String(session.user.id) === String(userId)) {
@@ -187,6 +189,7 @@ export default function Profile() {
         };
 
         const loadLanguage = async () => {
+          const requestVersion = languageChangeVersion.current;
           const [catalogResult, preferenceResult] = await Promise.allSettled([
             getLanguageCatalog(),
             getPreferredLanguage(serverUser.id),
@@ -197,6 +200,9 @@ export default function Profile() {
             ? normalizeLanguageCatalog(catalogResult.value)
             : [];
           if (catalog.length) setIdiomas(catalog);
+          // No sobrescribir una elección hecha por el usuario mientras esta
+          // carga secundaria todavía estaba pendiente.
+          if (languageChangeVersion.current !== requestVersion) return;
 
           const preferred = preferenceResult.status === "fulfilled"
             ? preferenceResult.value
@@ -312,30 +318,37 @@ export default function Profile() {
 
   const handleLanguageChange = async (event) => {
     const selection = resolveLanguageSelection(event.target.value, idiomas);
+    const changeVersion = languageChangeVersion.current + 1;
+    languageChangeVersion.current = changeVersion;
+    const rawUserId = usuario?.id ?? userId;
+    const usuarioId = Number.isNaN(Number(rawUserId)) ? rawUserId : Number(rawUserId);
+
+    // La pantalla responde de inmediato; el guardado en backend es secundario.
+    setForm((previous) => ({
+      ...previous,
+      idiomaId: selection.idiomaId,
+      idioma: selection.codigoIdioma,
+    }));
+    setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
+    setAuthSession({
+      ...(usuario || {}),
+      id: rawUserId,
+      idiomaPreferido: { idiomaId: selection.idiomaId, codigoIdioma: selection.codigoIdioma },
+    }, fotoPreview);
+    void translatePage(selection.idiomaId).catch((translationError) => {
+      console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
+    });
+
     setSaving(true);
     setMessage("Guardando idioma...");
     try {
-      const rawUserId = usuario?.id ?? userId;
-      const usuarioId = Number.isNaN(Number(rawUserId)) ? rawUserId : Number(rawUserId);
       await updatePreferredLanguage({ usuarioId, idiomaId: selection.idiomaId });
-      setForm((previous) => ({
-        ...previous,
-        idiomaId: selection.idiomaId,
-        idioma: selection.codigoIdioma,
-      }));
-      setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
-      setAuthSession({
-        ...(usuario || {}),
-        id: rawUserId,
-        idiomaPreferido: { idiomaId: selection.idiomaId, codigoIdioma: selection.codigoIdioma },
-      }, fotoPreview);
-      await translatePage(selection.idiomaId);
-      setMessage("Idioma guardado");
+      if (languageChangeVersion.current === changeVersion) setMessage("Idioma guardado");
     } catch (error) {
       console.error("Preferred language update failed", error);
-      setMessage(getUserFacingError(error));
+      if (languageChangeVersion.current === changeVersion) setMessage(getUserFacingError(error));
     } finally {
-      setSaving(false);
+      if (languageChangeVersion.current === changeVersion) setSaving(false);
     }
   };
 
@@ -360,31 +373,49 @@ export default function Profile() {
         {message.includes("Puedes reintentar") && <button type="button" className="profile-primary-retry" onClick={() => setProfileRetry((value) => value + 1)}>Reintentar</button>}
       </>}
 
-      <form className="profile-form" onSubmit={(event) => event.preventDefault()}>
+      <form className="profile-form" aria-busy={saving} onSubmit={(event) => event.preventDefault()}>
         <div className="profile-form__intro">
           <span className="profile-form__eyebrow">Cuenta</span>
           <p>Los cambios se guardan automáticamente.</p>
         </div>
 
-        <label data-translate="Nombre completo">Nombre completo</label>
+        <label data-translate-id="2" data-translate="Nombre completo">Nombre completo</label>
         <input type="text" placeholder="Ingrese su nombre completo" value={form.nombreCompleto} onChange={(event) => updateForm("nombreCompleto", event.target.value)} onBlur={() => form.nombreCompleto.trim() && saveUserChanges({ nombreCompleto: form.nombreCompleto.trim() })} />
 
-        <label>Correo electrónico</label>
+        <label data-translate-id="3">Correo electrónico</label>
         <input type="email" value={form.mail} readOnly className="profile-input-readonly" />
 
-        <label>País actual</label>
+        <label data-translate-id="4">País actual</label>
         <select value={form.paisActual} onChange={(event) => { updateForm("paisActual", event.target.value); saveUserChanges({ paisActual: event.target.value }); }} className="profile-form-select">
-          <option value="" disabled={countriesLoading}>{countriesLoading ? "Cargando países..." : countriesError ? "No se pudieron cargar los países" : "Seleccionar país"}</option>
-          {paises.map((country) => <option key={countryId(country)} value={countryId(country)}>{country.nombre || country.name}</option>)}
+          <option
+            value=""
+            disabled={countriesLoading}
+            data-translate-id={countriesLoading ? "30" : "29"}
+          >
+            {countriesLoading ? "Cargando países..." : countriesError ? "No se pudieron cargar los países" : "Seleccionar país"}
+          </option>
+          {paises.map((country) => {
+            const name = country.nombre || country.name || "";
+            const code = country.codigo || country.code || "";
+            return (
+              <option
+                key={countryId(country)}
+                value={countryId(country)}
+                data-country-code={code || undefined}
+              >
+                {localizeCountryName(code, name)}
+              </option>
+            );
+          })}
         </select>
         {countriesError && <button type="button" className="profile-secondary-retry" onClick={() => setCountriesRetry((value) => value + 1)}>Reintentar países</button>}
 
-        <label data-translate="Idioma preferido">Idioma preferido</label>
-        <select value={String(form.idiomaId)} onChange={handleLanguageChange} className="profile-form-select" disabled={saving}>
+        <label data-translate-id="5" data-translate="Idioma preferido">Idioma preferido</label>
+        <select value={String(form.idiomaId)} onChange={handleLanguageChange} className="profile-form-select">
           {idiomas.map((language) => <option key={language.idiomaId} value={language.idiomaId}>{language.name}</option>)}
         </select>
 
-        <label>Contraseña</label>
+        <label data-translate-id="21">Contraseña</label>
         <div className="contrasena-box">
           <input type={showcontrasena ? "text" : "password"} placeholder="Ingrese una nueva contraseña" value={form.contrasena} onChange={(event) => updateForm("contrasena", event.target.value)} onBlur={() => form.contrasena && saveUserChanges({ contrasena: form.contrasena })} />
           <button type="button" onClick={() => setShowcontrasena((visible) => !visible)} aria-label="Mostrar contraseña">

@@ -5,13 +5,13 @@ function HeroBanner() {
   return (
     <div className='heroBanner'>
 
-      <h1>Tu viaje comienza aquí ✈</h1>
+      <h1 data-translate="Tu viaje comienza aquí ✈">Tu viaje comienza aquí ✈</h1>
 
-      <p>
+      <p data-translate="Explorá destinos increíbles con GlobeTapX">
         Explorá destinos increíbles con GlobeTapX
       </p>
 
-      <button>
+      <button data-translate="Explorar">
         Explorar
       </button>
 

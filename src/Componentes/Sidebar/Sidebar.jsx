@@ -21,7 +21,7 @@ export const Sidebar = () => {
             className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}
           >
             <span className="sidebar-icon">{link.icon}</span>
-            <span className="sidebar-label">{link.label}</span>
+            <span className="sidebar-label" data-translate={link.label}>{link.label}</span>
           </NavLink>
         ))}
       </nav>

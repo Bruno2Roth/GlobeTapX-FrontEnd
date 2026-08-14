@@ -109,6 +109,15 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const location = useLocation();
 
+  useEffect(() => {
+    const idiomaSeleccionado = localStorage.getItem("preferredLanguageId")
+      || localStorage.getItem("preferredLanguage")
+      || "es";
+    void translatePage(idiomaSeleccionado).catch((error) => {
+      console.warn("No se pudo aplicar el idioma de la pantalla:", error);
+    });
+  }, [location.pathname]);
+
   const publicRoutes = ["/", "/registro"];
   const mostrarLayout = !publicRoutes.includes(location.pathname);
 

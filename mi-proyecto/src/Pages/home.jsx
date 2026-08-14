@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
-import { getUsuario, getPais } from "../config";
+import { getPais } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+
+const REVALIDATION_MIN_MS = 45 * 1000;
+const REVALIDATION_MAX_MS = 75 * 1000;
 
 function calcularHoraGMT(gmt) {
   if (gmt == null) return "";
@@ -28,53 +32,66 @@ function calcularHoraGMT(gmt) {
 
 function Home() {
   const userId = localStorage.getItem("userId");
+  const cacheKey = "home_cache_" + userId;
+  const initialCache = userId ? obtenerCache(cacheKey) : null;
 
-  const [pais, setPais] = useState("");
-  const [hora, setHora] = useState("");
-  const [heroImg, setHeroImg] = useState("");
-  const [nombreUsuario, setNombreUsuario] = useState("");
-  const [cacheTimestamp, setCacheTimestamp] = useState(null);
+  const [pais, setPais] = useState(() => initialCache?.data?.pais || "");
+  const [hora, setHora] = useState(() => calcularHoraGMT(initialCache?.data?.gmt));
+  const [heroImg, setHeroImg] = useState(() => initialCache?.data?.heroImg || "");
+  const [cacheTimestamp, setCacheTimestamp] = useState(() => initialCache?.timestamp || null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) return undefined;
 
-    const cacheKey = "home_cache_" + userId;
-    const cache = obtenerCache(cacheKey);
-    if (cache) {
-      setPais(cache.data.pais);
-      setHeroImg(cache.data.heroImg);
-      setNombreUsuario(cache.data.nombreUsuario);
-      setHora(calcularHoraGMT(cache.data.gmt));
-      setCacheTimestamp(cache.timestamp);
-      return;
-    }
+    let active = true;
+    let refreshTimer;
 
     const fetchData = async () => {
       try {
-        const usuario = await getUsuario(userId);
-        const paisActual = usuario.paisActual;
+        const cachedUser = getCachedUserProfile(userId);
+        const usuario = cachedUser || await refreshUserProfile(userId);
+        const paisActual = usuario?.paisActual;
+        if (!paisActual) return;
 
         const paisData = await getPais(paisActual);
         const gmt = paisData.gmt ?? 0;
+        const heroImage = typeof paisData.imagen === "string" ? paisData.imagen.trim() : "";
+
+        if (!active) return;
 
         setPais(paisData.nombre);
-        setHeroImg(paisData.imagen || "");
-        setNombreUsuario(usuario.nombre || usuario.username || usuario.mail || "");
+        setHeroImg(heroImage);
         setHora(calcularHoraGMT(gmt));
 
         guardarCache(cacheKey, {
           pais: paisData.nombre,
-          heroImg: paisData.imagen || "",
+          heroImg: heroImage,
           nombreUsuario: usuario.nombre || usuario.username || usuario.mail || "",
           gmt,
         });
         setCacheTimestamp(Date.now());
       } catch (error) {
-        console.log(error);
+        if (active) console.warn("No se pudo actualizar el país de la landing:", error);
       }
     };
-    fetchData();
-  }, [userId]);
+
+    const scheduleRefresh = () => {
+      const delay = REVALIDATION_MIN_MS
+        + Math.floor(Math.random() * (REVALIDATION_MAX_MS - REVALIDATION_MIN_MS + 1));
+      refreshTimer = window.setTimeout(async () => {
+        await fetchData();
+        if (active) scheduleRefresh();
+      }, delay);
+    };
+
+    if (!obtenerCache(cacheKey)) void fetchData();
+    scheduleRefresh();
+
+    return () => {
+      active = false;
+      window.clearTimeout(refreshTimer);
+    };
+  }, [userId, cacheKey]);
 
   return (
     <div className="home">

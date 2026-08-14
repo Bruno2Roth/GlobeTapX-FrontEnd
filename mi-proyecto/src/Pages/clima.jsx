@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import "../Styles/clima.css";
 import "../index.css";
-import { getUsuario, getPaises, getClima } from "../config";
+import { getPaises, getClima } from "../config";
 import { translateText } from "../services/languageService";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
@@ -88,7 +89,10 @@ function Clima() {
         let nombreEN = cachePais?.data?.nombreEN;
 
         if (!nombreEN) {
-          const userData = await getUsuario(userId);
+          const cachedUser = getCachedUserProfile(userId);
+          const profileRequest = refreshUserProfile(userId);
+          if (cachedUser) profileRequest.catch(() => {});
+          const userData = cachedUser || await profileRequest;
           const paises = await getPaises();
           const pais = paises.find((p) => p.ID === userData.paisActual);
 

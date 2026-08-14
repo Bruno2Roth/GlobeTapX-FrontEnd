@@ -63,6 +63,8 @@ function translatableElements() {
   return [...document.querySelectorAll("[data-translate]")];
 }
 
+const translationRequests = new Map();
+
 export async function translatePage(language = DEFAULT_LANGUAGE) {
   const targetLanguage = normalizeLanguageCode(language);
   const elements = translatableElements();
@@ -73,24 +75,34 @@ export async function translatePage(language = DEFAULT_LANGUAGE) {
     return targetLanguage;
   }
 
+  const texts = elements.map((element) => element.dataset.translate);
+  const requestKey = `${targetLanguage}:${texts.join("\u0000")}`;
+  if (translationRequests.has(requestKey)) return translationRequests.get(requestKey);
+
   const token = localStorage.getItem("token");
-  const response = await fetch("/api/traduccion/batch", {
+  const request = fetch("/api/traduccion/batch", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify({
-      texts: elements.map((element) => element.dataset.translate),
+      texts,
       sourceLanguage: DEFAULT_LANGUAGE,
       targetLanguage,
     }),
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || payload.success === false) throw new Error(CONNECTION_ERROR_MESSAGE);
+  }).then(async (response) => {
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.success === false) throw new Error(CONNECTION_ERROR_MESSAGE);
 
-  const translations = payload.data?.translations || payload.data?.translatedTexts || payload.translations || payload.translatedTexts || [];
-  elements.forEach((element, index) => {
-    if (translations[index]) element.textContent = translations[index];
+    const translations = payload.data?.translations || payload.data?.translatedTexts || payload.translations || payload.translatedTexts || [];
+    elements.forEach((element, index) => {
+      if (translations[index]) element.textContent = translations[index];
+    });
+    document.documentElement.lang = targetLanguage;
+    return targetLanguage;
+  }).finally(() => {
+    translationRequests.delete(requestKey);
   });
-  document.documentElement.lang = targetLanguage;
-  return targetLanguage;
+
+  translationRequests.set(requestKey, request);
+  return request;
 }
 

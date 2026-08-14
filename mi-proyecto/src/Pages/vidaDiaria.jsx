@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getUsuario } from "../config";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import ProblemasVidaDiaria from "../Componentes/ProblemasVidaDiaria/ProblemasVidaDiaria";
 import Loader from "../Componentes/Loader/Loader";
 import "../Styles/documentacion.css";
@@ -11,19 +11,20 @@ function currentCountryId(user) {
 
 export default function VidaDiaria() {
   const userId = localStorage.getItem("userId");
-  const [countryId, setCountryId] = useState("");
-  const [loading, setLoading] = useState(Boolean(userId));
+  const cachedCountryId = currentCountryId(getCachedUserProfile(userId));
+  const [countryId, setCountryId] = useState(cachedCountryId);
+  const [loading, setLoading] = useState(Boolean(userId && !cachedCountryId));
   const [error, setError] = useState(userId ? "" : "No se encontró el usuario actual.");
 
   useEffect(() => {
     if (!userId) return undefined;
     let active = true;
-    getUsuario(userId)
+    refreshUserProfile(userId)
       .then((user) => { if (active) setCountryId(currentCountryId(user)); })
-      .catch(() => { if (active) setError(CONNECTION_ERROR_MESSAGE); })
+      .catch(() => { if (active && !cachedCountryId) setError(CONNECTION_ERROR_MESSAGE); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [userId]);
+  }, [userId, cachedCountryId]);
 
   if (loading) return <Loader />;
   return (

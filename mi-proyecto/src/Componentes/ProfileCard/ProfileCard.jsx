@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuthSession, getStoredUser, subscribeAuthSession } from "../../services/authSession";
+import { getCachedUserProfile } from "../../services/userProfileService";
 import './index.css'
 
 function ProfileCard() {
@@ -9,7 +10,7 @@ function ProfileCard() {
 
   useEffect(() => subscribeAuthSession(setSession), []);
 
-  const user = session.user || getStoredUser() || {};
+  const user = session.user || getCachedUserProfile(localStorage.getItem("userId")) || getStoredUser() || {};
   const photo = session.photo || "https://i.pravatar.cc/150";
 
   return (

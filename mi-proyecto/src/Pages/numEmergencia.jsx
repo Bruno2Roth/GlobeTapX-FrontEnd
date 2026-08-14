@@ -1,8 +1,9 @@
 import '../index.css'
 import { useEffect, useState } from "react";
 import "../Styles/numEmergencia.css";
-import { getUsuario, getPaises, getAllData } from "../config";
+import { getPaises, getAllData } from "../config";
 import { obtenerCache, guardarCache } from "../helpers/cache";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
 function NumEmergencia() {
@@ -11,7 +12,6 @@ function NumEmergencia() {
     const [bomberos, setBomberos] = useState("");
     const [policia, setPolicia] = useState("");
     const [emergencia, setEmergencia] = useState("");
-    const [cargando, setCargando] = useState(true);
     const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
@@ -29,12 +29,14 @@ function NumEmergencia() {
                     setPolicia(cache.data.policia || "");
                     setEmergencia(cache.data.emergencia || "");
                     setCacheTimestamp(cache.timestamp);
-                    setCargando(false);
                     return;
                 }
 
+                const cachedUser = getCachedUserProfile(userId);
+                const profileRequest = refreshUserProfile(userId);
+                if (cachedUser) profileRequest.catch(() => {});
                 const [userData, paises] = await Promise.all([
-                    getUsuario(userId),
+                    cachedUser || profileRequest,
                     getPaises(),
                 ]);
                 const paisObj = paises.find(p => p.ID === userData.paisActual);
@@ -81,8 +83,6 @@ function NumEmergencia() {
                 }
             } catch (error) {
                 console.error(error);
-            } finally {
-                setCargando(false);
             }
         };
         obtenerDatos();

@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import "../Styles/agenda.css";
 import "../index.css";
-import { getAgendaUsuario, getUsuario, getPaises } from "../config";
+import { getAgendaUsuario, getPaises } from "../config";
 import { translateText } from "../services/languageService";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 
@@ -19,10 +20,11 @@ const CACHE_KEY = (userId) => `agenda_${userId}`;
 
 function Agenda() {
   const userId = localStorage.getItem("userId");
-  const [items, setItems] = useState({ eventos: [], feriados: [] });
+  const initialCache = userId ? obtenerCache(CACHE_KEY(userId)) : null;
+  const [items, setItems] = useState(() => initialCache?.data || { eventos: [], feriados: [] });
   const [fecha, setFecha] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
-  const [cacheTimestamp, setCacheTimestamp] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(() => initialCache?.timestamp || null);
 
   const anio = fecha.getFullYear();
   const mes = fecha.getMonth();
@@ -33,16 +35,17 @@ function Agenda() {
     const cache = obtenerCache(CACHE_KEY(userId));
 
     if (cache) {
-      setItems(cache.data);
-      setCacheTimestamp(cache.timestamp);
       return;
     }
 
     const fetchData = async () => {
       try {
+        const cachedUser = getCachedUserProfile(userId);
+        const profileRequest = refreshUserProfile(userId);
+        if (cachedUser) profileRequest.catch(() => {});
         const [data, userData, paises] = await Promise.all([
           getAgendaUsuario(userId),
-          getUsuario(userId),
+          cachedUser || profileRequest,
           getPaises(),
         ]);
 
@@ -192,7 +195,7 @@ function Agenda() {
     celdas.push(<div key={`empty-${indice}`} className="cd cd-empty" />);
   }
 
-  for (let dia = 1; dia <= diasEnMes; dia += 1) {
+  Array.from({ length: diasEnMes }, (_, indice) => indice + 1).forEach((dia) => {
     const eventos = items.eventos.filter((evento) => enDia(evento.fecha, dia));
     const feriados = items.feriados.filter((feriado) => enDia(feriado.fecha, dia));
     const tieneContenido = eventos.length > 0 || feriados.length > 0;
@@ -248,7 +251,7 @@ function Agenda() {
         </span>
       </button>
     );
-  }
+  });
 
   return (
     <main className="agenda">

@@ -14,6 +14,7 @@ import { LANGUAGE_OPTIONS, normalizeLanguageCode, setPreferredLanguage, translat
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import { clearAuthSession, getAuthSession, setAuthSession, subscribeAuthSession } from "../services/authSession";
+import { getCachedUserProfile } from "../services/userProfileService";
 import "../Styles/perfil.css";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -31,11 +32,21 @@ function photoFromResponse(response) {
   return typeof payload?.fotoPerfil === "string" ? payload.fotoPerfil : "";
 }
 
+function formFromUser(user, idioma = "es") {
+  return {
+    nombreCompleto: user?.nombreCompleto || user?.NombreCompleto || "",
+    mail: user?.mail || user?.Mail || user?.correo || user?.Correo || "",
+    contrasena: "",
+    paisActual: user?.paisActual || user?.PaisActual || user?.paisID || user?.PaisID || "",
+    idioma,
+  };
+}
+
 export default function Profile() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
   const fileRef = useRef();
-  const [usuario, setUsuario] = useState(() => getAuthSession().user);
+  const [usuario, setUsuario] = useState(() => getCachedUserProfile(userId));
   const [form, setForm] = useState({ nombreCompleto: "", mail: "", contrasena: "", paisActual: "", idioma: "es" });
   const [paises, setPaises] = useState([]);
   const [showcontrasena, setShowcontrasena] = useState(false);
@@ -69,65 +80,91 @@ export default function Profile() {
       return;
     }
 
+    let active = true;
     const cacheKey = `perfil_cache_${userId}`;
     const cache = obtenerCache(cacheKey);
+    const sessionUser = getAuthSession().user;
+    const cachedUser = sessionUser?.id ? sessionUser : getCachedUserProfile(userId);
+
+    if (cache?.data?.form) {
+      setUsuario(cachedUser);
+      setForm(cache.data.form);
+      setPaises(cache.data.paises || []);
+      setFotoPreview(getAuthSession().photo || "");
+      setLoading(false);
+    } else if (cachedUser?.id) {
+      const sessionLanguage = normalizeLanguageCode(preferredCode(cachedUser));
+      setUsuario(cachedUser);
+      setForm(formFromUser(cachedUser, sessionLanguage));
+      setFotoPreview(getAuthSession().photo || photoFromResponse(cachedUser));
+      setLoading(false);
+    }
 
     const loadProfile = async () => {
       try {
-        const [user, countryList] = await Promise.all([
-          getCurrentUser(),
-          getPaises(),
-        ]);
+        const countriesRequest = getPaises().then(
+          (value) => ({ ok: true, value }),
+          (error) => ({ ok: false, error }),
+        );
+        const user = sessionUser?.id ? sessionUser : await getCurrentUser();
         const serverUser = user?.user || user?.data?.user || user?.data || user;
         if (!serverUser?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
+        if (!active) return;
+
+        const initialLanguage = normalizeLanguageCode(preferredCode(serverUser));
+        const initialForm = formFromUser(serverUser, initialLanguage);
+        const initialPhoto = getAuthSession().photo || photoFromResponse(serverUser);
+        setUsuario(serverUser);
+        setForm(initialForm);
+        setFotoPreview(initialPhoto);
+        setAuthSession(serverUser, initialPhoto);
+        setLoading(false);
+
+        // La foto se actualiza aparte y no bloquea la primera renderización.
+        getFotoPerfil(serverUser.id)
+          .then((photoResponse) => {
+            if (!active) return;
+            const photoUrl = photoFromResponse(photoResponse);
+            if (!photoUrl) return;
+            setFotoPreview(photoUrl);
+            setAuthSession(serverUser, photoUrl);
+          })
+          .catch((photoError) => console.warn("No se pudo cargar la foto de perfil:", photoError));
+
+        const [countryResult, languageResponse] = await Promise.all([
+          countriesRequest,
+          getPreferredLanguage(serverUser.id).catch((languageError) => {
+            console.warn("No se pudo cargar el idioma preferido:", languageError);
+            if (active) setMessage(CONNECTION_ERROR_MESSAGE);
+            return null;
+          }),
+        ]);
+        if (!active) return;
+        if (!countryResult.ok) throw countryResult.error;
+
+        const countryList = countryResult.value;
         const countries = Array.isArray(countryList) ? countryList : countryList?.data || countryList?.items || [];
-        let languageResponse = null;
-        try {
-          languageResponse = await getPreferredLanguage(serverUser.id);
-        } catch (languageError) {
-          console.warn("No se pudo cargar el idioma preferido:", languageError);
-          setMessage(CONNECTION_ERROR_MESSAGE);
-        }
         const language = normalizeLanguageCode(
           languageResponse ? preferredCode(languageResponse) : preferredCode(serverUser),
         );
-        const formData = {
-          nombreCompleto: serverUser.nombreCompleto || serverUser.NombreCompleto || "",
-          mail: serverUser.mail || serverUser.Mail || serverUser.correo || serverUser.Correo || "",
-          contrasena: "",
-          paisActual: serverUser.paisActual || serverUser.PaisActual || serverUser.paisID || serverUser.PaisID || "",
-          idioma: language,
-        };
-        setUsuario(serverUser);
+        const formData = formFromUser(serverUser, language);
         setForm(formData);
         setPaises(countries);
-        await applyPreferredLanguage({ codigoIdioma: language });
-
-        let photoUrl = photoFromResponse(serverUser);
-        try {
-          const photoResponse = await getFotoPerfil(serverUser.id);
-          photoUrl = photoFromResponse(photoResponse) || photoUrl;
-        } catch (photoError) {
-          console.warn("No se pudo cargar la foto de perfil:", photoError);
-        }
-        setFotoPreview(photoUrl);
-        setAuthSession(serverUser, photoUrl);
         guardarCache(cacheKey, { form: formData, paises: countries, fotoPreview: "" });
+
+        // La traducción también se aplica en segundo plano.
+        void applyPreferredLanguage({ codigoIdioma: language });
       } catch (error) {
+        if (!active) return;
         console.warn("No se pudo cargar el perfil:", error);
-        if (cache) {
-          setUsuario(getAuthSession().user);
-          setForm(cache.data.form);
-          setPaises(cache.data.paises || []);
-          setFotoPreview(getAuthSession().photo || "");
-        }
         setMessage(CONNECTION_ERROR_MESSAGE);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     void loadProfile();
+    return () => { active = false; };
   }, [userId]);
 
   const updateForm = (field, value) => setForm((previous) => ({ ...previous, [field]: value }));
@@ -227,12 +264,8 @@ export default function Profile() {
         </p>
         <div className="profile-image" onClick={() => fileRef.current?.click()} role="button" tabIndex="0" onKeyDown={(event) => event.key === "Enter" && fileRef.current?.click()}>
           {fotoPreview ? <img src={fotoPreview} alt="Perfil" /> : <span className="profile-image__fallback">U</span>}
-          <span className="profile-image__badge" aria-hidden="true">✎</span>
         </div>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={handlePhoto} hidden />
-        <button className="change-photo" type="button" onClick={() => fileRef.current?.click()} data-translate="Cambiar foto">
-          Cambiar foto
-        </button>
       </section>
 
       {message && <p className={`profile-message${message === CONNECTION_ERROR_MESSAGE ? " profile-message--error" : ""}`} role="status">{message}</p>}

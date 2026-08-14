@@ -1,3 +1,5 @@
+import { cacheUserProfile, clearCachedUserProfile } from "../helpers/userProfileCache";
+
 const AUTH_SESSION_EVENT = "authsessionchange";
 
 let currentSession = { user: null, photo: "" };
@@ -37,6 +39,7 @@ export function setAuthSession(user, photo = "") {
   if (currentSession.user) {
     localStorage.setItem("userId", String(currentSession.user.id));
     localStorage.setItem("user", JSON.stringify(withoutSignedPhoto(currentSession.user)));
+    cacheUserProfile(currentSession.user);
   } else {
     localStorage.removeItem("userId");
     localStorage.removeItem("user");
@@ -49,7 +52,9 @@ export function setAuthSession(user, photo = "") {
 }
 
 export function clearAuthSession() {
+  const previousUserId = currentSession.user?.id || localStorage.getItem("userId");
   currentSession = { user: null, photo: "" };
+  clearCachedUserProfile(previousUserId);
   ["token", "userId", "user", "fotoPerfil", "preferredLanguage"].forEach((key) => localStorage.removeItem(key));
   notify();
 }

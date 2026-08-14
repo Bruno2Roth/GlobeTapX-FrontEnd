@@ -15,6 +15,7 @@ import {
   MdChevronRight,
 } from "react-icons/md";
 import { getAuthSession, getStoredUser, subscribeAuthSession } from "../../services/authSession";
+import { getCachedUserProfile } from "../../services/userProfileService";
 import "./index.css";
 
 const links = [
@@ -37,13 +38,8 @@ function normalizeUser(user) {
 }
 
 function getCachedUser() {
-  const cached = localStorage.getItem("user");
-  if (!cached) return null;
-  try {
-    return normalizeUser(JSON.parse(cached));
-  } catch {
-    return null;
-  }
+  const userId = localStorage.getItem("userId");
+  return normalizeUser(getCachedUserProfile(userId));
 }
 
 function TopBar() {

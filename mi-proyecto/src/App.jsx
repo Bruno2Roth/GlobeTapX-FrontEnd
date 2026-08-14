@@ -25,7 +25,7 @@ import Documentacion from "./Pages/documentacion";
 import VidaDiaria from "./Pages/vidaDiaria";
 import { getCurrentUser, getFotoPerfil } from "./config";
 import { normalizeLanguageCode, setPreferredLanguage, translatePage } from "./helpers/translatePage";
-import { clearAuthSession, setAuthSession } from "./services/authSession";
+import { clearAuthSession, getAuthSession, setAuthSession } from "./services/authSession";
 import { CONNECTION_ERROR_MESSAGE } from "./helpers/errorMessages";
 
 function unwrapUser(response) {
@@ -49,6 +49,8 @@ function AuthSessionSync() {
 
   useEffect(() => {
     if (!token) return undefined;
+    // Login y registro ya dejaron la sesión completa en memoria.
+    if (getAuthSession().user?.id) return undefined;
     let active = true;
 
     const synchronize = async () => {
@@ -57,28 +59,27 @@ function AuthSessionSync() {
         const user = unwrapUser(response);
         if (!user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
 
-        let photo = typeof user.fotoPerfil === "string" ? user.fotoPerfil : "";
-        {
-          // La URL puede ser firmada y expirar; se renueva al recuperar la sesión.
-          try {
-            photo = unwrapPhoto(await getFotoPerfil(user.id)) || photo;
-          } catch (photoError) {
-            console.warn("No se pudo cargar la foto de sesión:", photoError);
-          }
-        }
-
         if (!active) return;
-        setAuthSession(user, photo);
+        const initialPhoto = typeof user.fotoPerfil === "string" ? user.fotoPerfil : "";
+        setAuthSession(user, initialPhoto);
+
+        // La sesión queda disponible mientras se renuevan los datos secundarios.
+        void getFotoPerfil(user.id)
+          .then((photoResponse) => {
+            if (!active) return;
+            const photo = unwrapPhoto(photoResponse);
+            if (photo) setAuthSession({ ...user, fotoPerfil: photo }, photo);
+          })
+          .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
 
         const language = normalizeLanguageCode(
           preferredLanguageFromUser(user) || localStorage.getItem("preferredLanguage") || "es",
         );
-        try {
-          const appliedLanguage = await translatePage(language);
-          if (active) setPreferredLanguage(appliedLanguage);
-        } catch (translationError) {
-          console.warn("No se pudo sincronizar el idioma:", translationError);
-        }
+        void translatePage(language)
+          .then((appliedLanguage) => {
+            if (active) setPreferredLanguage(appliedLanguage);
+          })
+          .catch((translationError) => console.warn("No se pudo sincronizar el idioma:", translationError));
       } catch (error) {
         const status = Number(error?.status);
         if ([401, 403].includes(status)) {

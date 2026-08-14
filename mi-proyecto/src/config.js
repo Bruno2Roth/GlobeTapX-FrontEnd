@@ -3,7 +3,21 @@ import { CONNECTION_ERROR_MESSAGE } from "./helpers/errorMessages";
 export const API = "/api";
 export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) });
 export const register = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data) });
-export const getCurrentUser = () => request("/auth/me");
+const COUNTRY_CACHE_TTL = 5 * 60 * 1000;
+let currentUserRequest = null;
+let countriesRequest = null;
+let countriesCache = null;
+let countriesCachedAt = 0;
+const photoRequests = new Map();
+
+export const getCurrentUser = () => {
+  if (!currentUserRequest) {
+    currentUserRequest = request("/auth/me").finally(() => {
+      currentUserRequest = null;
+    });
+  }
+  return currentUserRequest;
+};
 export const getUsuario = (id) => request(`/usuario/${id}`);
 export const updateUsuario = (id, data) => request(`/usuario/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const uploadFotoPerfil = (userId, file) => {
@@ -11,12 +25,36 @@ export const uploadFotoPerfil = (userId, file) => {
   formData.append("fotoPerfil", file);
   return request(`/usuario/${userId}/foto`, { method: "PUT", body: formData });
 };
-export const getPaises = () => request("/pais");
+export const getPaises = () => {
+  if (countriesCache && Date.now() - countriesCachedAt < COUNTRY_CACHE_TTL) {
+    return Promise.resolve(countriesCache);
+  }
+  if (!countriesRequest) {
+    countriesRequest = request("/pais")
+      .then((response) => {
+        countriesCache = response;
+        countriesCachedAt = Date.now();
+        return response;
+      })
+      .finally(() => {
+        countriesRequest = null;
+      });
+  }
+  return countriesRequest;
+};
 export const getPais = (id) => request(`/pais/${id}`);
 export const getAgendaUsuario = (id) => request(`/agendausuario/${id}`);
 export const getClima = (country) => request(`/clima/country?country=${encodeURIComponent(country)}`);
 export const getAllData = () => request("/data/all");
-export const getFotoPerfil = (userId) => request(`/auth/foto/${userId}`);
+export const getFotoPerfil = (userId) => {
+  const key = String(userId);
+  if (!photoRequests.has(key)) {
+    photoRequests.set(key, request(`/auth/foto/${userId}`).finally(() => {
+      photoRequests.delete(key);
+    }));
+  }
+  return photoRequests.get(key);
+};
 export const getEventos = () => request("/evento");
 export const getEvento = (id) => request(`/evento/${id}`);
 export const getEventosPorPais = (idPais) => request(`/evento/pais/${idPais}`);

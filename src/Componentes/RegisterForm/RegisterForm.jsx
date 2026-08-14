@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getPaises, register, uploadFotoPerfil } from "../../config";
+import { getFotoPerfil, getPaises, register, uploadFotoPerfil } from "../../config";
 import { getSupportedLanguages } from "../../services/languageService";
 import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
 import { LANGUAGE_OPTIONS, normalizeSupportedLanguages } from "../../helpers/translatePage";
@@ -173,18 +173,25 @@ function RegisterForm() {
       const user = res?.user;
       if (!res?.token || !user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
       localStorage.setItem("token", res.token);
-      let photo = typeof user.fotoPerfil === "string" ? user.fotoPerfil : "";
+      let photo = "";
       let photoUploadFailed = false;
       if (fotoPerfil) {
         try {
-          const photoResponse = await uploadFotoPerfil(user.id, fotoPerfil);
-          photo = photoResponse?.fotoPerfil || photoResponse?.data?.fotoPerfil || photo;
+          await uploadFotoPerfil(user.id, fotoPerfil);
         } catch (photoError) {
           console.error("Register photo upload failed", photoError);
           photoUploadFailed = true;
         }
       }
-      setAuthSession({ ...user, fotoPerfil: photo }, photo);
+      setAuthSession(user, photo);
+      void getFotoPerfil(user.id)
+        .then((photoResponse) => {
+          const payload = photoResponse?.data ?? photoResponse;
+          const data = payload?.data ?? payload;
+          const signedPhoto = data?.fotoPerfil || "";
+          if (signedPhoto) setAuthSession(user, signedPhoto);
+        })
+        .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
       if (photoUploadFailed) setApiError(CONNECTION_ERROR_MESSAGE);
       setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
       setTimeout(() => navigate("/home"), 1500);

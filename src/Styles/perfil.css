@@ -436,3 +436,37 @@
   color: #b42318;
   background: #fff7f7;
 }
+
+.profile-secondary-retry {
+  align-self: flex-start;
+  margin: 1px 0 4px;
+  padding: 0;
+  border: 0;
+  color: #0f766e;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.profile-secondary-retry:hover {
+  text-decoration: underline;
+}
+
+.profile-primary-retry {
+  display: block;
+  margin: -7px auto 14px;
+  padding: 0;
+  border: 0;
+  color: #0f766e;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.profile-primary-retry:hover {
+  text-decoration: underline;
+}

@@ -31,14 +31,15 @@ function Login() {
       }
 
       localStorage.setItem("token", res.token);
-      let photo = typeof res.user.fotoPerfil === "string" ? res.user.fotoPerfil : "";
-      try {
-        const photoResponse = await getFotoPerfil(res.user.id);
-        photo = photoResponse?.fotoPerfil || photoResponse?.data?.fotoPerfil || photo;
-      } catch (photoError) {
-        console.warn("No se pudo cargar la foto de sesión:", photoError);
-      }
-      setAuthSession({ ...res.user, fotoPerfil: photo }, photo);
+      // La respuesta de login puede traer una ruta de lectura, no una URL firmada.
+      setAuthSession(res.user, "");
+      void getFotoPerfil(res.user.id)
+        .then((photoResponse) => {
+          const payload = photoResponse?.data ?? photoResponse;
+          const photo = payload?.data?.fotoPerfil || payload?.fotoPerfil || "";
+          if (photo) setAuthSession({ ...res.user, fotoPerfil: photo }, photo);
+        })
+        .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
       navigate("/home");
     } catch (requestError) {
       console.error("Login request failed", requestError);

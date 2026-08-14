@@ -1,70 +1,64 @@
 import { useEffect, useState } from "react";
-import { getPreferredLanguage, getSupportedLanguages, updatePreferredLanguage } from "../../services/languageService";
+import { getLanguageCatalog, getPreferredLanguage, updatePreferredLanguage } from "../../services/languageService";
 import {
   LANGUAGE_OPTIONS,
-  normalizeLanguageCode,
-  normalizeSupportedLanguages,
+  normalizeLanguageCatalog,
+  resolveLanguageSelection,
   setPreferredLanguage,
   translatePage,
 } from "../../helpers/translatePage";
-import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
+import { CONNECTION_ERROR_MESSAGE, getUserFacingError } from "../../helpers/errorMessages";
 import { getAuthSession, setAuthSession } from "../../services/authSession";
 import "./index.css";
-
-function preferredCode(response) {
-  const payload = response?.data ?? response;
-  if (typeof payload === "string") return payload;
-  const preferred = payload?.idiomaPreferido;
-  return payload?.codigoIdioma || (typeof preferred === "object" ? preferred.codigoIdioma : preferred) || payload?.idioma || payload?.code || "";
-}
 
 function getUserId() {
   return getAuthSession().user?.id ?? localStorage.getItem("userId");
 }
 
+function initialLanguageSelection() {
+  return resolveLanguageSelection({
+    idiomaId: localStorage.getItem("preferredLanguageId"),
+    codigoIdioma: localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
+  });
+}
+
 export default function LanguageSelector({ className = "" }) {
   const userId = getUserId();
   const [languages, setLanguages] = useState(LANGUAGE_OPTIONS);
-  const [selectedLanguage, setSelectedLanguage] = useState(() => normalizeLanguageCode(
-    localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
-  ));
+  const [selectedLanguageId, setSelectedLanguageId] = useState(() => String(initialLanguageSelection().idiomaId));
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    getSupportedLanguages()
-      .then((response) => {
-        const list = normalizeSupportedLanguages(response);
-        if (active && list.length) setLanguages(list);
-      })
-      .catch(() => {
-        if (active) setError(CONNECTION_ERROR_MESSAGE);
+    const preferenceRequest = userId ? getPreferredLanguage(userId) : Promise.resolve(null);
+    Promise.allSettled([getLanguageCatalog(), preferenceRequest]).then(([catalogResult, preferenceResult]) => {
+      if (!active) return;
+
+      const catalog = catalogResult.status === "fulfilled" ? normalizeLanguageCatalog(catalogResult.value) : [];
+      if (catalog.length) setLanguages(catalog);
+
+      const preferred = preferenceResult.status === "fulfilled" && preferenceResult.value
+        ? preferenceResult.value
+        : initialLanguageSelection();
+      const selection = resolveLanguageSelection(preferred, catalog);
+      setSelectedLanguageId(String(selection.idiomaId));
+      setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
+
+      void translatePage(selection.idiomaId).catch((translationError) => {
+        if (active) setError(getUserFacingError(translationError));
       });
 
-    if (!userId) return () => { active = false; };
-
-    getPreferredLanguage(userId)
-      .then(async (response) => {
-        if (!active) return;
-        const preferred = normalizeLanguageCode(preferredCode(response));
-        setSelectedLanguage(preferred);
-        try {
-          await translatePage(preferred);
-          if (active) setPreferredLanguage(preferred);
-        } catch {
-          if (active) setError(CONNECTION_ERROR_MESSAGE);
-        }
-      })
-      .catch(() => {
-        if (active) setError(CONNECTION_ERROR_MESSAGE);
-      });
+      if (catalogResult.status === "rejected" || preferenceResult.status === "rejected") {
+        setError(getUserFacingError(catalogResult.reason || preferenceResult.reason));
+      }
+    });
 
     return () => { active = false; };
   }, [userId]);
 
   const handleChange = async (event) => {
-    const nextLanguage = normalizeLanguageCode(event.target.value);
+    const nextLanguage = resolveLanguageSelection(event.target.value, languages);
     const rawUserId = getUserId();
     setError("");
 
@@ -73,30 +67,33 @@ export default function LanguageSelector({ className = "" }) {
       const numericUserId = Number(rawUserId);
       await updatePreferredLanguage({
         usuarioId: Number.isNaN(numericUserId) ? rawUserId : numericUserId,
-        codigoIdioma: nextLanguage,
+        idiomaId: nextLanguage.idiomaId,
       });
 
       // El selector y la caché solo cambian después de que el PUT terminó en 2xx.
-      setSelectedLanguage(nextLanguage);
-      setPreferredLanguage(nextLanguage);
-      await translatePage(nextLanguage);
+      setSelectedLanguageId(String(nextLanguage.idiomaId));
+      setPreferredLanguage(nextLanguage.codigoIdioma, nextLanguage.idiomaId);
+      await translatePage(nextLanguage.idiomaId);
 
       const currentUser = getAuthSession().user;
       if (currentUser?.id) {
-        setAuthSession({ ...currentUser, idiomaPreferido: nextLanguage }, getAuthSession().photo);
+        setAuthSession({
+          ...currentUser,
+          idiomaPreferido: { idiomaId: nextLanguage.idiomaId, codigoIdioma: nextLanguage.codigoIdioma },
+        }, getAuthSession().photo);
       }
     } catch (changeError) {
       console.error("Preferred language update failed", changeError);
-      setError(CONNECTION_ERROR_MESSAGE);
+      setError(getUserFacingError(changeError));
     }
   };
 
   return (
     <label className={`language-selector-control ${className}`.trim()}>
       <span className="language-selector-control__label" data-translate="Idioma">Idioma</span>
-      <select id="language-selector" value={selectedLanguage} onChange={handleChange} aria-label="Seleccionar idioma de la interfaz">
+      <select id="language-selector" value={selectedLanguageId} onChange={handleChange} aria-label="Seleccionar idioma de la interfaz">
         {languages.map((language) => (
-          <option key={language.code} value={language.code}>{language.name}</option>
+          <option key={language.idiomaId} value={language.idiomaId}>{language.name}</option>
         ))}
       </select>
       {error && <small className="language-selector-control__error">{error}</small>}

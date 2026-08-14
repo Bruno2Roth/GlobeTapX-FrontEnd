@@ -1,4 +1,5 @@
 import { CONNECTION_ERROR_MESSAGE } from "./helpers/errorMessages";
+import { clearAuthSession } from "./services/authSession";
 
 export const API = "/api";
 export const login = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) });
@@ -91,16 +92,18 @@ export const request = async (path, options = {}) => {
         throw err;
     }
     if (res.status === 431) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("user");
-        window.location.href = "/";
+        clearAuthSession();
+        if (window.location.pathname !== "/") window.location.href = "/";
         return;
     }
     if (!res.ok) {
         const err = new Error(CONNECTION_ERROR_MESSAGE);
         err.status = res.status;
         try { err.data = await res.json(); } catch { /* respuesta sin JSON */ }
+        if (res.status === 401 && !/^\/auth\/(login|register)/.test(path)) {
+            clearAuthSession();
+            if (window.location.pathname !== "/") window.location.href = "/";
+        }
         throw err;
     }
     const text = await res.text();

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaBook,
@@ -9,10 +9,16 @@ import {
   FaTemperatureHigh,
 } from "react-icons/fa";
 import { getCurrentUser, getFotoPerfil, getPaises, updateUsuario, uploadFotoPerfil } from "../config";
-import { getPreferredLanguage, updatePreferredLanguage } from "../services/languageService";
-import { LANGUAGE_OPTIONS, normalizeLanguageCode, setPreferredLanguage, translatePage } from "../helpers/translatePage";
-import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
-import { obtenerCache, guardarCache } from "../helpers/cache";
+import { getLanguageCatalog, getPreferredLanguage, updatePreferredLanguage } from "../services/languageService";
+import {
+  LANGUAGE_OPTIONS,
+  normalizeLanguageCatalog,
+  resolveLanguageSelection,
+  setPreferredLanguage,
+  translatePage,
+} from "../helpers/translatePage";
+import { CONNECTION_ERROR_MESSAGE, getUserFacingError } from "../helpers/errorMessages";
+import { obtenerCache } from "../helpers/cache";
 import { clearAuthSession, getAuthSession, setAuthSession, subscribeAuthSession } from "../services/authSession";
 import { getCachedUserProfile } from "../services/userProfileService";
 import "../Styles/perfil.css";
@@ -20,25 +26,51 @@ import "../Styles/perfil.css";
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-function preferredCode(response) {
-  const payload = response?.data ?? response;
-  if (typeof payload === "string") return payload;
-  const preferred = payload?.idiomaPreferido;
-  return payload?.codigoIdioma || (typeof preferred === "object" ? preferred.codigoIdioma : preferred) || payload?.idioma || payload?.code || "es";
+function unwrapUser(response) {
+  return response?.user || response?.data?.user || response?.data || response;
 }
 
 function photoFromResponse(response) {
   const payload = response?.data ?? response;
-  return typeof payload?.fotoPerfil === "string" ? payload.fotoPerfil : "";
+  const data = payload?.data ?? payload;
+  return typeof data?.fotoPerfil === "string" ? data.fotoPerfil : "";
 }
 
-function formFromUser(user, idioma = "es") {
+function countriesFromResponse(response) {
+  const payload = response?.data ?? response;
+  return Array.isArray(payload) ? payload : payload?.data || payload?.items || [];
+}
+
+function countryId(country) {
+  return country?.ID ?? country?.id ?? country?.paisId ?? country?.idPais;
+}
+
+function formFromUser(user, languageSelection) {
+  const selection = languageSelection || resolveLanguageSelection(user);
+  const rawCountry = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
   return {
     nombreCompleto: user?.nombreCompleto || user?.NombreCompleto || "",
     mail: user?.mail || user?.Mail || user?.correo || user?.Correo || "",
     contrasena: "",
-    paisActual: user?.paisActual || user?.PaisActual || user?.paisID || user?.PaisID || "",
-    idioma,
+    paisActual: rawCountry === "" || rawCountry === null || rawCountry === undefined ? "" : String(rawCountry),
+    idiomaId: selection.idiomaId,
+    // Se conserva el código para compatibilidad visual y con cachés anteriores.
+    idioma: selection.codigoIdioma,
+  };
+}
+
+function formFromCache(form, user) {
+  const selection = resolveLanguageSelection({
+    idiomaId: form?.idiomaId,
+    codigoIdioma: form?.idioma || user?.idiomaPreferido,
+  });
+  const rawCountry = form?.paisActual ?? "";
+  return {
+    ...formFromUser(user || {}, selection),
+    ...form,
+    paisActual: rawCountry === "" || rawCountry === null || rawCountry === undefined ? "" : String(rawCountry),
+    idiomaId: selection.idiomaId,
+    idioma: selection.codigoIdioma,
   };
 }
 
@@ -47,13 +79,25 @@ export default function Profile() {
   const userId = localStorage.getItem("userId");
   const fileRef = useRef();
   const [usuario, setUsuario] = useState(() => getCachedUserProfile(userId));
-  const [form, setForm] = useState({ nombreCompleto: "", mail: "", contrasena: "", paisActual: "", idioma: "es" });
+  const [form, setForm] = useState({
+    nombreCompleto: "",
+    mail: "",
+    contrasena: "",
+    paisActual: "",
+    idiomaId: 1,
+    idioma: "es",
+  });
+  const [idiomas, setIdiomas] = useState(LANGUAGE_OPTIONS);
   const [paises, setPaises] = useState([]);
   const [showcontrasena, setShowcontrasena] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [fotoPreview, setFotoPreview] = useState(() => getAuthSession().photo || "");
+  const [countriesLoading, setCountriesLoading] = useState(false);
+  const [countriesError, setCountriesError] = useState("");
+  const [countriesRetry, setCountriesRetry] = useState(0);
+  const [profileRetry, setProfileRetry] = useState(0);
 
   useEffect(() => subscribeAuthSession((session) => {
     if (!session.user || String(session.user.id) === String(userId)) {
@@ -62,25 +106,38 @@ export default function Profile() {
     }
   }), [userId]);
 
-  const applyPreferredLanguage = async (response) => {
-    if (!response) return;
-    const language = normalizeLanguageCode(preferredCode(response));
+  const loadCountries = useCallback(async (isActive = () => true) => {
+    setCountriesLoading(true);
+    setCountriesError("");
     try {
-      const appliedLanguage = await translatePage(language);
-      setForm((previous) => ({ ...previous, idioma: appliedLanguage }));
-      setPreferredLanguage(appliedLanguage);
+      const countries = countriesFromResponse(await getPaises());
+      if (!isActive()) return;
+      setPaises(countries);
+      setCountriesError("");
     } catch (error) {
-      console.warn("No se pudo traducir el perfil:", error);
+      if (!isActive()) return;
+      setCountriesError(getUserFacingError(error));
+    } finally {
+      if (isActive()) setCountriesLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!countriesRetry || !usuario?.id) return;
+    void loadCountries();
+  }, [countriesRetry, loadCountries, usuario?.id]);
 
   useEffect(() => {
     if (!userId) {
       setLoading(false);
-      return;
+      return undefined;
     }
 
     let active = true;
+    if (profileRetry) {
+      setMessage("");
+      setLoading(true);
+    }
     const cacheKey = `perfil_cache_${userId}`;
     const cache = obtenerCache(cacheKey);
     const sessionUser = getAuthSession().user;
@@ -88,100 +145,120 @@ export default function Profile() {
 
     if (cache?.data?.form) {
       setUsuario(cachedUser);
-      setForm(cache.data.form);
+      setForm(formFromCache(cache.data.form, cachedUser));
       setPaises(cache.data.paises || []);
       setFotoPreview(getAuthSession().photo || "");
       setLoading(false);
     } else if (cachedUser?.id) {
-      const sessionLanguage = normalizeLanguageCode(preferredCode(cachedUser));
+      const sessionLanguage = resolveLanguageSelection(cachedUser);
       setUsuario(cachedUser);
       setForm(formFromUser(cachedUser, sessionLanguage));
-      setFotoPreview(getAuthSession().photo || photoFromResponse(cachedUser));
+      // fotoPerfil de /auth/me es una ruta de lectura, no una URL firmada.
+      setFotoPreview(getAuthSession().photo || "");
       setLoading(false);
     }
 
     const loadProfile = async () => {
       try {
-        const countriesRequest = getPaises().then(
-          (value) => ({ ok: true, value }),
-          (error) => ({ ok: false, error }),
-        );
-        const user = sessionUser?.id ? sessionUser : await getCurrentUser();
-        const serverUser = user?.user || user?.data?.user || user?.data || user;
+        // Esta es la única solicitud crítica para pintar los datos básicos.
+        const profileResponse = await getCurrentUser();
+        const serverUser = unwrapUser(profileResponse);
         if (!serverUser?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
         if (!active) return;
 
-        const initialLanguage = normalizeLanguageCode(preferredCode(serverUser));
+        const initialLanguage = resolveLanguageSelection(serverUser);
         const initialForm = formFromUser(serverUser, initialLanguage);
-        const initialPhoto = getAuthSession().photo || photoFromResponse(serverUser);
         setUsuario(serverUser);
         setForm(initialForm);
-        setFotoPreview(initialPhoto);
-        setAuthSession(serverUser, initialPhoto);
+        setAuthSession(serverUser, getAuthSession().photo || "");
         setLoading(false);
 
-        // La foto se actualiza aparte y no bloquea la primera renderización.
-        getFotoPerfil(serverUser.id)
-          .then((photoResponse) => {
+        const loadPhoto = async () => {
+          try {
+            const photoResponse = await getFotoPerfil(serverUser.id);
             if (!active) return;
-            const photoUrl = photoFromResponse(photoResponse);
-            if (!photoUrl) return;
-            setFotoPreview(photoUrl);
-            setAuthSession(serverUser, photoUrl);
-          })
-          .catch((photoError) => console.warn("No se pudo cargar la foto de perfil:", photoError));
+            // 200 + fotoPerfil:null es un estado válido: se mantiene el placeholder.
+            const photo = photoFromResponse(photoResponse);
+            setFotoPreview(photo);
+            setAuthSession(serverUser, photo);
+          } catch (error) {
+            if (active) console.warn("No se pudo cargar la foto de perfil:", error);
+          }
+        };
 
-        const [countryResult, languageResponse] = await Promise.all([
-          countriesRequest,
-          getPreferredLanguage(serverUser.id).catch((languageError) => {
-            console.warn("No se pudo cargar el idioma preferido:", languageError);
-            if (active) setMessage(CONNECTION_ERROR_MESSAGE);
-            return null;
-          }),
+        const loadLanguage = async () => {
+          const [catalogResult, preferenceResult] = await Promise.allSettled([
+            getLanguageCatalog(),
+            getPreferredLanguage(serverUser.id),
+          ]);
+          if (!active) return;
+
+          const catalog = catalogResult.status === "fulfilled"
+            ? normalizeLanguageCatalog(catalogResult.value)
+            : [];
+          if (catalog.length) setIdiomas(catalog);
+
+          const preferred = preferenceResult.status === "fulfilled"
+            ? preferenceResult.value
+            : serverUser;
+          const selection = resolveLanguageSelection(preferred, catalog);
+          setForm((previous) => ({
+            ...previous,
+            idiomaId: selection.idiomaId,
+            idioma: selection.codigoIdioma,
+          }));
+          setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
+
+          if (catalogResult.status === "rejected" || preferenceResult.status === "rejected") {
+            const secondaryError = catalogResult.status === "rejected"
+              ? catalogResult.reason
+              : preferenceResult.reason;
+            setMessage(getUserFacingError(secondaryError));
+          }
+
+          // La carga de tags y la aplicación de traducciones ocurre después del render inicial.
+          try {
+            await translatePage(selection.idiomaId);
+          } catch (error) {
+            if (active) console.warn("No se pudo traducir el perfil:", error);
+          }
+        };
+
+        // Recursos secundarios independientes: ninguno retrasa el render de los datos básicos.
+        void Promise.allSettled([
+          loadPhoto(),
+          loadLanguage(),
+          loadCountries(() => active),
         ]);
-        if (!active) return;
-        if (!countryResult.ok) throw countryResult.error;
-
-        const countryList = countryResult.value;
-        const countries = Array.isArray(countryList) ? countryList : countryList?.data || countryList?.items || [];
-        const language = normalizeLanguageCode(
-          languageResponse ? preferredCode(languageResponse) : preferredCode(serverUser),
-        );
-        const formData = formFromUser(serverUser, language);
-        setForm(formData);
-        setPaises(countries);
-        guardarCache(cacheKey, { form: formData, paises: countries, fotoPreview: "" });
-
-        // La traducción también se aplica en segundo plano.
-        void applyPreferredLanguage({ codigoIdioma: language });
       } catch (error) {
         if (!active) return;
         console.warn("No se pudo cargar el perfil:", error);
-        setMessage(CONNECTION_ERROR_MESSAGE);
-      } finally {
-        if (active) setLoading(false);
+        setMessage(getUserFacingError(error));
+        setLoading(false);
       }
     };
 
     void loadProfile();
     return () => { active = false; };
-  }, [userId]);
+  }, [loadCountries, profileRetry, userId]);
 
   const updateForm = (field, value) => setForm((previous) => ({ ...previous, [field]: value }));
 
   const saveUserChanges = async (changes) => {
     const currentUserId = usuario?.id ?? userId;
-    if (!currentUserId || !Object.keys(changes).length) return;
+    const safeChanges = Object.fromEntries(
+      Object.entries(changes).filter(([key]) => !["idiomaId", "codigoIdioma", "idioma"].includes(key)),
+    );
+    if (!currentUserId || !Object.keys(safeChanges).length) return;
     setSaving(true);
     setMessage("Guardando...");
     try {
       await updateUsuario(currentUserId, {
-        nombreCompleto: changes.nombreCompleto ?? form.nombreCompleto,
-        paisActual: changes.paisActual ?? form.paisActual,
-        ...changes,
+        nombreCompleto: safeChanges.nombreCompleto ?? form.nombreCompleto,
+        paisActual: safeChanges.paisActual ?? form.paisActual,
+        ...safeChanges,
       });
-      const updatedUserResponse = await getCurrentUser().catch(() => null);
-      const updatedUser = updatedUserResponse?.user || updatedUserResponse?.data?.user || updatedUserResponse?.data || updatedUserResponse;
+      const updatedUser = unwrapUser(await getCurrentUser().catch(() => null));
       if (updatedUser?.id) {
         setUsuario(updatedUser);
         setAuthSession(updatedUser, fotoPreview);
@@ -189,9 +266,9 @@ export default function Profile() {
       localStorage.removeItem(`perfil_cache_${currentUserId}`);
       localStorage.removeItem(`home_cache_${currentUserId}`);
       setMessage("Guardado automáticamente");
-      if (changes.contrasena) updateForm("contrasena", "");
-    } catch {
-      setMessage(CONNECTION_ERROR_MESSAGE);
+      if (safeChanges.contrasena) updateForm("contrasena", "");
+    } catch (error) {
+      setMessage(getUserFacingError(error));
     } finally {
       setSaving(false);
     }
@@ -215,38 +292,48 @@ export default function Profile() {
     setSaving(true);
     setMessage("Guardando foto...");
     uploadFotoPerfil(currentUserId, file)
-      .then((response) => {
-        const photo = photoFromResponse(response);
+      .then(() => getFotoPerfil(currentUserId).catch(() => null))
+      .then((photoResponse) => {
+        // Se vuelve a solicitar la URL de lectura; nunca se usa una ruta de /auth/me.
+        const photo = photoFromResponse(photoResponse);
         setUsuario((previous) => ({ ...(previous || {}), fotoPerfil: photo }));
         setFotoPreview(photo);
-        setAuthSession({ ...(usuario || {}), id: currentUserId, fotoPerfil: photo }, photo);
+        setAuthSession({ ...(usuario || {}), id: currentUserId }, photo);
         localStorage.removeItem(`perfil_cache_${currentUserId}`);
         setMessage("Foto guardada");
       })
       .catch((error) => {
         console.error("Profile photo upload failed", error);
-        setMessage(CONNECTION_ERROR_MESSAGE);
+        setMessage(getUserFacingError(error));
       })
       .finally(() => setSaving(false));
     event.target.value = "";
   };
 
   const handleLanguageChange = async (event) => {
-    const language = normalizeLanguageCode(event.target.value);
+    const selection = resolveLanguageSelection(event.target.value, idiomas);
     setSaving(true);
     setMessage("Guardando idioma...");
     try {
       const rawUserId = usuario?.id ?? userId;
       const usuarioId = Number.isNaN(Number(rawUserId)) ? rawUserId : Number(rawUserId);
-      await updatePreferredLanguage({ usuarioId, codigoIdioma: language });
-      updateForm("idioma", language);
-      setPreferredLanguage(language);
-      setAuthSession({ ...(usuario || {}), id: rawUserId, idiomaPreferido: language }, fotoPreview);
-      await translatePage(language);
+      await updatePreferredLanguage({ usuarioId, idiomaId: selection.idiomaId });
+      setForm((previous) => ({
+        ...previous,
+        idiomaId: selection.idiomaId,
+        idioma: selection.codigoIdioma,
+      }));
+      setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
+      setAuthSession({
+        ...(usuario || {}),
+        id: rawUserId,
+        idiomaPreferido: { idiomaId: selection.idiomaId, codigoIdioma: selection.codigoIdioma },
+      }, fotoPreview);
+      await translatePage(selection.idiomaId);
       setMessage("Idioma guardado");
     } catch (error) {
       console.error("Preferred language update failed", error);
-      setMessage(CONNECTION_ERROR_MESSAGE);
+      setMessage(getUserFacingError(error));
     } finally {
       setSaving(false);
     }
@@ -258,7 +345,7 @@ export default function Profile() {
     <div className="profile-container">
       <section className="profile-hero">
         <div className="profile-hero__glow" aria-hidden="true" />
-        <h1 className="profile-title" data-translate="Editar Perfil">Editar Perfil</h1>
+        <h1 className="profile-title" data-translate-id="1" data-translate="Editar Perfil">Perfil</h1>
         <p className="profile-subtitle" data-translate="Actualiza tu información personal y preferencias de cuenta.">
           Actualiza tu información personal y preferencias de cuenta.
         </p>
@@ -268,7 +355,10 @@ export default function Profile() {
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={handlePhoto} hidden />
       </section>
 
-      {message && <p className={`profile-message${message === CONNECTION_ERROR_MESSAGE ? " profile-message--error" : ""}`} role="status">{message}</p>}
+      {message && <>
+        <p className={`profile-message${message === CONNECTION_ERROR_MESSAGE ? " profile-message--error" : ""}`} role="status">{message}</p>
+        {message.includes("Puedes reintentar") && <button type="button" className="profile-primary-retry" onClick={() => setProfileRetry((value) => value + 1)}>Reintentar</button>}
+      </>}
 
       <form className="profile-form" onSubmit={(event) => event.preventDefault()}>
         <div className="profile-form__intro">
@@ -284,13 +374,14 @@ export default function Profile() {
 
         <label>País actual</label>
         <select value={form.paisActual} onChange={(event) => { updateForm("paisActual", event.target.value); saveUserChanges({ paisActual: event.target.value }); }} className="profile-form-select">
-          <option value="">Seleccionar país</option>
-          {paises.map((country) => <option key={country.ID} value={country.ID}>{country.nombre}</option>)}
+          <option value="" disabled={countriesLoading}>{countriesLoading ? "Cargando países..." : countriesError ? "No se pudieron cargar los países" : "Seleccionar país"}</option>
+          {paises.map((country) => <option key={countryId(country)} value={countryId(country)}>{country.nombre || country.name}</option>)}
         </select>
+        {countriesError && <button type="button" className="profile-secondary-retry" onClick={() => setCountriesRetry((value) => value + 1)}>Reintentar países</button>}
 
         <label data-translate="Idioma preferido">Idioma preferido</label>
-        <select value={form.idioma} onChange={handleLanguageChange} className="profile-form-select" disabled={saving}>
-          {LANGUAGE_OPTIONS.map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}
+        <select value={String(form.idiomaId)} onChange={handleLanguageChange} className="profile-form-select" disabled={saving}>
+          {idiomas.map((language) => <option key={language.idiomaId} value={language.idiomaId}>{language.name}</option>)}
         </select>
 
         <label>Contraseña</label>

@@ -34,7 +34,8 @@ function unwrapUser(response) {
 
 function unwrapPhoto(response) {
   const payload = response?.data ?? response;
-  return typeof payload?.fotoPerfil === "string" ? payload.fotoPerfil : "";
+  const data = payload?.data ?? payload;
+  return typeof data?.fotoPerfil === "string" ? data.fotoPerfil : "";
 }
 
 function preferredLanguageFromUser(user) {
@@ -60,7 +61,9 @@ function AuthSessionSync() {
         if (!user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
 
         if (!active) return;
-        const initialPhoto = typeof user.fotoPerfil === "string" ? user.fotoPerfil : "";
+        // /auth/me puede devolver una ruta de lectura; solo /auth/foto/:id
+        // entrega la URL que se debe asignar al elemento <img>.
+        const initialPhoto = getAuthSession().photo || "";
         setAuthSession(user, initialPhoto);
 
         // La sesión queda disponible mientras se renuevan los datos secundarios.
@@ -82,7 +85,7 @@ function AuthSessionSync() {
           .catch((translationError) => console.warn("No se pudo sincronizar el idioma:", translationError));
       } catch (error) {
         const status = Number(error?.status);
-        if ([401, 403].includes(status)) {
+        if (status === 401) {
           clearAuthSession();
           window.location.href = "/";
         }

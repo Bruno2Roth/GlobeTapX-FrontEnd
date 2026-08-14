@@ -33,30 +33,6 @@
   animation: heroEntrance 0.7s cubic-bezier(.22, 1, .36, 1) both;
 }
 
-.home .hero::before,
-.home .hero::after {
-  position: absolute;
-  content: "";
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.home .hero::before {
-  width: 220px;
-  height: 220px;
-  top: -115px;
-  right: -45px;
-  background: rgba(255, 255, 255, 0.13);
-}
-
-.home .hero::after {
-  width: 125px;
-  height: 125px;
-  right: 25%;
-  bottom: -78px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
 .home .hero-content {
   position: relative;
   z-index: 1;

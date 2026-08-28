@@ -1,4 +1,3 @@
-```jsx
 import { Link } from "react-router-dom";
 import "../Styles/landing.css";
 
@@ -410,4 +409,3 @@ function Step({ number, title, text }) {
 
 
 export default Landing;
-```

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import TopBar from "./Componentes/TopBar/TopBar";
 import Footer from "./Componentes/Footer/Footer";
 
+import Landing from "./Pages/landing";
 import Login from "./Pages/login";
 import Registro from "./Pages/registro";
 import Home from "./Pages/home";
@@ -118,8 +119,8 @@ function AppContent() {
     });
   }, [location.pathname]);
 
-  const publicRoutes = ["/", "/registro"];
-  const mostrarLayout = !publicRoutes.includes(location.pathname);
+const publicRoutes = ["/", "/registro", "/landing"];
+const mostrarLayout = !publicRoutes.includes(location.pathname);
 
   return (
     <>
@@ -127,9 +128,9 @@ function AppContent() {
       {mostrarLayout && <TopBar />}
       <div className={mostrarLayout ? "page-wrapper" : ""}>
         <Routes>
+          <Route path="/landing" element={<Landing />} />
           <Route path="/" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-
           <Route path="/home" element={<ProtectedRoute><Home/></ProtectedRoute>}/>
           <Route path="/clima" element={<ProtectedRoute><Clima/></ProtectedRoute>}/>
           <Route path="/cambio" element={<ProtectedRoute><Cambio/></ProtectedRoute>}/>

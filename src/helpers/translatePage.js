@@ -215,6 +215,27 @@ const runtime = {
   generation: 0,
 };
 
+const STORAGE_KEY = "preferredLanguage";
+let translationInFlight = false;
+let translationTimer = null;
+let translationObserver = null;
+
+function normalizeLanguage(language) {
+  const value = String(language || DEFAULT_LANGUAGE).trim().toLowerCase();
+  return value.split(/[-_]/)[0] || DEFAULT_LANGUAGE;
+}
+
+export function safeTranslate(language) {
+  return Promise.resolve()
+    .then(() => {
+      if (typeof translatePage === "function") return translatePage(language);
+      return undefined;
+    })
+    .catch((error) => {
+      console.warn("No se pudo traducir:", error);
+    });
+}
+
 export function localizeCountryName(countryCode, fallback = "", language = runtime.selection.codigoIdioma) {
   const code = String(countryCode || "").trim().toUpperCase();
   if (!code || typeof Intl === "undefined" || typeof Intl.DisplayNames !== "function") return fallback;
@@ -401,7 +422,7 @@ function applyCountryNameTranslations(root) {
 }
 
 function translateLegacyElements(elements) {
-  if (runtime.selection.idiomaId === DEFAULT_LANGUAGE_ID || !elements.length) return;
+  if (runtime.selection.idiomaId === DEFAULT_LANGUAGE_ID || !elements.length) return Promise.resolve();
 
   const texts = elements.map((element) => element.dataset.translate || defaultElementValue(element));
   const requestKey = `${runtime.selection.codigoIdioma}:${texts.join("\u0000")}`;
@@ -439,50 +460,61 @@ function applyDocumentTranslations() {
   applyCountryNameTranslations(root);
   runtime.applying = false;
 
-  void translateLegacyElements(unresolvedLegacy).catch(() => {});
+  void Promise.resolve(translateLegacyElements(unresolvedLegacy)).catch(() => {});
 }
 
 function scheduleDocumentTranslations() {
   if (runtime.observerTimer || typeof window === "undefined") return;
   runtime.observerTimer = window.setTimeout(() => {
     runtime.observerTimer = null;
-    if (!runtime.applying) applyDocumentTranslations();
+    if (!runtime.applying && !translationInFlight) applyDocumentTranslations();
   }, 0);
 }
 
 function ensureTranslationObserver() {
-  if (runtime.observer || typeof MutationObserver === "undefined" || typeof document === "undefined") return;
+  if (typeof MutationObserver === "undefined" || typeof document === "undefined") return;
   const root = document.getElementById("root");
   if (!root) return;
 
+  if (runtime.observer) {
+    runtime.observer.disconnect();
+  }
+
   runtime.observer = new MutationObserver(() => {
-    if (!runtime.applying) scheduleDocumentTranslations();
+    if (!runtime.applying && !translationInFlight) scheduleDocumentTranslations();
   });
   runtime.observer.observe(root, { childList: true, subtree: true, characterData: true });
 }
 
 export async function translatePage(language = DEFAULT_LANGUAGE) {
-  const selection = resolveLanguageSelection(language);
-  const generation = ++runtime.generation;
-  const targetPromise = getLanguageTags(selection.idiomaId);
-  const sourcePromise = selection.idiomaId === DEFAULT_LANGUAGE_ID
-    ? targetPromise
-    : getLanguageTags(DEFAULT_LANGUAGE_ID);
-  const [targetResult, sourceResult] = await Promise.allSettled([targetPromise, sourcePromise]);
+  if (translationInFlight) return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANGUAGE;
+  translationInFlight = true;
 
-  if (generation !== runtime.generation) return selection.codigoIdioma;
+  try {
+    const selection = resolveLanguageSelection(language);
+    const generation = ++runtime.generation;
+    const targetPromise = getLanguageTags(selection.idiomaId);
+    const sourcePromise = selection.idiomaId === DEFAULT_LANGUAGE_ID
+      ? targetPromise
+      : getLanguageTags(DEFAULT_LANGUAGE_ID);
+    const [targetResult, sourceResult] = await Promise.allSettled([targetPromise, sourcePromise]);
 
-  const targetMaps = targetResult.status === "fulfilled" ? catalogMaps(targetResult.value) : emptyCatalogMaps();
-  const sourceMaps = selection.idiomaId === DEFAULT_LANGUAGE_ID
-    ? targetMaps
-    : sourceResult.status === "fulfilled" ? catalogMaps(sourceResult.value) : runtime.source;
+    if (generation !== runtime.generation) return selection.codigoIdioma;
 
-  runtime.selection = selection;
-  runtime.source = sourceMaps;
-  runtime.target = targetMaps;
-  runtime.fallback = fallbackTranslations(selection.codigoIdioma);
-  document.documentElement.lang = selection.codigoIdioma;
-  ensureTranslationObserver();
-  applyDocumentTranslations();
-  return selection.codigoIdioma;
+    const targetMaps = targetResult.status === "fulfilled" ? catalogMaps(targetResult.value) : emptyCatalogMaps();
+    const sourceMaps = selection.idiomaId === DEFAULT_LANGUAGE_ID
+      ? targetMaps
+      : sourceResult.status === "fulfilled" ? catalogMaps(sourceResult.value) : runtime.source;
+
+    runtime.selection = selection;
+    runtime.source = sourceMaps;
+    runtime.target = targetMaps;
+    runtime.fallback = fallbackTranslations(selection.codigoIdioma);
+    document.documentElement.lang = selection.codigoIdioma;
+    ensureTranslationObserver();
+    applyDocumentTranslations();
+    return selection.codigoIdioma;
+  } finally {
+    translationInFlight = false;
+  }
 }

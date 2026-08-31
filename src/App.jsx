@@ -79,7 +79,8 @@ function AuthSessionSync() {
         const language = normalizeLanguageCode(
           preferredLanguageFromUser(user) || localStorage.getItem("preferredLanguage") || "es",
         );
-        void translatePage(language)
+        void Promise.resolve()
+          .then(() => translatePage(language))
           .then((appliedLanguage) => {
             if (active) setPreferredLanguage(appliedLanguage);
           })
@@ -114,9 +115,11 @@ function AppContent() {
     const idiomaSeleccionado = localStorage.getItem("preferredLanguageId")
       || localStorage.getItem("preferredLanguage")
       || "es";
-    void translatePage(idiomaSeleccionado).catch((error) => {
-      console.warn("No se pudo aplicar el idioma de la pantalla:", error);
-    });
+    void Promise.resolve()
+      .then(() => translatePage(idiomaSeleccionado))
+      .catch((error) => {
+        console.warn("No se pudo aplicar el idioma de la pantalla:", error);
+      });
   }, [location.pathname]);
 
 const publicRoutes = ["/", "/registro", "/landing"];

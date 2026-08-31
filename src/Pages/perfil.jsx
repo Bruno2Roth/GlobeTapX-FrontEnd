@@ -37,23 +37,31 @@ function photoFromResponse(response) {
   return typeof data?.fotoPerfil === "string" ? data.fotoPerfil : "";
 }
 
+function normalizeCountryValue(value) {
+  if (value === null || value === undefined || value === "") return "";
+  const normalized = String(value).trim();
+  return normalized === "null" || normalized === "undefined" ? "" : normalized;
+}
+
 function countriesFromResponse(response) {
   const payload = response?.data ?? response;
-  return Array.isArray(payload) ? payload : payload?.data || payload?.items || [];
+  const candidate = Array.isArray(payload) ? payload : payload?.data ?? payload?.items ?? payload?.results ?? [];
+  return Array.isArray(candidate) ? candidate : [];
 }
 
 function countryId(country) {
-  return country?.ID ?? country?.id ?? country?.paisId ?? country?.idPais;
+  const id = country?.ID ?? country?.id ?? country?.paisId ?? country?.idPais ?? country?.paisactual ?? country?.paisActual;
+  return id === null || id === undefined || id === "" ? "" : String(id);
 }
 
 function formFromUser(user, languageSelection) {
   const selection = languageSelection || resolveLanguageSelection(user);
-  const rawCountry = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
+  const rawCountry = user?.paisActual ?? user?.PaisActual ?? user?.paisactual ?? user?.Paisactual ?? user?.paisID ?? user?.PaisID ?? "";
   return {
     nombreCompleto: user?.nombreCompleto || user?.NombreCompleto || "",
     mail: user?.mail || user?.Mail || user?.correo || user?.Correo || "",
     contrasena: "",
-    paisActual: rawCountry === "" || rawCountry === null || rawCountry === undefined ? "" : String(rawCountry),
+    paisActual: normalizeCountryValue(rawCountry),
     idiomaId: selection.idiomaId,
     // Se conserva el código para compatibilidad visual y con cachés anteriores.
     idioma: selection.codigoIdioma,
@@ -69,7 +77,7 @@ function formFromCache(form, user) {
   return {
     ...formFromUser(user || {}, selection),
     ...form,
-    paisActual: rawCountry === "" || rawCountry === null || rawCountry === undefined ? "" : String(rawCountry),
+    paisActual: normalizeCountryValue(rawCountry),
     idiomaId: selection.idiomaId,
     idioma: selection.codigoIdioma,
   };
@@ -101,6 +109,16 @@ export default function Profile() {
   const [profileRetry, setProfileRetry] = useState(0);
   const languageChangeVersion = useRef(0);
 
+  const countryOptions = Array.isArray(paises) ? paises : [];
+  const countrySelectDisabled = countriesLoading || !!countriesError || countryOptions.length === 0;
+  const countryPlaceholder = countriesLoading
+    ? "Cargando países..."
+    : countriesError
+      ? "No se pudieron cargar los países"
+      : countryOptions.length === 0
+        ? "Sin países disponibles"
+        : "Seleccionar país";
+
   useEffect(() => subscribeAuthSession((session) => {
     if (!session.user || String(session.user.id) === String(userId)) {
       setUsuario(session.user);
@@ -112,12 +130,16 @@ export default function Profile() {
     setCountriesLoading(true);
     setCountriesError("");
     try {
-      const countries = countriesFromResponse(await getPaises());
+      const response = await getPaises();
       if (!isActive()) return;
+      const countries = countriesFromResponse(response);
       setPaises(countries);
-      setCountriesError("");
+      if (!countries.length) {
+        setCountriesError("");
+      }
     } catch (error) {
       if (!isActive()) return;
+      setPaises([]);
       setCountriesError(getUserFacingError(error));
     } finally {
       if (isActive()) setCountriesLoading(false);
@@ -155,14 +177,12 @@ export default function Profile() {
       const sessionLanguage = resolveLanguageSelection(cachedUser);
       setUsuario(cachedUser);
       setForm(formFromUser(cachedUser, sessionLanguage));
-      // fotoPerfil de /auth/me es una ruta de lectura, no una URL firmada.
       setFotoPreview(getAuthSession().photo || "");
       setLoading(false);
     }
 
     const loadProfile = async () => {
       try {
-        // Esta es la única solicitud crítica para pintar los datos básicos.
         const profileResponse = await getCurrentUser();
         const serverUser = unwrapUser(profileResponse);
         if (!serverUser?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
@@ -179,7 +199,6 @@ export default function Profile() {
           try {
             const photoResponse = await getFotoPerfil(serverUser.id);
             if (!active) return;
-            // 200 + fotoPerfil:null es un estado válido: se mantiene el placeholder.
             const photo = photoFromResponse(photoResponse);
             setFotoPreview(photo);
             setAuthSession(serverUser, photo);
@@ -200,8 +219,6 @@ export default function Profile() {
             ? normalizeLanguageCatalog(catalogResult.value)
             : [];
           if (catalog.length) setIdiomas(catalog);
-          // No sobrescribir una elección hecha por el usuario mientras esta
-          // carga secundaria todavía estaba pendiente.
           if (languageChangeVersion.current !== requestVersion) return;
 
           const preferred = preferenceResult.status === "fulfilled"
@@ -222,7 +239,6 @@ export default function Profile() {
             setMessage(getUserFacingError(secondaryError));
           }
 
-          // La carga de tags y la aplicación de traducciones ocurre después del render inicial.
           try {
             await translatePage(selection.idiomaId);
           } catch (error) {
@@ -256,14 +272,17 @@ export default function Profile() {
       Object.entries(changes).filter(([key]) => !["idiomaId", "codigoIdioma", "idioma"].includes(key)),
     );
     if (!currentUserId || !Object.keys(safeChanges).length) return;
+
+    const countryValue = safeChanges.paisActual ?? safeChanges.paisactual ?? form.paisActual;
+    const payload = {
+      ...safeChanges,
+      ...(countryValue !== undefined && countryValue !== null ? { paisActual: String(countryValue), paisactual: String(countryValue) } : {}),
+    };
+
     setSaving(true);
     setMessage("Guardando...");
     try {
-      await updateUsuario(currentUserId, {
-        nombreCompleto: safeChanges.nombreCompleto ?? form.nombreCompleto,
-        paisActual: safeChanges.paisActual ?? form.paisActual,
-        ...safeChanges,
-      });
+      await updateUsuario(currentUserId, payload);
       const updatedUser = unwrapUser(await getCurrentUser().catch(() => null));
       if (updatedUser?.id) {
         setUsuario(updatedUser);
@@ -300,7 +319,6 @@ export default function Profile() {
     uploadFotoPerfil(currentUserId, file)
       .then(() => getFotoPerfil(currentUserId).catch(() => null))
       .then((photoResponse) => {
-        // Se vuelve a solicitar la URL de lectura; nunca se usa una ruta de /auth/me.
         const photo = photoFromResponse(photoResponse);
         setUsuario((previous) => ({ ...(previous || {}), fotoPerfil: photo }));
         setFotoPreview(photo);
@@ -323,7 +341,6 @@ export default function Profile() {
     const rawUserId = usuario?.id ?? userId;
     const usuarioId = Number.isNaN(Number(rawUserId)) ? rawUserId : Number(rawUserId);
 
-    // La pantalla responde de inmediato; el guardado en backend es secundario.
     setForm((previous) => ({
       ...previous,
       idiomaId: selection.idiomaId,
@@ -335,9 +352,11 @@ export default function Profile() {
       id: rawUserId,
       idiomaPreferido: { idiomaId: selection.idiomaId, codigoIdioma: selection.codigoIdioma },
     }, fotoPreview);
-    void translatePage(selection.idiomaId).catch((translationError) => {
-      console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
-    });
+    void Promise.resolve()
+      .then(() => translatePage(selection.idiomaId))
+      .catch((translationError) => {
+        console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
+      });
 
     setSaving(true);
     setMessage("Guardando idioma...");
@@ -386,21 +405,28 @@ export default function Profile() {
         <input type="email" value={form.mail} readOnly className="profile-input-readonly" />
 
         <label data-translate-id="4">País actual</label>
-        <select value={form.paisActual} onChange={(event) => { updateForm("paisActual", event.target.value); saveUserChanges({ paisActual: event.target.value }); }} className="profile-form-select">
-          <option
-            value=""
-            disabled={countriesLoading}
-            data-translate-id={countriesLoading ? "30" : "29"}
-          >
-            {countriesLoading ? "Cargando países..." : countriesError ? "No se pudieron cargar los países" : "Seleccionar país"}
+        <select
+          value={form.paisActual ?? ""}
+          onChange={(event) => {
+            const nextValue = event.target.value;
+            updateForm("paisActual", nextValue);
+            saveUserChanges({ paisActual: nextValue, paisactual: nextValue });
+          }}
+          className="profile-form-select"
+          disabled={countrySelectDisabled}
+        >
+          <option value="" disabled={countriesLoading}>
+            {countryPlaceholder}
           </option>
-          {paises.map((country) => {
-            const name = country.nombre || country.name || "";
-            const code = country.codigo || country.code || "";
+          {countryOptions.map((country) => {
+            const value = countryId(country);
+            const name = country?.nombre ?? country?.name ?? "";
+            const code = country?.codigo ?? country?.code ?? "";
+            if (!value) return null;
             return (
               <option
-                key={countryId(country)}
-                value={countryId(country)}
+                key={value}
+                value={value}
                 data-country-code={code || undefined}
               >
                 {localizeCountryName(code, name)}

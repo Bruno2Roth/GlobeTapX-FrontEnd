@@ -48,9 +48,11 @@ export default function LanguageSelector({ className = "" }) {
       setSelectedLanguageId(String(selection.idiomaId));
       setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
 
-      void translatePage(selection.idiomaId).catch((translationError) => {
-        if (active) setError(getUserFacingError(translationError));
-      });
+      void Promise.resolve()
+        .then(() => translatePage(selection.idiomaId))
+        .catch((translationError) => {
+          if (active) setError(getUserFacingError(translationError));
+        });
 
       if (catalogResult.status === "rejected" || preferenceResult.status === "rejected") {
         setError(getUserFacingError(catalogResult.reason || preferenceResult.reason));
@@ -72,9 +74,11 @@ export default function LanguageSelector({ className = "" }) {
       const numericUserId = Number(rawUserId);
       setSelectedLanguageId(String(nextLanguage.idiomaId));
       setPreferredLanguage(nextLanguage.codigoIdioma, nextLanguage.idiomaId);
-      void translatePage(nextLanguage.idiomaId).catch((translationError) => {
-        console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
-      });
+      void Promise.resolve()
+        .then(() => translatePage(nextLanguage.idiomaId))
+        .catch((translationError) => {
+          console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
+        });
       await updatePreferredLanguage({
         usuarioId: Number.isNaN(numericUserId) ? rawUserId : numericUserId,
         idiomaId: nextLanguage.idiomaId,

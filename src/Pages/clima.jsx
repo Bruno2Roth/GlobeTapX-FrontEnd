@@ -7,7 +7,6 @@ import {
   CloudRain,
   CloudSnow,
   CloudSun,
-  Compass,
   Navigation,
   Sun,
   Thermometer,
@@ -191,22 +190,20 @@ function Clima() {
           <div>
             <p>Viento</p>
             <h3>{clima.viento} km/h</h3>
-            <small>{dirViento[dirIdx]}</small>
           </div>
         </article>
 
         <article className="small-card direction-card">
-          <div
-            className="compass"
-            style={{ "--wind-rotation": `${clima.windDirection}deg` }}
-          >
-            <Compass size={39} strokeWidth={1.5} />
-            <Navigation size={13} className="compass-arrow" />
+          <div className="metric-icon wind-direction-icon">
+            <Navigation
+              size={20}
+              strokeWidth={2.2}
+              style={{ transform: `rotate(${clima.windDirection}deg)` }}
+            />
           </div>
           <div>
             <p>Dirección</p>
-            <h3>{dirViento[dirIdx]}</h3>
-            <small>{clima.windDirection}°</small>
+            <small className="degree-value">{clima.windDirection}{"\u00b0"}</small>
           </div>
         </article>
       </section>

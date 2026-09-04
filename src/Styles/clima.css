@@ -256,6 +256,9 @@
   .forecast-row {
     padding-inline: 13px;
   }
+}
+
+/* Elementos internos de la tarjeta principal y las métricas */
   .weather-main-content {
   position: relative;
   z-index: 1;
@@ -305,12 +308,54 @@
 
 .metric-icon {
   display: grid;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   place-items: center;
-  color: #0f766e;
-  background: #e0f3ef;
+  color: #087f70;
+  background: #e4f6f2;
+}
+
+.compass {
+  width: 36px;
+  height: 36px;
+}
+
+.compass > svg:first-child {
+  width: 24px;
+  height: 24px;
+}
+
+.wind-card p,
+.direction-card p {
+  margin-bottom: 2px;
+}
+
+.wind-card small,
+.direction-card small {
+  margin-top: 2px;
+}
+
+.degree-value {
+  font-size: 10px;
+}
+
+/* Valores compactos para las métricas de viento */
+.wind-card h3,
+.direction-card h3 {
+  font-size: 15px;
+}
+
+/* Mantiene el tamaño del ícono independientemente de reglas anteriores. */
+.small-card .metric-icon {
+  width: 36px;
+  height: 36px;
+}
+
+/* Anula el tamaño grande anterior de la brújula. */
+.small-card .compass {
+  width: 36px;
+  height: 36px;
 }
 
 .small-card p {
@@ -412,4 +457,220 @@
   color: #8a96a6 !important;
   font-size: 13px !important;
 }
+
+/* Ajustes visuales de la pantalla de clima */
+.clima-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px 18px 110px;
+  background:
+    radial-gradient(circle at 92% 4%, rgba(42, 182, 166, .16), transparent 210px),
+    linear-gradient(180deg, #f8fbfd 0%, #f1f6f8 100%);
+}
+
+.weather-main {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+  padding: 28px 22px 24px;
+  border: 0;
+  border-radius: 30px;
+  background: linear-gradient(145deg, #087f70 0%, #07534f 100%);
+  box-shadow: 0 20px 40px rgba(5, 91, 84, .24);
+}
+
+.weather-status {
+  border-radius: 999px;
+  color: #d9fff7;
+  background: rgba(255, 255, 255, .12);
+  letter-spacing: .12em;
+}
+
+.weather-icon {
+  width: 104px;
+  height: 104px;
+  margin: 16px auto 8px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  color: #fff3b0;
+  background: rgba(255, 255, 255, .11);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .1), inset 0 0 24px rgba(255, 255, 255, .08);
+}
+
+.weather-title {
+  margin-top: 2px;
+  color: #e1faf5;
+  font-size: 12px;
+  letter-spacing: .18em;
+}
+
+.temp {
+  font-size: clamp(76px, 20vw, 100px);
+  letter-spacing: -.1em;
+}
+
+.weather-caption {
+  color: #bce9e1;
+}
+
+.weather-cards {
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.small-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 66px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(214, 226, 233, .9);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 10px 24px rgba(28, 65, 84, .07);
+}
+
+.metric-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: #087f70;
+  background: #e4f6f2;
+}
+
+.small-card h3 {
+  color: #183247;
+  font-size: 15px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.small-card small {
+  color: #087f70;
+}
+
+.wind-card,
+.direction-card {
+  min-width: 0;
+  display: grid;
+  justify-content: stretch;
+  text-align: left;
+}
+
+.wind-card > div:last-child,
+.direction-card > div:last-child {
+  min-width: 0;
+}
+
+.compass {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cce9e3;
+  border-radius: 50%;
+  background: #f0faf8;
+}
+
+.compass > svg:first-child {
+  width: 24px;
+  height: 24px;
+}
+
+.compass-arrow {
+  top: 50%;
+  left: 50%;
+  color: #075e58;
+  transform: translate(-50%, -50%) rotate(var(--wind-rotation));
+  transform-origin: center;
+}
+
+.direction-card h3 {
+  letter-spacing: .04em;
+}
+
+.direction-card small:not(.degree-value) {
+  display: none;
+}
+
+.degree-value {
+  color: #087f70;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.wind-card p,
+.direction-card p {
+  margin-bottom: 2px;
+  color: #718397;
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.wind-card small,
+.direction-card small {
+  display: block;
+  margin-top: 2px;
+  color: #087f70;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.forecast {
+  gap: 10px;
+  padding: 20px 16px;
+  border: 1px solid #e2ebef;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .7);
+  box-shadow: 0 10px 26px rgba(28, 65, 84, .05);
+}
+
+.forecast-heading {
+  margin: 0 2px 7px;
+}
+
+.forecast-heading svg {
+  width: 22px;
+  height: 22px;
+  padding: 8px;
+  border-radius: 12px;
+  color: #087f70;
+  background: #e4f6f2;
+}
+
+.forecast-row {
+  min-height: 62px;
+  border: 1px solid #e7eef1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.forecast-row:hover {
+  border-color: #b7ded7;
+  box-shadow: 0 8px 18px rgba(28, 65, 84, .07);
+}
+
+.forecast-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #087f70;
+  background: #edf9f6;
+}
+
+@media (max-width: 370px) {
+  .clima-container {
+    padding-inline: 13px;
+  }
+
+  .weather-cards {
+    gap: 9px;
+  }
+
+  .small-card {
+    padding-inline: 10px;
+    gap: 8px;
+  }
 }

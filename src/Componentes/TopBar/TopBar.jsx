@@ -129,8 +129,9 @@ function TopBar() {
 
         <div className="nav-divider" />
 
-        <span
-          className="nav-link nav-link--rules"
+        <Link
+          to="/reglas"
+          className={`nav-link nav-link--rules${pathname === "/reglas" ? " active" : ""}`}
           onClick={() => setMenuOpen(false)}
         >
           <span className="nav-icon">
@@ -142,7 +143,7 @@ function TopBar() {
           <span className="nav-arrow">
             <MdChevronRight />
           </span>
-        </span>
+        </Link>
       </nav>
     </>
   );

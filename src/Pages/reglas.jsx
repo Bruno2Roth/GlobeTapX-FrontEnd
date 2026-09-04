@@ -1,12 +1,59 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../index.css";
 import "../Styles/reglas.css";
 import reglasPaises from "../data/reglasPaises";
+import { getPaises } from "../config";
+import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
+
+function currentCountryId(user) {
+  return user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
+}
+
+function findRulesCountry(countryName) {
+  if (!countryName) return "";
+  return Object.keys(reglasPaises).find(
+    (name) => name.toLowerCase() === countryName.toLowerCase(),
+  ) || "";
+}
 
 function Reglas() {
-  const [paisSeleccionado, setPaisSeleccionado] = useState("Argentina");
+  const userId = localStorage.getItem("userId");
+  const cachedUser = getCachedUserProfile(userId);
+  const [paisSeleccionado, setPaisSeleccionado] = useState("");
+  const [nombrePais, setNombrePais] = useState("");
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function cargarPaisActual() {
+      try {
+        const user = cachedUser || await refreshUserProfile(userId);
+        const countryId = currentCountryId(user);
+        const paises = await getPaises();
+        const paisActual = paises.find((pais) => String(pais.ID) === String(countryId));
+        const nombre = paisActual?.nombre || "";
+        if (active) {
+          setNombrePais(nombre);
+          setPaisSeleccionado(findRulesCountry(nombre));
+        }
+      } catch (error) {
+        console.warn("No se pudo cargar el país actual para las reglas:", error);
+      } finally {
+        if (active) setCargando(false);
+      }
+    }
+
+    if (userId) void cargarPaisActual();
+    else setCargando(false);
+    return () => { active = false; };
+  }, [userId]);
 
   const pais = reglasPaises[paisSeleccionado];
+
+  if (cargando) {
+    return <main className="reglas-page"><p>Cargando reglas del país actual...</p></main>;
+  }
 
   return (
     <main className="reglas-page">
@@ -27,7 +74,7 @@ function Reglas() {
 
 
       {/* SELECTOR */}
-      <section className="selector-pais">
+      <section className="selector-pais" style={{ display: "none" }}>
 
         <label htmlFor="pais">
           Seleccioná tu destino
@@ -36,7 +83,7 @@ function Reglas() {
         <div className="select-wrapper">
 
           <span className="select-icon">
-            {pais.bandera}
+            {pais?.bandera}
           </span>
 
           <select
@@ -64,7 +111,7 @@ function Reglas() {
 
 
       {/* PAÍS SELECCIONADO */}
-      <section className="pais-card">
+      {pais ? <section className="pais-card">
 
         <div className="pais-card-header">
 
@@ -122,7 +169,11 @@ function Reglas() {
           items={pais.consejos}
         />
 
-      </section>
+      </section> : (
+        <section className="pais-card">
+          <p>No hay reglas cargadas para {nombrePais || "el país actual"}.</p>
+        </section>
+      )}
 
 
       {/* AVISO */}

@@ -159,9 +159,9 @@ function Home() {
         <Link to="/idioma" className="mini-btn">
           <p data-translate="Idioma">Idioma</p>
         </Link>
-        <div className="mini-btn">
+        <Link to="/reglas" className="mini-btn">
           <p data-translate="Reglas">Reglas</p>
-        </div>
+        </Link>
         <Link to="/Agenda" className="mini-btn">
           <p data-translate="Agenda">Agenda</p>
         </Link>

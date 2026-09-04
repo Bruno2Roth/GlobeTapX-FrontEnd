@@ -60,7 +60,6 @@ function formFromUser(user, languageSelection) {
   return {
     nombreCompleto: user?.nombreCompleto || user?.NombreCompleto || "",
     mail: user?.mail || user?.Mail || user?.correo || user?.Correo || "",
-    contrasena: "",
     paisActual: normalizeCountryValue(rawCountry),
     idiomaId: selection.idiomaId,
     // Se conserva el código para compatibilidad visual y con cachés anteriores.
@@ -91,7 +90,6 @@ export default function Profile() {
   const [form, setForm] = useState({
     nombreCompleto: "",
     mail: "",
-    contrasena: "",
     paisActual: "",
     idiomaId: 1,
     idioma: "es",
@@ -291,7 +289,6 @@ export default function Profile() {
       localStorage.removeItem(`perfil_cache_${currentUserId}`);
       localStorage.removeItem(`home_cache_${currentUserId}`);
       setMessage("Guardado automáticamente");
-      if (safeChanges.contrasena) updateForm("contrasena", "");
     } catch (error) {
       setMessage(getUserFacingError(error));
     } finally {
@@ -442,7 +439,7 @@ export default function Profile() {
         </select>
 
         <label data-translate-id="21">Contraseña</label>
-        <div className="contrasena-box">
+        <div className="contrasena-box" style={{ display: "none" }}>
           <input type={showcontrasena ? "text" : "password"} placeholder="Ingrese una nueva contraseña" value={form.contrasena} onChange={(event) => updateForm("contrasena", event.target.value)} onBlur={() => form.contrasena && saveUserChanges({ contrasena: form.contrasena })} />
           <button type="button" onClick={() => setShowcontrasena((visible) => !visible)} aria-label="Mostrar contraseña">
             {showcontrasena ? <FaEye /> : <FaEyeSlash />}
@@ -458,7 +455,7 @@ export default function Profile() {
         Cerrar sesión
       </button>
 
-      <section className="preferences">
+      <section className="preferences" style={{ display: "none" }}>
         <h3 data-translate="Accesos rápidos">Accesos rápidos</h3>
         <div className="preferences-buttons">
           <Link to="/clima" className="pref-btn"><FaTemperatureHigh /><span data-translate="Clima">Clima</span></Link>

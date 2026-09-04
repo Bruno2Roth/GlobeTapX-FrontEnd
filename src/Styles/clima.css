@@ -595,8 +595,20 @@
 
 .degree-value {
   color: #087f70;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 800;
+  line-height: 1.1;
+}
+
+.metric-value {
+  display: block;
+  margin: 0;
+  color: #183247;
+  font-size: 17px !important;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  white-space: nowrap;
 }
 
 .wind-card p,

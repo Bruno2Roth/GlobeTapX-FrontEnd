@@ -189,7 +189,7 @@ function Clima() {
           </div>
           <div>
             <p>Viento</p>
-            <h3>{clima.viento} km/h</h3>
+            <h3 className="metric-value">{clima.viento} km/h</h3>
           </div>
         </article>
 
@@ -203,7 +203,7 @@ function Clima() {
           </div>
           <div>
             <p>Dirección</p>
-            <small className="degree-value">{clima.windDirection}{"\u00b0"}</small>
+            <small className="degree-value metric-value">{clima.windDirection}{"\u00b0"}</small>
           </div>
         </article>
       </section>

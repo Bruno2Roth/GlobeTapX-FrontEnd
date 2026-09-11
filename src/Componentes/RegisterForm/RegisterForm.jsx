@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getFotoPerfil, getPaises, register, uploadFotoPerfil } from "../../config";
-import { getSupportedLanguages } from "../../services/languageService";
+import { getPaises, getSupportedLanguages } from "../../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
 import { LANGUAGE_OPTIONS, normalizeSupportedLanguages } from "../../helpers/translatePage";
-import { setAuthSession } from "../../services/authSession";
+import { useSession } from "../../context/SessionContext";
 import "./index.css";
 
 // Validación simple de formato de mail
@@ -60,6 +59,7 @@ function RegisterForm() {
   const setIdiomasError = (message) => setIdiomasErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
   const fileRef = useRef();
   const navigate = useNavigate();
+  const { register: registerSession } = useSession();
 
   useEffect(() => () => {
     if (fotoPreview.startsWith("blob:")) URL.revokeObjectURL(fotoPreview);
@@ -167,32 +167,8 @@ function RegisterForm() {
 
     setLoading(true);
     try {
-      const body = { ...form, IsAdmin: false };
-      const response = await register(body);
-      const res = response?.data?.token && !response.token ? response.data : response;
-      const user = res?.user;
-      if (!res?.token || !user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
-      localStorage.setItem("token", res.token);
-      let photo = "";
-      let photoUploadFailed = false;
-      if (fotoPerfil) {
-        try {
-          await uploadFotoPerfil(user.id, fotoPerfil);
-        } catch (photoError) {
-          console.error("Register photo upload failed", photoError);
-          photoUploadFailed = true;
-        }
-      }
-      setAuthSession(user, photo);
-      void getFotoPerfil(user.id)
-        .then((photoResponse) => {
-          const payload = photoResponse?.data ?? photoResponse;
-          const data = payload?.data ?? payload;
-          const signedPhoto = data?.fotoPerfil || "";
-          if (signedPhoto) setAuthSession(user, signedPhoto);
-        })
-        .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
-      if (photoUploadFailed) setApiError(CONNECTION_ERROR_MESSAGE);
+      const response = await registerSession(form, fotoPerfil);
+      if (response.photoUploadFailed) setApiError(CONNECTION_ERROR_MESSAGE);
       setSuccessMsg("¡Cuenta creada con éxito! Redirigiendo...");
       setTimeout(() => navigate("/home"), 1500);
     } catch (err) {

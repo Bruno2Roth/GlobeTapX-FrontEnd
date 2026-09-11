@@ -1,11 +1,8 @@
 import "./index.css";
-import { useEffect, useState } from "react";
-import { getAuthSession, subscribeAuthSession } from "../../services/authSession";
+import { useSession } from "../../context/SessionContext";
 
 export const Header = ({ title, subtitle }) => {
-  const [foto, setFoto] = useState(() => getAuthSession().photo || "");
-
-  useEffect(() => subscribeAuthSession((session) => setFoto(session.photo || "")), []);
+  const { photo } = useSession();
 
   return (
     <header className="page-header">
@@ -16,8 +13,8 @@ export const Header = ({ title, subtitle }) => {
       <div className="page-header-right">
         <button className="page-header-btn">🔔</button>
         <div className="page-header-avatar">
-          {foto ? (
-            <img src={foto} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+          {photo ? (
+            <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
           ) : (
             "U"
           )}

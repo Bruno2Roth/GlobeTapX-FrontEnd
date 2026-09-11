@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { getCountryDocumentation } from "../../services/countryDocumentationService";
+import { getCountryDocumentation } from "../../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../../helpers/errorMessages";
 import Loader from "../Loader/Loader";
 import "./index.css";

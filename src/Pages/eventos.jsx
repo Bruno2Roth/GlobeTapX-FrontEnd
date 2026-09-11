@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha } from "../services/evento";
-import { getPaises, getCategorias } from "../config";
-import { translateBatch } from "../services/languageService";
+import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha, getPaises, getCategorias, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
+import { useSession } from "../context/SessionContext";
 
 function Eventos() {
-  const userId = localStorage.getItem("userId");
+  const { user } = useSession();
   const [eventos, setEventos] = useState([]);
   const [paises, setPaises] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -28,7 +27,8 @@ function Eventos() {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!user) return;
+    let active = true;
     setCargando(true);
     setError("");
 
@@ -45,6 +45,7 @@ function Eventos() {
         } else {
           data = await getEventos();
         }
+        if (!active) return;
 
         const lang = document.documentElement.lang || "es";
         if (lang !== "es") {
@@ -52,6 +53,7 @@ function Eventos() {
             const textos = data.flatMap((e) => [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean));
             if (textos.length) {
               const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
+              if (!active) return;
               if (trad?.data?.translations) {
                 let idx = 0;
                 data = data.map((e) => ({
@@ -65,6 +67,7 @@ function Eventos() {
           } catch {}
         }
 
+        if (!active) return;
         if (ordenFecha === "asc") {
           data.sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
         } else {
@@ -73,15 +76,18 @@ function Eventos() {
 
         setEventos(data);
       } catch (err) {
-        console.error("Error al cargar eventos:", err);
-        setError(CONNECTION_ERROR_MESSAGE);
+        if (active) {
+          console.error("Error al cargar eventos:", err);
+          setError(CONNECTION_ERROR_MESSAGE);
+        }
       } finally {
-        setCargando(false);
+        if (active) setCargando(false);
       }
     };
 
-    fetchEventos();
-  }, [userId, paisFiltro, categoriaFiltro, fechaDesde, fechaHasta, ordenFecha]);
+    void fetchEventos();
+    return () => { active = false; };
+  }, [categoriaFiltro, fechaDesde, fechaHasta, ordenFecha, paisFiltro, user]);
 
   const eventosFiltrados = eventos.filter((e) => {
     if (!busqueda) return true;
@@ -107,7 +113,7 @@ function Eventos() {
     });
   };
 
-  if (!userId) return null;
+  if (!user) return null;
 
   return (
     <div className="eventos-page">

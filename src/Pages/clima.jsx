@@ -14,12 +14,11 @@ import {
 } from "lucide-react";
 import "../Styles/clima.css";
 import "../index.css";
-import { getPaises, getClima } from "../config";
-import { translateText } from "../services/languageService";
-import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
+import { getPaises, getClima, translateText } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+import { useSession } from "../context/SessionContext";
 
 const descClima = {
   0: "Despejado",
@@ -45,9 +44,9 @@ const descClima = {
   99: "Tormenta con granizo intenso",
 };
 
-const CACHE_PAIS_KEY = (userId) => `clima_pais_${userId}`;
+const CACHE_PAIS_KEY = (userId, countryId) => `clima_pais_${userId}_${countryId || "sin-pais"}`;
 const CACHE_PAIS_TTL = 86400000;
-const CACHE_CLIMA_KEY = (userId) => `clima_${userId}`;
+const CACHE_CLIMA_KEY = (userId, countryId) => `clima_${userId}_${countryId || "sin-pais"}`;
 
 const getWeatherIcon = (code) => {
   if (code === 0) return Sun;
@@ -62,38 +61,46 @@ const getWeatherIcon = (code) => {
 };
 
 function Clima() {
-  const userId = localStorage.getItem("userId");
+  const { user, userId } = useSession();
+  const userCountryId = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
   const [clima, setClima] = useState(null);
   const [error, setError] = useState("");
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
-    if (!userId) return;
+    let active = true;
+    if (!userId) {
+      setClima(null);
+      setCacheTimestamp(null);
+      setError("");
+      return () => { active = false; };
+    }
 
-    const cache = obtenerCache(CACHE_CLIMA_KEY(userId));
+    const cache = obtenerCache(CACHE_CLIMA_KEY(userId, userCountryId));
 
     if (cache) {
       setClima(cache.data);
       setCacheTimestamp(cache.timestamp);
-      return;
+      setError("");
+      return () => { active = false; };
     }
+
+    setClima(null);
+    setCacheTimestamp(null);
+    setError("");
 
     const fetchClima = async () => {
       try {
         const cachePais = obtenerCache(
-          CACHE_PAIS_KEY(userId),
+          CACHE_PAIS_KEY(userId, userCountryId),
           CACHE_PAIS_TTL
         );
 
         let nombreEN = cachePais?.data?.nombreEN;
 
         if (!nombreEN) {
-          const cachedUser = getCachedUserProfile(userId);
-          const profileRequest = refreshUserProfile(userId);
-          if (cachedUser) profileRequest.catch(() => {});
-          const userData = cachedUser || await profileRequest;
           const paises = await getPaises();
-          const pais = paises.find((p) => p.ID === userData.paisActual);
+          const pais = paises.find((p) => String(p.ID) === String(userCountryId));
 
           if (!pais) throw new Error("País no encontrado");
 
@@ -111,10 +118,11 @@ function Clima() {
             console.warn("Falló la traducción del país:", translationError);
           }
 
-          guardarCache(CACHE_PAIS_KEY(userId), { nombreEN });
+          guardarCache(CACHE_PAIS_KEY(userId, userCountryId), { nombreEN });
         }
 
         const data = await getClima(nombreEN);
+        if (!active) return;
         const codigo = data.current?.weather_code ?? 0;
         const diasSemana = [
           "Domingo",
@@ -142,17 +150,21 @@ function Clima() {
           pronostico,
         };
 
-        guardarCache(CACHE_CLIMA_KEY(userId), climaData);
+        if (!active) return;
+        guardarCache(CACHE_CLIMA_KEY(userId, userCountryId), climaData);
         setCacheTimestamp(Date.now());
         setClima(climaData);
       } catch (err) {
-        console.error("Error en clima:", err);
-        setError(CONNECTION_ERROR_MESSAGE);
+        if (active) {
+          console.error("Error en clima:", err);
+          setError(CONNECTION_ERROR_MESSAGE);
+        }
       }
     };
 
-    fetchClima();
-  }, [userId]);
+    void fetchClima();
+    return () => { active = false; };
+  }, [userCountryId, userId]);
 
   if (error) return <div className="clima-error">{error}</div>;
   if (!clima) return <div className="clima-loading">Cargando clima...</div>;

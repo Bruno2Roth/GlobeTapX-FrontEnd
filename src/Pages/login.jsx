@@ -1,9 +1,8 @@
 import "../index.css";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login, getFotoPerfil } from "../config";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
-import { setAuthSession } from "../services/authSession";
+import { useSession } from "../context/SessionContext";
 
 function Login() {
   const [mail, setMail] = useState("");
@@ -11,8 +10,8 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
+  const { login: loginSession } = useSession();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -20,26 +19,8 @@ function Login() {
     setError("");
     setIsSubmitting(true);
 
-    localStorage.removeItem("token");
-
     try {
-      const response = await login({ mail, contrasena });
-      const res = response?.data?.token && !response.token ? response.data : response;
-      if (!res?.token || res.token.length > 5000 || !res.user?.id) {
-        setError(CONNECTION_ERROR_MESSAGE);
-        return;
-      }
-
-      localStorage.setItem("token", res.token);
-      // La respuesta de login puede traer una ruta de lectura, no una URL firmada.
-      setAuthSession(res.user, "");
-      void getFotoPerfil(res.user.id)
-        .then((photoResponse) => {
-          const payload = photoResponse?.data ?? photoResponse;
-          const photo = payload?.data?.fotoPerfil || payload?.fotoPerfil || "";
-          if (photo) setAuthSession({ ...res.user, fotoPerfil: photo }, photo);
-        })
-        .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
+      await loginSession({ mail, contrasena });
       navigate("/home");
     } catch (requestError) {
       console.error("Login request failed", requestError);
@@ -50,7 +31,7 @@ function Login() {
         requestError?.data?.title,
         typeof requestError?.data === "string" ? requestError.data : "",
       ].filter(Boolean).join(" ").toLowerCase();
-      const messageIndicatesInvalidCredentials = /((credencial|credential|usuario|user|mail|email|contraseña|password|clave).*(incorrect|invalid|inválid|incorrecta|incorrecto|no encontrado|not found))|((incorrect|invalid|inválid|incorrecta|incorrecto|no encontrado|not found).*(credencial|credential|usuario|user|mail|email|contraseña|password|clave))/i.test(backendMessage);
+      const messageIndicatesInvalidCredentials = /((credencial|credential|usuario|user|mail|email|contrase\u00f1a|password|clave).*(incorrect|invalid|inv\u00e1lid|incorrecta|incorrecto|no encontrado|not found))|((incorrect|invalid|inv\u00e1lid|incorrecta|incorrecto|no encontrado|not found).*(credencial|credential|usuario|user|mail|email|contrase\u00f1a|password|clave))/i.test(backendMessage);
       const credentialsAreInvalid = [401, 403].includes(status)
         || ([400, 422].includes(status) && messageIndicatesInvalidCredentials);
 

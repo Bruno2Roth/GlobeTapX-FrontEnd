@@ -9,18 +9,18 @@ import {
 } from "lucide-react";
 import "../Styles/agenda.css";
 import "../index.css";
-import { getAgendaUsuario, getPaises } from "../config";
-import { translateText } from "../services/languageService";
-import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
+import { getAgendaUsuario, getPaises, translateText } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+import { useSession } from "../context/SessionContext";
 
 const cap = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
-const CACHE_KEY = (userId) => `agenda_${userId}`;
+const CACHE_KEY = (userId, countryId) => `agenda_${userId}_${countryId || "sin-pais"}`;
 
 function Agenda() {
-  const userId = localStorage.getItem("userId");
-  const initialCache = userId ? obtenerCache(CACHE_KEY(userId)) : null;
+  const { user, userId } = useSession();
+  const userCountryId = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
+  const initialCache = userId ? obtenerCache(CACHE_KEY(userId, userCountryId)) : null;
   const [items, setItems] = useState(() => initialCache?.data || { eventos: [], feriados: [] });
   const [fecha, setFecha] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
@@ -30,26 +30,36 @@ function Agenda() {
   const mes = fecha.getMonth();
 
   useEffect(() => {
-    if (!userId) return;
+    let active = true;
+    if (!userId) {
+      setItems({ eventos: [], feriados: [] });
+      setCacheTimestamp(null);
+      setSelectedDay(null);
+      return () => { active = false; };
+    }
 
-    const cache = obtenerCache(CACHE_KEY(userId));
+    const cache = obtenerCache(CACHE_KEY(userId, userCountryId));
 
     if (cache) {
-      return;
+      setItems(cache.data || { eventos: [], feriados: [] });
+      setCacheTimestamp(cache.timestamp || null);
+      setSelectedDay(null);
+      return () => { active = false; };
     }
+
+    setItems({ eventos: [], feriados: [] });
+    setCacheTimestamp(null);
+    setSelectedDay(null);
 
     const fetchData = async () => {
       try {
-        const cachedUser = getCachedUserProfile(userId);
-        const profileRequest = refreshUserProfile(userId);
-        if (cachedUser) profileRequest.catch(() => {});
-        const [data, userData, paises] = await Promise.all([
-          getAgendaUsuario(userId),
-          cachedUser || profileRequest,
+        const [data, paises] = await Promise.all([
+          getAgendaUsuario(),
           getPaises(),
         ]);
+        if (!active) return;
 
-        const userPais = paises.find((pais) => pais.ID === userData.paisActual);
+        const userPais = paises.find((pais) => String(pais.ID) === String(userCountryId));
         let codigoPais = "AR";
 
         if (userPais) {
@@ -127,16 +137,18 @@ function Agenda() {
 
         const result = { eventos, feriados };
 
-        guardarCache(CACHE_KEY(userId), result);
+        if (!active) return;
+        guardarCache(CACHE_KEY(userId, userCountryId), result);
         setItems(result);
         setCacheTimestamp(Date.now());
       } catch (error) {
-        console.error("Error al cargar agenda:", error);
+        if (active) console.error("Error al cargar agenda:", error);
       }
     };
 
-    fetchData();
-  }, [userId]);
+    void fetchData();
+    return () => { active = false; };
+  }, [userCountryId, userId]);
 
   const normalizarFecha = (valor) => (valor || "").split("T")[0];
   const prefijo = `${anio}-${String(mes + 1).padStart(2, "0")}`;

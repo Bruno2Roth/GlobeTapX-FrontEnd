@@ -1,4 +1,4 @@
-import { getLanguageTags, translateBatch } from "../services/languageService";
+import { getLanguageTags, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "./errorMessages";
 
 const DEFAULT_LANGUAGE = "es";
@@ -124,9 +124,7 @@ export function setPreferredLanguage(language, idiomaId) {
   const selection = resolveLanguageSelection(
     idiomaId === undefined ? language : { codigoIdioma: language, idiomaId },
   );
-  localStorage.setItem("preferredLanguage", selection.codigoIdioma);
-  localStorage.setItem("preferredLanguageId", String(selection.idiomaId));
-  document.documentElement.lang = selection.codigoIdioma;
+  if (typeof document !== "undefined") document.documentElement.lang = selection.codigoIdioma;
   return selection.codigoIdioma;
 }
 
@@ -215,15 +213,8 @@ const runtime = {
   generation: 0,
 };
 
-const STORAGE_KEY = "preferredLanguage";
 let translationInFlight = false;
-let translationTimer = null;
-let translationObserver = null;
-
-function normalizeLanguage(language) {
-  const value = String(language || DEFAULT_LANGUAGE).trim().toLowerCase();
-  return value.split(/[-_]/)[0] || DEFAULT_LANGUAGE;
-}
+let translationQueue = Promise.resolve();
 
 export function safeTranslate(language) {
   return Promise.resolve()
@@ -486,8 +477,7 @@ function ensureTranslationObserver() {
   runtime.observer.observe(root, { childList: true, subtree: true, characterData: true });
 }
 
-export async function translatePage(language = DEFAULT_LANGUAGE) {
-  if (translationInFlight) return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANGUAGE;
+async function translatePageNow(language) {
   translationInFlight = true;
 
   try {
@@ -517,4 +507,12 @@ export async function translatePage(language = DEFAULT_LANGUAGE) {
   } finally {
     translationInFlight = false;
   }
+}
+
+export function translatePage(language = DEFAULT_LANGUAGE) {
+  const nextTranslation = translationQueue
+    .catch(() => {})
+    .then(() => translatePageNow(language));
+  translationQueue = nextTranslation.catch(() => {});
+  return nextTranslation;
 }

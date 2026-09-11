@@ -1,36 +1,21 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuthSession, getStoredUser, subscribeAuthSession } from "../../services/authSession";
-import { getCachedUserProfile } from "../../services/userProfileService";
+import { useSession } from "../../context/SessionContext";
 import './index.css'
 
 function ProfileCard() {
   const navigate = useNavigate();
-  const [session, setSession] = useState(() => getAuthSession());
-
-  useEffect(() => subscribeAuthSession(setSession), []);
-
-  const user = session.user || getCachedUserProfile(localStorage.getItem("userId")) || getStoredUser() || {};
-  const photo = session.photo || "https://i.pravatar.cc/150";
+  const { user, photo } = useSession();
+  const displayName = user?.nombreCompleto || user?.NombreCompleto || user?.nombre || "Usuario";
 
   return (
     <div className='profileCard'>
-
-      <img
-        src={photo}
-        alt='perfil'
-      />
-
-      <h2>{user?.nombre || "Usuario"}</h2>
-
-      <p>{user?.mail || ""}</p>
-
-      <p className="role-badge">{user?.IsAdmin ? "Admin" : "Viajero"}</p>
-
-      <button onClick={() => navigate("/editarPerfil")}>
+      <img src={photo || "https://i.pravatar.cc/150"} alt='perfil' />
+      <h2>{displayName}</h2>
+      <p>{user?.mail || user?.correo || ""}</p>
+      <p className="role-badge">Viajero</p>
+      <button onClick={() => navigate("/editarPerfil")} type="button">
         Editar Perfil
       </button>
-
     </div>
   )
 }

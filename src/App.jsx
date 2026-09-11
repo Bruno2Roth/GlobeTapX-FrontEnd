@@ -24,20 +24,8 @@ import DetalleEvento from "./Pages/detalleEvento";
 import Horario from "./Pages/horario";
 import Documentacion from "./Pages/documentacion";
 import VidaDiaria from "./Pages/vidaDiaria";
-import { getCurrentUser, getFotoPerfil } from "./config";
-import { normalizeLanguageCode, setPreferredLanguage, translatePage } from "./helpers/translatePage";
-import { clearAuthSession, getAuthSession, setAuthSession } from "./services/authSession";
-import { CONNECTION_ERROR_MESSAGE } from "./helpers/errorMessages";
-
-function unwrapUser(response) {
-  return response?.user || response?.data?.user || response?.data || response;
-}
-
-function unwrapPhoto(response) {
-  const payload = response?.data ?? response;
-  const data = payload?.data ?? payload;
-  return typeof data?.fotoPerfil === "string" ? data.fotoPerfil : "";
-}
+import { useSession } from "./context/SessionContext";
+import { normalizeLanguageCode, translatePage } from "./helpers/translatePage";
 
 function preferredLanguageFromUser(user) {
   if (user?.idiomaPreferido && typeof user.idiomaPreferido === "object") {
@@ -46,115 +34,56 @@ function preferredLanguageFromUser(user) {
   return user?.idiomaPreferido;
 }
 
-function AuthSessionSync() {
-  const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    if (!token) return undefined;
-    // Login y registro ya dejaron la sesión completa en memoria.
-    if (getAuthSession().user?.id) return undefined;
-    let active = true;
-
-    const synchronize = async () => {
-      try {
-        const response = await getCurrentUser();
-        const user = unwrapUser(response);
-        if (!user?.id) throw new Error(CONNECTION_ERROR_MESSAGE);
-
-        if (!active) return;
-        // /auth/me puede devolver una ruta de lectura; solo /auth/foto/:id
-        // entrega la URL que se debe asignar al elemento <img>.
-        const initialPhoto = getAuthSession().photo || "";
-        setAuthSession(user, initialPhoto);
-
-        // La sesión queda disponible mientras se renuevan los datos secundarios.
-        void getFotoPerfil(user.id)
-          .then((photoResponse) => {
-            if (!active) return;
-            const photo = unwrapPhoto(photoResponse);
-            if (photo) setAuthSession({ ...user, fotoPerfil: photo }, photo);
-          })
-          .catch((photoError) => console.warn("No se pudo cargar la foto de sesión:", photoError));
-
-        const language = normalizeLanguageCode(
-          preferredLanguageFromUser(user) || localStorage.getItem("preferredLanguage") || "es",
-        );
-        void Promise.resolve()
-          .then(() => translatePage(language))
-          .then((appliedLanguage) => {
-            if (active) setPreferredLanguage(appliedLanguage);
-          })
-          .catch((translationError) => console.warn("No se pudo sincronizar el idioma:", translationError));
-      } catch (error) {
-        const status = Number(error?.status);
-        if (status === 401) {
-          clearAuthSession();
-          window.location.href = "/";
-        }
-        console.warn("No se pudo sincronizar la sesión:", error);
-      }
-    };
-
-    void synchronize();
-    return () => { active = false; };
-  }, [token]);
-
-  return null;
-}
-
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/" replace />;
+  const { loading, isAuthenticated } = useSession();
+  if (loading) return <div className="session-loading">Cargando sesión...</div>;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return children;
 }
 
 function AppContent() {
   const location = useLocation();
+  const { user, loading } = useSession();
+  const mostrarLayout = !["/", "/registro", "/landing"].includes(location.pathname);
 
   useEffect(() => {
-    const idiomaSeleccionado = localStorage.getItem("preferredLanguageId")
-      || localStorage.getItem("preferredLanguage")
-      || "es";
-    void Promise.resolve()
-      .then(() => translatePage(idiomaSeleccionado))
-      .catch((error) => {
-        console.warn("No se pudo aplicar el idioma de la pantalla:", error);
-      });
-  }, [location.pathname]);
-
-const publicRoutes = ["/", "/registro", "/landing"];
-const mostrarLayout = !publicRoutes.includes(location.pathname);
+    if (loading) return;
+    const language = normalizeLanguageCode(
+      user ? preferredLanguageFromUser(user) : "es",
+    );
+    void translatePage(language).catch((error) => {
+      console.warn("No se pudo aplicar el idioma de la pantalla:", error);
+    });
+  }, [loading, location.pathname, user]);
 
   return (
     <>
-      <AuthSessionSync />
       {mostrarLayout && <TopBar />}
       <div className={mostrarLayout ? "page-wrapper" : ""}>
         <Routes>
           <Route path="/landing" element={<Landing />} />
           <Route path="/" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-          <Route path="/home" element={<ProtectedRoute><Home/></ProtectedRoute>}/>
-          <Route path="/clima" element={<ProtectedRoute><Clima/></ProtectedRoute>}/>
-          <Route path="/cambio" element={<ProtectedRoute><Cambio/></ProtectedRoute>}/>
-          <Route path="/numEmergencia" element={<ProtectedRoute><NumEmergencia/></ProtectedRoute>}/>
-          <Route path="/idioma" element={<ProtectedRoute><Idioma/></ProtectedRoute>}/>
-          <Route path="/agenda" element={<ProtectedRoute><Agenda/></ProtectedRoute>}/>
-          <Route path="/reglas" element={<ProtectedRoute><Reglas/></ProtectedRoute>}/>
-          <Route path="/favoritos" element={<ProtectedRoute><Favoritos/></ProtectedRoute>}/>
-          <Route path="/perfil" element={<ProtectedRoute><Perfil/></ProtectedRoute>}/>
-          <Route path="/historial" element={<ProtectedRoute><Historial/></ProtectedRoute>}/>
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/clima" element={<ProtectedRoute><Clima /></ProtectedRoute>} />
+          <Route path="/cambio" element={<ProtectedRoute><Cambio /></ProtectedRoute>} />
+          <Route path="/numEmergencia" element={<ProtectedRoute><NumEmergencia /></ProtectedRoute>} />
+          <Route path="/idioma" element={<ProtectedRoute><Idioma /></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+          <Route path="/reglas" element={<ProtectedRoute><Reglas /></ProtectedRoute>} />
+          <Route path="/favoritos" element={<ProtectedRoute><Favoritos /></ProtectedRoute>} />
+          <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route path="/historial" element={<ProtectedRoute><Historial /></ProtectedRoute>} />
           <Route path="/configuracion" element={<Navigate to="/perfil" replace />} />
-          <Route path="/editarPerfil" element={<ProtectedRoute><Navigate to="/perfil" replace /></ProtectedRoute>}/>
-          <Route path="/crearGuia" element={<ProtectedRoute><CrearGuia/></ProtectedRoute>}/>
-          <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento/></ProtectedRoute>}/>
-          <Route path="/eventos" element={<ProtectedRoute><Eventos/></ProtectedRoute>}/>
-          <Route path="/evento/:id" element={<ProtectedRoute><DetalleEvento/></ProtectedRoute>}/>
-          <Route path="/horario" element={<Horario />} />          
-          <Route path="/documentacion" element={<ProtectedRoute><Documentacion/></ProtectedRoute>}/>
-          <Route path="/vida" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>
-          <Route path="/vidaDiaria" element={<ProtectedRoute><VidaDiaria/></ProtectedRoute>}/>
-
+          <Route path="/editarPerfil" element={<ProtectedRoute><Navigate to="/perfil" replace /></ProtectedRoute>} />
+          <Route path="/crearGuia" element={<ProtectedRoute><CrearGuia /></ProtectedRoute>} />
+          <Route path="/alojamiento" element={<ProtectedRoute><Alojamiento /></ProtectedRoute>} />
+          <Route path="/eventos" element={<ProtectedRoute><Eventos /></ProtectedRoute>} />
+          <Route path="/evento/:id" element={<ProtectedRoute><DetalleEvento /></ProtectedRoute>} />
+          <Route path="/horario" element={<ProtectedRoute><Horario /></ProtectedRoute>} />
+          <Route path="/documentacion" element={<ProtectedRoute><Documentacion /></ProtectedRoute>} />
+          <Route path="/vida" element={<ProtectedRoute><VidaDiaria /></ProtectedRoute>} />
+          <Route path="/vidaDiaria" element={<ProtectedRoute><VidaDiaria /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </div>

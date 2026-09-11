@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getLanguageCatalog, getPreferredLanguage, updatePreferredLanguage } from "../../services/languageService";
+import { getLanguageCatalog } from "../../services/backendApi";
 import {
   LANGUAGE_OPTIONS,
   normalizeLanguageCatalog,
@@ -7,25 +7,21 @@ import {
   setPreferredLanguage,
   translatePage,
 } from "../../helpers/translatePage";
-import { CONNECTION_ERROR_MESSAGE, getUserFacingError } from "../../helpers/errorMessages";
-import { getAuthSession, setAuthSession } from "../../services/authSession";
+import { getUserFacingError } from "../../helpers/errorMessages";
+import { useSession } from "../../context/SessionContext";
 import "./index.css";
 
-function getUserId() {
-  return getAuthSession().user?.id ?? localStorage.getItem("userId");
-}
-
-function initialLanguageSelection() {
-  return resolveLanguageSelection({
-    idiomaId: localStorage.getItem("preferredLanguageId"),
-    codigoIdioma: localStorage.getItem("preferredLanguage") || document.documentElement.lang || "es",
-  });
+function initialLanguageSelection(user) {
+  const documentLanguage = typeof document !== "undefined" ? document.documentElement.lang : "es";
+  return resolveLanguageSelection(
+    user?.idiomaPreferido || documentLanguage || "es",
+  );
 }
 
 export default function LanguageSelector({ className = "" }) {
-  const userId = getUserId();
+  const { user, updateLanguage } = useSession();
   const [languages, setLanguages] = useState(LANGUAGE_OPTIONS);
-  const [selectedLanguageId, setSelectedLanguageId] = useState(() => String(initialLanguageSelection().idiomaId));
+  const [selectedLanguageId, setSelectedLanguageId] = useState(() => String(initialLanguageSelection(user).idiomaId));
   const [error, setError] = useState("");
   const languageChangeVersion = useRef(0);
 
@@ -33,67 +29,47 @@ export default function LanguageSelector({ className = "" }) {
     let active = true;
     const requestVersion = languageChangeVersion.current;
 
-    const preferenceRequest = userId ? getPreferredLanguage(userId) : Promise.resolve(null);
-    Promise.allSettled([getLanguageCatalog(), preferenceRequest]).then(([catalogResult, preferenceResult]) => {
-      if (!active) return;
-      if (languageChangeVersion.current !== requestVersion) return;
+    getLanguageCatalog().then((catalogResponse) => {
+      if (!active || languageChangeVersion.current !== requestVersion) return;
 
-      const catalog = catalogResult.status === "fulfilled" ? normalizeLanguageCatalog(catalogResult.value) : [];
+      const catalog = normalizeLanguageCatalog(catalogResponse);
       if (catalog.length) setLanguages(catalog);
 
-      const preferred = preferenceResult.status === "fulfilled" && preferenceResult.value
-        ? preferenceResult.value
-        : initialLanguageSelection();
-      const selection = resolveLanguageSelection(preferred, catalog);
+      const selection = resolveLanguageSelection(user || initialLanguageSelection(), catalog);
       setSelectedLanguageId(String(selection.idiomaId));
       setPreferredLanguage(selection.codigoIdioma, selection.idiomaId);
-
-      void Promise.resolve()
-        .then(() => translatePage(selection.idiomaId))
-        .catch((translationError) => {
-          if (active) setError(getUserFacingError(translationError));
-        });
-
-      if (catalogResult.status === "rejected" || preferenceResult.status === "rejected") {
-        setError(getUserFacingError(catalogResult.reason || preferenceResult.reason));
-      }
+      void translatePage(selection.idiomaId).catch((translationError) => {
+        if (active) setError(getUserFacingError(translationError));
+      });
+    }).catch((catalogError) => {
+      if (active) setError(getUserFacingError(catalogError));
     });
 
     return () => { active = false; };
-  }, [userId]);
+  }, [user]);
 
   const handleChange = async (event) => {
     const nextLanguage = resolveLanguageSelection(event.target.value, languages);
     const changeVersion = languageChangeVersion.current + 1;
     languageChangeVersion.current = changeVersion;
-    const rawUserId = getUserId();
     setError("");
+    setSelectedLanguageId(String(nextLanguage.idiomaId));
 
     try {
-      if (!rawUserId) throw new Error(CONNECTION_ERROR_MESSAGE);
-      const numericUserId = Number(rawUserId);
-      setSelectedLanguageId(String(nextLanguage.idiomaId));
-      setPreferredLanguage(nextLanguage.codigoIdioma, nextLanguage.idiomaId);
-      void Promise.resolve()
-        .then(() => translatePage(nextLanguage.idiomaId))
-        .catch((translationError) => {
-          console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
-        });
-      await updatePreferredLanguage({
-        usuarioId: Number.isNaN(numericUserId) ? rawUserId : numericUserId,
-        idiomaId: nextLanguage.idiomaId,
+      if (!user) throw new Error("No hay una sesión activa");
+      const updatedUser = await updateLanguage(nextLanguage);
+      const applied = resolveLanguageSelection(updatedUser?.idiomaPreferido || nextLanguage, languages);
+      setSelectedLanguageId(String(applied.idiomaId));
+      setPreferredLanguage(applied.codigoIdioma, applied.idiomaId);
+      void translatePage(applied.idiomaId).catch((translationError) => {
+        console.warn("No se pudo actualizar el catálogo de traducciones:", translationError);
       });
-
-      const currentUser = getAuthSession().user;
-      if (currentUser?.id && languageChangeVersion.current === changeVersion) {
-        setAuthSession({
-          ...currentUser,
-          idiomaPreferido: { idiomaId: nextLanguage.idiomaId, codigoIdioma: nextLanguage.codigoIdioma },
-        }, getAuthSession().photo);
-      }
     } catch (changeError) {
       console.error("Preferred language update failed", changeError);
-      if (languageChangeVersion.current === changeVersion) setError(getUserFacingError(changeError));
+      if (languageChangeVersion.current === changeVersion) {
+        setSelectedLanguageId(String(initialLanguageSelection(user).idiomaId));
+        setError(getUserFacingError(changeError));
+      }
     }
   };
 

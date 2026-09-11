@@ -1,6 +1,9 @@
+import { getStoredToken } from "../services/api";
+
 export function requireAuth() {
-  const token = localStorage.getItem("token");
+  const token = getStoredToken();
   if (!token) {
     window.location.href = "/";
   }
+  return Boolean(token);
 }

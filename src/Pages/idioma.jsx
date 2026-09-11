@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import "../Styles/idioma.css";
 import "../index.css";
-import { translateText as translateTextRequest, translateBatch } from "../services/languageService";
+import { translateText as translateTextRequest, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { LANGUAGE_OPTIONS, normalizeLanguageCode } from "../helpers/translatePage";
 

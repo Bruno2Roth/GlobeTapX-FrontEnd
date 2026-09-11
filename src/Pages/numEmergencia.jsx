@@ -1,28 +1,39 @@
 import '../index.css'
 import { useEffect, useState } from "react";
 import "../Styles/numEmergencia.css";
-import { getPaises, getAllData } from "../config";
+import { getPaises, getAllData } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
-import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
+import { useSession } from "../context/SessionContext";
 
 function NumEmergencia() {
+    const { user, userId } = useSession();
+    const userCountryId = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
     const [pais, setPais] = useState("");
     const [ambulancia, setAmbulancia] = useState("");
     const [bomberos, setBomberos] = useState("");
     const [policia, setPolicia] = useState("");
     const [emergencia, setEmergencia] = useState("");
-    const [cacheTimestamp, setCacheTimestamp] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   useEffect(() => {
+    let active = true;
     const obtenerDatos = async () => {
             try {
-                const userId = localStorage.getItem("userId");
-                if (!userId) return;
+                if (!userId) {
+                    setPais("");
+                    setAmbulancia("");
+                    setBomberos("");
+                    setPolicia("");
+                    setEmergencia("");
+                    setCacheTimestamp(null);
+                    return;
+                }
 
-                const cacheKey = `num_cache_${userId}`;
+                const cacheKey = `num_cache_${userId}_${userCountryId || "sin-pais"}`;
                 const cache = obtenerCache(cacheKey, 60000);
                 if (cache) {
+                    if (!active) return;
                     setPais(cache.data.pais || "");
                     setAmbulancia(cache.data.ambulancia || "");
                     setBomberos(cache.data.bomberos || "");
@@ -32,18 +43,21 @@ function NumEmergencia() {
                     return;
                 }
 
-                const cachedUser = getCachedUserProfile(userId);
-                const profileRequest = refreshUserProfile(userId);
-                if (cachedUser) profileRequest.catch(() => {});
-                const [userData, paises] = await Promise.all([
-                    cachedUser || profileRequest,
-                    getPaises(),
-                ]);
-                const paisObj = paises.find(p => p.ID === userData.paisActual);
+                setPais("");
+                setAmbulancia("");
+                setBomberos("");
+                setPolicia("");
+                setEmergencia("");
+                setCacheTimestamp(null);
+
+                const paises = await getPaises();
+                if (!active) return;
+                const paisObj = paises.find((p) => String(p.ID) === String(userCountryId));
 
                 if (paisObj) setPais(paisObj.nombre || "");
 
                 let data = await getAllData();
+                if (!active) return;
 
                 if (data && typeof data === "object" && !Array.isArray(data)) {
                     if (data.data) data = data.data;
@@ -71,6 +85,7 @@ function NumEmergencia() {
                     emergencia: Array.isArray(match?.dispatch) ? match.dispatch[0] : match?.dispatch || "",
                 };
 
+                if (!active) return;
                 guardarCache(cacheKey, cacheData);
                 setCacheTimestamp(Date.now());
 
@@ -82,11 +97,12 @@ function NumEmergencia() {
                     setEmergencia(cacheData.emergencia);
                 }
             } catch (error) {
-                console.error(error);
+                if (active) console.error(error);
             }
         };
-        obtenerDatos();
-    }, []);
+        void obtenerDatos();
+        return () => { active = false; };
+    }, [userCountryId, userId]);
 
     return (
         <div className="emergencia-container">

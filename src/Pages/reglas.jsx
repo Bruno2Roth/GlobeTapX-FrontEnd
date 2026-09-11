@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import "../index.css";
 import "../Styles/reglas.css";
 import reglasPaises from "../data/reglasPaises";
-import { getPaises } from "../config";
-import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
+import { getPaises } from "../services/backendApi";
+import { useSession } from "../context/SessionContext";
 
 function currentCountryId(user) {
   return user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
@@ -17,8 +17,8 @@ function findRulesCountry(countryName) {
 }
 
 function Reglas() {
-  const userId = localStorage.getItem("userId");
-  const cachedUser = getCachedUserProfile(userId);
+  const { user } = useSession();
+  const userCountryId = currentCountryId(user);
   const [paisSeleccionado, setPaisSeleccionado] = useState("");
   const [nombrePais, setNombrePais] = useState("");
   const [cargando, setCargando] = useState(true);
@@ -28,10 +28,8 @@ function Reglas() {
 
     async function cargarPaisActual() {
       try {
-        const user = cachedUser || await refreshUserProfile(userId);
-        const countryId = currentCountryId(user);
         const paises = await getPaises();
-        const paisActual = paises.find((pais) => String(pais.ID) === String(countryId));
+        const paisActual = paises.find((pais) => String(pais.ID) === String(userCountryId));
         const nombre = paisActual?.nombre || "";
         if (active) {
           setNombrePais(nombre);
@@ -44,10 +42,10 @@ function Reglas() {
       }
     }
 
-    if (userId) void cargarPaisActual();
+    if (userCountryId) void cargarPaisActual();
     else setCargando(false);
     return () => { active = false; };
-  }, [userId]);
+  }, [userCountryId]);
 
   const pais = reglasPaises[paisSeleccionado];
 

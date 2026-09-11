@@ -2,16 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEvento } from "../services/evento";
-import { getPaises, getAgendaUsuario } from "../config";
-import { translateBatch } from "../services/languageService";
-import { agregarEventoAAgenda, eliminarEventoDeAgenda } from "../services/evento";
+import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
+import { useSession } from "../context/SessionContext";
 
 function DetalleEvento() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
+  const { user } = useSession();
 
   const [evento, setEvento] = useState(null);
   const [paises, setPaises] = useState([]);
@@ -28,19 +26,25 @@ function DetalleEvento() {
   }, []);
 
   useEffect(() => {
-    if (!id || !userId) return;
+    if (!id || !user) return;
+    let active = true;
     setCargando(true);
     setError("");
+    setEvento(null);
+    setEnAgenda(false);
+    setAgendaId(null);
 
     const fetchData = async () => {
       try {
         const e = await getEvento(id);
+        if (!active) return;
         const lang = document.documentElement.lang || "es";
         if (lang !== "es") {
           try {
             const textos = [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean);
             if (textos.length) {
               const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
+              if (!active) return;
               if (trad?.data?.translations) {
                 let idx = 0;
                 e.nombre = trad.data.translations[idx++] || e.nombre;
@@ -50,9 +54,11 @@ function DetalleEvento() {
             }
           } catch {}
         }
+        if (!active) return;
         setEvento(e);
 
-        const agenda = await getAgendaUsuario(userId);
+        const agenda = await getAgendaUsuario();
+        if (!active) return;
         const entries = agenda?.agenda || agenda || [];
         const match = entries.find((a) => Number(a.IDEvento) === Number(id));
         if (match) {
@@ -60,20 +66,23 @@ function DetalleEvento() {
           setAgendaId(match.ID);
         }
       } catch (err) {
-        console.error("Error al cargar evento:", err);
-        setError(CONNECTION_ERROR_MESSAGE);
+        if (active) {
+          console.error("Error al cargar evento:", err);
+          setError(CONNECTION_ERROR_MESSAGE);
+        }
       } finally {
-        setCargando(false);
+        if (active) setCargando(false);
       }
     };
 
-    fetchData();
-  }, [id, userId]);
+    void fetchData();
+    return () => { active = false; };
+  }, [id, user]);
 
   const handleAgregarAgenda = async () => {
-    if (!userId) return;
+    if (!user) return;
     try {
-      const res = await agregarEventoAAgenda(userId, id);
+      const res = await agregarEventoAAgenda(id);
       setEnAgenda(true);
       setAgendaId(res?.id?.ID || res?.id);
       setAccionMsg("Evento agregado a tu agenda");
@@ -131,7 +140,7 @@ function DetalleEvento() {
     });
   };
 
-  if (!userId) return null;
+  if (!user) return null;
 
   if (cargando) {
     return <div className="detalle-cargando">Cargando evento...</div>;

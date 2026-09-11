@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import {
@@ -14,8 +14,7 @@ import {
   MdArticle,
   MdChevronRight,
 } from "react-icons/md";
-import { getAuthSession, getStoredUser, subscribeAuthSession } from "../../services/authSession";
-import { getCachedUserProfile } from "../../services/userProfileService";
+import { useSession } from "../../context/SessionContext";
 import "./index.css";
 
 const links = [
@@ -31,56 +30,35 @@ const links = [
   { to: "/perfil", icon: <MdPerson />, label: "Perfil" },
 ];
 
-function normalizeUser(user) {
-  if (!user) return null;
-  const name = user.nombreCompleto || user.NombreCompleto || user.nombre || user.Nombre || "";
-  return { ...user, nombre: name.split(" ")[0] || "Usuario" };
-}
-
-function getCachedUser() {
-  const userId = localStorage.getItem("userId");
-  return normalizeUser(getCachedUserProfile(userId));
-}
-
 function TopBar() {
   const { pathname } = useLocation();
-  const [session, setSession] = useState(() => {
-    const current = getAuthSession();
-    return { user: current.user || getCachedUser() || getStoredUser(), photo: current.photo || "" };
-  });
+  const { user, photo } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    return subscribeAuthSession((nextSession) => {
-      setSession({
-        user: normalizeUser(nextSession.user),
-        photo: nextSession.photo || "",
-      });
-    });
-  }, []);
-
-  const usuario = normalizeUser(session.user);
-  const fotoPerfil = session.photo;
+  const fullName = user?.nombreCompleto || user?.NombreCompleto || user?.nombre || user?.Nombre || "";
+  const displayName = fullName.split(" ")[0] || "Usuario";
+  const displayMail = user?.mail || user?.correo || "";
 
   return (
     <>
       <header className="top-bar">
         <button
           className="top-bar-menu"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setMenuOpen((open) => !open)}
+          type="button"
+          aria-label="Abrir menú"
         >
           {menuOpen ? <FiX /> : <FiMenu />}
         </button>
 
         <h1 className="top-bar-title">
-          <span data-translate="Hola">Hola</span>, {usuario?.nombre || usuario?.Nombre || "Usuario"}
+          <span data-translate="Hola">Hola</span>, {displayName}
         </h1>
 
         <Link to="/perfil" className="top-bar-avatar">
-          {fotoPerfil ? (
-            <img src={fotoPerfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+          {photo ? (
+            <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
           ) : (
-            (usuario?.nombre || usuario?.Nombre || "U").charAt(0).toUpperCase()
+            displayName.charAt(0).toUpperCase()
           )}
         </Link>
       </header>
@@ -89,41 +67,38 @@ function TopBar() {
         <div
           className="top-bar-overlay"
           onClick={() => setMenuOpen(false)}
+          role="presentation"
         />
       )}
 
       <nav className={`top-bar-nav ${menuOpen ? "open" : ""}`}>
         <div className="nav-profile">
           <div className="nav-avatar">
-            {fotoPerfil ? (
-              <img src={fotoPerfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+            {photo ? (
+              <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
             ) : (
-              (usuario?.nombre || "U").charAt(0).toUpperCase()
+              displayName.charAt(0).toUpperCase()
             )}
           </div>
 
           <div className="nav-info">
-            <p className="nav-name">{usuario?.nombre || "Usuario"}</p>
-            <p className="nav-mail">
-              {usuario?.mail || usuario?.correo || ""}
-            </p>
+            <p className="nav-name">{displayName}</p>
+             <p className="nav-mail">{displayMail}</p>
           </div>
         </div>
 
         <div className="nav-divider" />
 
-        {links.map((l) => (
+        {links.map((link) => (
           <Link
-            key={l.to}
-            to={l.to}
-            className={`nav-link${pathname === l.to ? " active" : ""}`}
+            key={link.to}
+            to={link.to}
+            className={`nav-link${pathname === link.to ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            <span className="nav-icon">{l.icon}</span>
-            <span className="nav-label" data-translate={l.label}>{l.label}</span>
-            <span className="nav-arrow">
-              <MdChevronRight />
-            </span>
+            <span className="nav-icon">{link.icon}</span>
+            <span className="nav-label" data-translate={link.label}>{link.label}</span>
+            <span className="nav-arrow"><MdChevronRight /></span>
           </Link>
         ))}
 
@@ -134,15 +109,9 @@ function TopBar() {
           className={`nav-link nav-link--rules${pathname === "/reglas" ? " active" : ""}`}
           onClick={() => setMenuOpen(false)}
         >
-          <span className="nav-icon">
-            <MdArticle />
-          </span>
-
+          <span className="nav-icon"><MdArticle /></span>
           <span className="nav-label" data-translate="Reglas">Reglas</span>
-
-          <span className="nav-arrow">
-            <MdChevronRight />
-          </span>
+          <span className="nav-arrow"><MdChevronRight /></span>
         </Link>
       </nav>
     </>

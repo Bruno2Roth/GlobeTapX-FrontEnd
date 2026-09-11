@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/home.css";
 import '../index.css'
-import { getPais } from "../config";
+import { getPais } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
-import { getCachedUserProfile, refreshUserProfile } from "../services/userProfileService";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 import { localizeCountryName } from "../helpers/translatePage";
+import { useSession } from "../context/SessionContext";
 
 const REVALIDATION_MIN_MS = 45 * 1000;
 const REVALIDATION_MAX_MS = 75 * 1000;
@@ -32,8 +32,9 @@ function calcularHoraGMT(gmt) {
 }
 
 function Home() {
-  const userId = localStorage.getItem("userId");
-  const cacheKey = "home_cache_" + userId;
+  const { user, userId } = useSession();
+  const userCountryId = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
+  const cacheKey = `home_cache_${userId}_${userCountryId || "sin-pais"}`;
   const initialCache = userId ? obtenerCache(cacheKey) : null;
 
   const [pais, setPais] = useState(() => initialCache?.data?.pais || "");
@@ -50,12 +51,9 @@ function Home() {
 
     const fetchData = async () => {
       try {
-        const cachedUser = getCachedUserProfile(userId);
-        const usuario = cachedUser || await refreshUserProfile(userId);
-        const paisActual = usuario?.paisActual;
-        if (!paisActual) return;
+        if (!userCountryId) return;
 
-        const paisData = await getPais(paisActual);
+        const paisData = await getPais(userCountryId);
         const gmt = paisData.gmt ?? 0;
         const heroImage = typeof paisData.imagen === "string" ? paisData.imagen.trim() : "";
 
@@ -70,7 +68,6 @@ function Home() {
           pais: paisData.nombre,
           countryCode: paisData.codigo || paisData.code || "",
           heroImg: heroImage,
-          nombreUsuario: usuario.nombre || usuario.username || usuario.mail || "",
           gmt,
         });
         setCacheTimestamp(Date.now());
@@ -89,6 +86,19 @@ function Home() {
     };
 
     const cachedHome = obtenerCache(cacheKey);
+    if (cachedHome) {
+      setPais(cachedHome.data?.pais || "");
+      setPaisCodigo(cachedHome.data?.countryCode || "");
+      setHeroImg(cachedHome.data?.heroImg || "");
+      setHora(calcularHoraGMT(cachedHome.data?.gmt));
+      setCacheTimestamp(cachedHome.timestamp || null);
+    } else {
+      setPais("");
+      setPaisCodigo("");
+      setHeroImg("");
+      setHora("");
+      setCacheTimestamp(null);
+    }
     if (!cachedHome || !cachedHome.data?.countryCode) void fetchData();
     scheduleRefresh();
 
@@ -96,7 +106,7 @@ function Home() {
       active = false;
       window.clearTimeout(refreshTimer);
     };
-  }, [userId, cacheKey]);
+  }, [cacheKey, userCountryId, userId]);
 
   return (
     <div className="home">

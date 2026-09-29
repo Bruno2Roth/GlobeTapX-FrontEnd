@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import "../Styles/agenda.css";
 import "../index.css";
-import { getAgendaUsuario, getPaises, translateText } from "../services/backendApi";
+import { getAgendaUsuarioById, getPaises, translateText } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 import { useSession } from "../context/SessionContext";
@@ -54,7 +54,7 @@ function Agenda() {
     const fetchData = async () => {
       try {
         const [data, paises] = await Promise.all([
-          getAgendaUsuario(),
+          getAgendaUsuarioById(userId),
           getPaises(),
         ]);
         if (!active) return;

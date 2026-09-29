@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda, translateBatch } from "../services/backendApi";
+import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda } from "../services/backendApi";
+import { translateEvents } from "../services/eventTranslation";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { useSession } from "../context/SessionContext";
 
@@ -36,22 +37,12 @@ function DetalleEvento() {
 
     const fetchData = async () => {
       try {
-        const e = await getEvento(id);
+        let e = await getEvento(id);
         if (!active) return;
         const lang = document.documentElement.lang || "es";
         if (lang !== "es") {
           try {
-            const textos = [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean);
-            if (textos.length) {
-              const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
-              if (!active) return;
-              if (trad?.data?.translations) {
-                let idx = 0;
-                e.nombre = trad.data.translations[idx++] || e.nombre;
-                e.descripcion = trad.data.translations[idx++] || e.descripcion;
-                e.categoria = trad.data.translations[idx++] || e.categoria;
-              }
-            }
+            [e] = await translateEvents([e], lang);
           } catch {}
         }
         if (!active) return;

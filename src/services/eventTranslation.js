@@ -8,7 +8,7 @@ export async function translateEvents(events, language) {
   const texts = events.flatMap((event) => fields.map((field) => event[field]).filter(Boolean));
   if (!texts.length) return events;
 
-  const response = await translateBatch({ texts, targetLanguage: language, sourceLanguage: "es", dynamic: true });
+  const response = await translateBatch({ texts, targetLanguage: language, sourceLanguage: "es" });
   if (!Array.isArray(response?.data) || response.data.length !== texts.length) return events;
 
   let index = 0;

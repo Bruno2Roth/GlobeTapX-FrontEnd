@@ -232,6 +232,16 @@ export const crearEvento = (data) => request("/evento", { method: "POST", body: 
 export const actualizarEvento = (id, data) => request(`/evento/${requiredId(id, "Evento")}`, { method: "PUT", body: data });
 export const eliminarEvento = (id) => request(`/evento/${requiredId(id, "Evento")}`, { method: "DELETE" });
 
+export const getFavoritos = (userId) => request("/eventoFavorito", {
+  params: { IDUsuario: requiredId(userId, "Usuario") },
+}).then((response) => unwrapCollection(response, ["favoritos", "items"]));
+export const agregarFavorito = (eventId) => request("/eventoFavorito", {
+  method: "POST", body: { IDEvento: eventId },
+});
+export const eliminarFavorito = (favoriteId) => request(`/eventoFavorito/${requiredId(favoriteId, "Favorito")}`, {
+  method: "DELETE",
+});
+
 // La identidad del dueño se resuelve exclusivamente desde el JWT en el
 // backend; por eso el body no contiene IDUsuario ni usuarioId.
 export const agregarEventoAAgenda = (eventId, interes = "quiero ir", recordatorio = null) => request("/agendausuario", {

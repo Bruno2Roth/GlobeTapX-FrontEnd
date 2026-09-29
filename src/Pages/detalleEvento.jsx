@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda, translateBatch } from "../services/backendApi";
+import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda, getFavoritos, agregarFavorito, eliminarFavorito, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { useSession } from "../context/SessionContext";
 
@@ -17,6 +17,8 @@ function DetalleEvento() {
   const [cargando, setCargando] = useState(true);
   const [enAgenda, setEnAgenda] = useState(false);
   const [agendaId, setAgendaId] = useState(null);
+  const [favoriteId, setFavoriteId] = useState(null);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [accionMsg, setAccionMsg] = useState("");
 
   useEffect(() => {
@@ -33,6 +35,7 @@ function DetalleEvento() {
     setEvento(null);
     setEnAgenda(false);
     setAgendaId(null);
+    setFavoriteId(null);
 
     const fetchData = async () => {
       try {
@@ -65,6 +68,8 @@ function DetalleEvento() {
           setEnAgenda(true);
           setAgendaId(match.ID);
         }
+        const favorites = await getFavoritos(user.id);
+        if (active) setFavoriteId(favorites.find((favorite) => Number(favorite.IDEvento) === Number(id))?.ID ?? null);
       } catch (err) {
         if (active) {
           console.error("Error al cargar evento:", err);
@@ -106,6 +111,23 @@ function DetalleEvento() {
       console.error("Error al eliminar de la agenda:", err);
       setAccionMsg(CONNECTION_ERROR_MESSAGE);
       setTimeout(() => setAccionMsg(""), 3000);
+    }
+  };
+
+  const handleFavorito = async () => {
+    setFavoriteBusy(true);
+    try {
+      if (favoriteId) {
+        await eliminarFavorito(favoriteId);
+        setFavoriteId(null);
+      } else {
+        const response = await agregarFavorito(id);
+        setFavoriteId(response.ID);
+      }
+    } catch {
+      setAccionMsg(CONNECTION_ERROR_MESSAGE);
+    } finally {
+      setFavoriteBusy(false);
     }
   };
 
@@ -250,6 +272,10 @@ function DetalleEvento() {
         )}
 
         <div className="detalle-acciones">
+          <button className="detalle-btn" onClick={handleFavorito} disabled={favoriteBusy}
+            aria-pressed={Boolean(favoriteId)}>
+            {favoriteId ? "❤️ Quitar de favoritos" : "🤍 Agregar a favoritos"}
+          </button>
           {enAgenda ? (
             <button className="detalle-btn detalle-btn-quitar" onClick={handleQuitarAgenda}>
               ✓ En tu agenda — Quitar

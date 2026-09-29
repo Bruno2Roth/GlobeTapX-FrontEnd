@@ -5,11 +5,12 @@ import "../index.css";
 import { getEvento, getPaises, getAgendaUsuario, agregarEventoAAgenda, eliminarEventoDeAgenda, translateBatch } from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { useSession } from "../context/SessionContext";
+import { invalidarCacheAgenda } from "../helpers/cache";
 
 function DetalleEvento() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { user, userId } = useSession();
 
   const [evento, setEvento] = useState(null);
   const [paises, setPaises] = useState([]);
@@ -83,6 +84,7 @@ function DetalleEvento() {
     if (!user) return;
     try {
       const res = await agregarEventoAAgenda(id);
+      invalidarCacheAgenda(userId);
       setEnAgenda(true);
       setAgendaId(res?.id?.ID || res?.id);
       setAccionMsg("Evento agregado a tu agenda");
@@ -98,6 +100,7 @@ function DetalleEvento() {
     if (!agendaId) return;
     try {
       await eliminarEventoDeAgenda(agendaId);
+      invalidarCacheAgenda(userId);
       setEnAgenda(false);
       setAgendaId(null);
       setAccionMsg("Evento eliminado de tu agenda");

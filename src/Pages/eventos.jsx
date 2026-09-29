@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha, getPaises, getCategorias, translateBatch } from "../services/backendApi";
+import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha, getPaises, getCategorias } from "../services/backendApi";
+import { translateEvents } from "../services/eventTranslation";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { useSession } from "../context/SessionContext";
 
@@ -50,20 +51,7 @@ function Eventos() {
         const lang = document.documentElement.lang || "es";
         if (lang !== "es") {
           try {
-            const textos = data.flatMap((e) => [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean));
-            if (textos.length) {
-              const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
-              if (!active) return;
-              if (trad?.data?.translations) {
-                let idx = 0;
-                data = data.map((e) => ({
-                  ...e,
-                  nombre: trad.data.translations[idx++] || e.nombre,
-                  descripcion: trad.data.translations[idx++] || e.descripcion,
-                  categoria: trad.data.translations[idx++] || e.categoria,
-                }));
-              }
-            }
+            data = await translateEvents(data, lang);
           } catch {}
         }
 

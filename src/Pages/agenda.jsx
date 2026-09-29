@@ -176,9 +176,10 @@ function Agenda() {
       })
     );
 
+  // getDay() y las celdas vacías usan domingo como primera columna.
   const fmtDia = (indice) =>
     cap(
-      new Date(2024, 0, indice + 1)
+      new Date(2024, 0, indice + 7)
         .toLocaleDateString("es-ES", { weekday: "short" })
         .slice(0, 3)
     );

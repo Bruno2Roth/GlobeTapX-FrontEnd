@@ -197,8 +197,8 @@ export function getAgendaUsuario() {
   return request("/agendausuario").then(normalizeAgendaResponse);
 }
 
-// Solo consumidores administrativos explícitos pueden usar la ruta histórica
-// /:id; el backend sigue verificando self-or-admin contra el JWT.
+// Devuelve eventos con detalles y feriados para la cuenta propia (o una
+// cuenta autorizada para administradores); el backend verifica self-or-admin.
 export const getAgendaUsuarioById = (userId) => request(`/agendausuario/${requiredId(userId, "Usuario")}`)
   .then(normalizeAgendaResponse);
 

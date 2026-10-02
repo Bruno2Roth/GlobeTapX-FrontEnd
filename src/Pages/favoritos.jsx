@@ -12,39 +12,20 @@ function Favoritos() {
       // ignore parse errors and fall back to defaults
     }
 
-    return [
-      { id: 1, title: 'Islandia', image: 'https://source.unsplash.com/featured/?iceland', favorited: true },
-      { id: 2, title: 'Marruecos', image: 'https://source.unsplash.com/featured/?morocco', favorited: false },
-      { id: 3, title: 'España', image: 'https://source.unsplash.com/featured/?spain', favorited: true },
-      { id: 4, title: 'Francia', image: 'https://source.unsplash.com/featured/?france', favorited: false },
-      { id: 5, title: 'Italia', image: 'https://source.unsplash.com/featured/?italy', favorited: false },
-      { id: 6, title: 'Japón', image: 'https://source.unsplash.com/featured/?japan', favorited: false },
-      { id: 7, title: 'Canadá', image: 'https://source.unsplash.com/featured/?canada', favorited: false },
-      { id: 8, title: 'Estados Unidos', image: 'https://source.unsplash.com/featured/?usa', favorited: false },
-      { id: 9, title: 'Brasil', image: 'https://source.unsplash.com/featured/?brazil', favorited: false },
-      { id: 10, title: 'Argentina', image: 'https://source.unsplash.com/featured/?argentina', favorited: false },
-      { id: 11, title: 'Chile', image: 'https://source.unsplash.com/featured/?chile', favorited: false },
-      { id: 12, title: 'Perú', image: 'https://source.unsplash.com/featured/?peru', favorited: false },
-      { id: 13, title: 'México', image: 'https://source.unsplash.com/featured/?mexico', favorited: false },
-      { id: 14, title: 'Portugal', image: 'https://source.unsplash.com/featured/?portugal', favorited: false },
-      { id: 15, title: 'Grecia', image: 'https://source.unsplash.com/featured/?greece', favorited: false },
-      { id: 16, title: 'Australia', image: 'https://source.unsplash.com/featured/?australia', favorited: false },
-      { id: 17, title: 'Nueva Zelanda', image: 'https://source.unsplash.com/featured/?new%20zealand', favorited: false },
-      { id: 18, title: 'Sudáfrica', image: 'https://source.unsplash.com/featured/?south%20africa', favorited: false },
-      { id: 19, title: 'Egipto', image: 'https://source.unsplash.com/featured/?egypt', favorited: false },
-      { id: 20, title: 'Noruega', image: 'https://source.unsplash.com/featured/?norway', favorited: false },
-      { id: 21, title: 'Suecia', image: 'https://source.unsplash.com/featured/?sweden', favorited: false },
-      { id: 22, title: 'Finlandia', image: 'https://source.unsplash.com/featured/?finland', favorited: false },
-      { id: 23, title: 'Alemania', image: 'https://source.unsplash.com/featured/?germany', favorited: false },
-      { id: 24, title: 'Países Bajos', image: 'https://source.unsplash.com/featured/?netherlands', favorited: false },
-      { id: 25, title: 'Suiza', image: 'https://source.unsplash.com/featured/?switzerland', favorited: false },
-      { id: 26, title: 'Tailandia', image: 'https://source.unsplash.com/featured/?thailand', favorited: false },
-      { id: 27, title: 'Vietnam', image: 'https://source.unsplash.com/featured/?vietnam', favorited: false },
-      { id: 28, title: 'Indonesia', image: 'https://source.unsplash.com/featured/?indonesia', favorited: false },
-      { id: 29, title: 'India', image: 'https://source.unsplash.com/featured/?india', favorited: false },
-      { id: 30, title: 'Corea del Sur', image: 'https://source.unsplash.com/featured/?south%20korea', favorited: false },
-    ]
-  })
+return [
+    { id: 1, title: 'Argentina', image: 'https://source.unsplash.com/featured/?argentina', favorited: false },
+    { id: 2, title: 'Australia', image: 'https://source.unsplash.com/featured/?australia', favorited: false },
+    { id: 3, title: 'Brasil', image: 'https://source.unsplash.com/featured/?brazil', favorited: false },
+    { id: 4, title: 'Chile', image: 'https://source.unsplash.com/featured/?chile', favorited: false },
+    { id: 5, title: 'China', image: 'https://source.unsplash.com/featured/?china', favorited: false },
+    { id: 6, title: 'Corea del Sur', image: 'https://source.unsplash.com/featured/?south%20korea', favorited: false },
+    { id: 7, title: 'España', image: 'https://source.unsplash.com/featured/?spain', favorited: true },
+    { id: 8, title: 'Estados Unidos', image: 'https://source.unsplash.com/featured/?usa', favorited: false },
+    { id: 9, title: 'Francia', image: 'https://source.unsplash.com/featured/?france', favorited: false },
+    { id: 10, title: 'Inglaterra', image: 'https://source.unsplash.com/featured/?england', favorited: false },
+    { id: 11, title: 'Israel', image: 'https://source.unsplash.com/featured/?israel', favorited: false },
+    { id: 12, title: 'Italia', image: 'https://source.unsplash.com/featured/?italy', favorited: false },
+]})
 
   useEffect(() => {
     try {

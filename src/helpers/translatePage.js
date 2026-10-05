@@ -216,17 +216,6 @@ const runtime = {
 let translationInFlight = false;
 let translationQueue = Promise.resolve();
 
-export function safeTranslate(language) {
-  return Promise.resolve()
-    .then(() => {
-      if (typeof translatePage === "function") return translatePage(language);
-      return undefined;
-    })
-    .catch((error) => {
-      console.warn("No se pudo traducir:", error);
-    });
-}
-
 export function localizeCountryName(countryCode, fallback = "", language = runtime.selection.codigoIdioma) {
   const code = String(countryCode || "").trim().toUpperCase();
   if (!code || typeof Intl === "undefined" || typeof Intl.DisplayNames !== "function") return fallback;

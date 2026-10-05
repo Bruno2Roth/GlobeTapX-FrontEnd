@@ -31,6 +31,3 @@ export function getUserFacingError(error, fallback = CONNECTION_ERROR_MESSAGE) {
   return fallback;
 }
 
-export function isUnauthorizedError(error) {
-  return getErrorStatus(error) === 401;
-}

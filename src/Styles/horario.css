@@ -38,23 +38,6 @@
     font-size:15px;
 }
 
-/* RELOJ */
-
-.hora-principal{
-    background:white;
-    border-radius:22px;
-    padding:28px;
-    text-align:center;
-    margin-bottom:18px;
-    box-shadow:0 6px 18px rgba(0,0,0,.06);
-}
-
-.hora-principal h2{
-    color:#0E7C66;
-    font-size:22px;
-    margin-bottom:14px;
-}
-
 .hora{
     font-size:58px;
     font-weight:800;
@@ -62,11 +45,6 @@
     letter-spacing:2px;
     margin-bottom:10px;
     font-variant-numeric:tabular-nums;
-}
-
-.hora-principal span{
-    color:#667085;
-    font-size:14px;
 }
 
 /* CARDS */

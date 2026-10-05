@@ -44,10 +44,6 @@
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
 }
 
 body {
@@ -80,34 +76,6 @@ body {
   color: #2563eb;
   font-weight: 600;
   text-decoration: none;
-}
-
-.birth-label {
-  display: block;
-  font-size: 12px;
-  color: #666;
-  margin-top: 8px;
-  text-align: left;
-}
-
-.loader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  font-size: 18px;
-  color: #555;
-}
-
-.role-badge {
-  display: inline-block;
-  background: #e8f5f1;
-  color: #0E7C66;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 6px;
 }
 
 #root {
@@ -316,152 +284,6 @@ p {
   box-shadow: 0 30px 70px rgba(13, 63, 54, 0.14), 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
-.login-aside {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 620px;
-  padding: 42px 40px 36px;
-  overflow: hidden;
-  color: #ffffff;
-  background: linear-gradient(150deg, #11977d 0%, #0b715e 46%, #063f3a 100%);
-}
-
-.login-aside::after {
-  position: absolute;
-  right: -90px;
-  bottom: -100px;
-  width: 290px;
-  height: 290px;
-  content: "";
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 50%;
-  box-shadow: 0 0 0 24px rgba(255, 255, 255, 0.035), 0 0 0 52px rgba(255, 255, 255, 0.025);
-}
-
-.login-aside__orb {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.09);
-  pointer-events: none;
-}
-
-.login-aside__orb--large {
-  width: 230px;
-  height: 230px;
-  top: 100px;
-  right: -120px;
-}
-
-.login-aside__orb--small {
-  width: 70px;
-  height: 70px;
-  top: 260px;
-  left: -25px;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.login-brand {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  width: fit-content;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-}
-
-.login-brand__mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  color: #0b715e;
-  background: #ffffff;
-  box-shadow: 0 8px 18px rgba(2, 47, 42, 0.16);
-}
-
-.login-brand__mark svg {
-  width: 20px;
-  height: 20px;
-  stroke-width: 2.4;
-}
-
-.login-brand--light {
-  color: #ffffff;
-}
-
-.login-aside__content {
-  position: relative;
-  z-index: 1;
-  max-width: 330px;
-  margin-top: auto;
-  margin-bottom: 54px;
-}
-
-.login-aside__eyebrow,
-.login-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1.4px;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.login-aside__eyebrow {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.login-aside__content h2 {
-  max-width: 320px;
-  margin: 14px 0 16px;
-  color: #ffffff;
-  font-family: var(--heading);
-  font-size: clamp(34px, 4vw, 48px);
-  font-weight: 750;
-  letter-spacing: -2px;
-  line-height: 1.04;
-}
-
-.login-aside__content p {
-  max-width: 290px;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.login-aside__stats {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  gap: 25px;
-}
-
-.login-aside__stats div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.login-aside__stats strong {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.login-aside__stats span {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 10px;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
-}
-
 .login-panel {
   display: flex;
   flex-direction: column;
@@ -470,24 +292,8 @@ p {
   background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
 }
 
-.login-brand--mobile {
-  display: none;
-  margin-bottom: 36px;
-  color: #0b715e;
-}
-
-.login-brand--mobile .login-brand__mark {
-  color: #ffffff;
-  background: #0e7c66;
-}
-
 .login-heading {
   margin-bottom: 30px;
-}
-
-.login-eyebrow {
-  margin-bottom: 10px;
-  color: #0e7c66;
 }
 
 .login-heading h1 {
@@ -515,13 +321,6 @@ p {
   margin-bottom: 21px;
 }
 
-.input-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .login-card .input-group label {
   margin-bottom: 8px;
   color: #243a35;
@@ -530,27 +329,10 @@ p {
   letter-spacing: 0.1px;
 }
 
-.input-hint {
-  margin-bottom: 8px;
-  color: #a1ada9;
-  font-size: 10px;
-}
-
 .input-control {
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.input-control__icon {
-  position: absolute;
-  left: 16px;
-  z-index: 1;
-  width: 17px;
-  height: 17px;
-  color: #8da09a;
-  pointer-events: none;
-  transition: color 0.2s ease;
 }
 
 .login-card .input-control input {
@@ -570,10 +352,6 @@ p {
   border-color: #0e7c66;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(14, 124, 102, 0.11);
-}
-
-.input-control:focus-within .input-control__icon {
-  color: #0e7c66;
 }
 
 .login-card .input-control input::placeholder {
@@ -682,15 +460,6 @@ p {
   opacity: 0.78;
 }
 
-.login-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: login-spin 0.7s linear infinite;
-}
-
 @keyframes login-spin {
   to { transform: rotate(360deg); }
 }
@@ -726,17 +495,9 @@ p {
     border-radius: 24px;
   }
 
-  .login-aside {
-    display: none;
-  }
-
   .login-panel {
     min-height: calc(100svh - 48px);
     padding: 34px 24px 28px;
-  }
-
-  .login-brand--mobile {
-    display: inline-flex;
   }
 
   .login-heading {
@@ -753,18 +514,10 @@ p {
     min-height: calc(100svh - 28px);
     padding: 28px 18px 24px;
   }
-
-  .input-hint {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-spinner,
-  .login-card .login-submit,
-  .login-card .login-submit svg,
-  .login-card .input-control input,
-  .login-card .password-toggle {
+  .login-card .login-submit, .login-card .login-submit svg, .login-card .input-control input, .login-card .password-toggle {
     animation: none;
     transition: none;
   }

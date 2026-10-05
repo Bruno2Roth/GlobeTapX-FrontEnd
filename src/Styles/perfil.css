@@ -85,22 +85,6 @@
   transform: translateY(-3px);
 }
 
-.profile-image__badge {
-  position: absolute;
-  right: 1px;
-  bottom: 1px;
-  display: grid;
-  width: 27px;
-  height: 27px;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  place-items: center;
-  color: #fff;
-  background: #0f766e;
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .profile-image img {
   width: 100%;
   height: 100%;
@@ -117,26 +101,6 @@
   background: #dff3ee;
   font-size: 34px;
   font-weight: 800;
-}
-
-.change-photo {
-  display: block;
-  margin-bottom: 21px;
-  padding: 0;
-  border: 0;
-  color: #0f766e;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-  cursor: pointer;
-  transition: color .2s ease;
-}
-
-.change-photo:hover {
-  color: #064e3b;
-  text-decoration: underline;
 }
 
 /* Formulario */
@@ -239,35 +203,6 @@
 .contrasena-box button:hover {
   color: #0f766e;
   background: #e8f5f2;
-}
-
-/* Botones */
-.save-btn {
-  width: 100%;
-  margin-top: 13px;
-  padding: 14px;
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  background: linear-gradient(135deg, #0f766e, #075e58);
-  box-shadow: 0 9px 18px rgba(15, 118, 110, .2);
-  cursor: pointer;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: .03em;
-  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
-}
-
-.save-btn:hover:not(:disabled) {
-  box-shadow: 0 13px 25px rgba(15, 118, 110, .28);
-  filter: brightness(1.05);
-  transform: translateY(-2px);
-}
-
-.save-btn:disabled {
-  cursor: wait;
-  opacity: .65;
 }
 
 .logout {
@@ -377,10 +312,7 @@
     animation: none;
   }
 
-  .profile-image,
-  .save-btn,
-  .logout,
-  .pref-btn {
+  .profile-image, .logout, .pref-btn {
     transition: none;
   }
 }
@@ -456,22 +388,5 @@
 }
 
 .profile-secondary-retry:hover {
-  text-decoration: underline;
-}
-
-.profile-primary-retry {
-  display: block;
-  margin: -7px auto 14px;
-  padding: 0;
-  border: 0;
-  color: #0f766e;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.profile-primary-retry:hover {
   text-decoration: underline;
 }

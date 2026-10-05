@@ -169,8 +169,6 @@ function Clima() {
   if (error) return <div className="clima-error">{error}</div>;
   if (!clima) return <div className="clima-loading">Cargando clima...</div>;
 
-  const dirViento = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
-  const dirIdx = Math.round(clima.windDirection / 45) % 8;
   const WeatherIcon = getWeatherIcon(clima.codigo);
 
   return (

@@ -1,6 +1,4 @@
-import React from 'react';
 import { Heart } from 'lucide-react'; // Opcional: usa una librería de iconos
-import './index.css'
 
 const TripCard = ({ image, title, location, rating }) => {
   return (

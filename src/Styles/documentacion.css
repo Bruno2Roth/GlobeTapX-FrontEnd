@@ -29,19 +29,3 @@
   color: #68778a;
   font-size: 14px;
 }
-
-.documentation-page__label {
-  display: block;
-  margin-bottom: 7px;
-  color: #344054;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.documentation-page__error {
-  padding: 16px;
-  border: 1px solid #f3caca;
-  border-radius: 12px;
-  color: #a52828;
-  background: #fff7f7;
-}

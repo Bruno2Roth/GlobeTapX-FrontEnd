@@ -146,3 +146,47 @@
     }
 
 }
+
+.horario-comparacion {
+    align-items: stretch;
+}
+
+.horario-comparacion .hora-card {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 10px;
+}
+
+.horario-comparacion .hora-card h2 {
+    font-size: 17px;
+    margin-bottom: 8px;
+}
+
+.horario-comparacion .hora-valor {
+    font-size: clamp(22px, 7vw, 32px);
+    letter-spacing: 0;
+}
+
+.horario-comparacion .hora-card p {
+    font-size: 12px;
+}
+
+.horario-comparacion .diferencia-card {
+    flex: 1;
+    min-width: 0;
+    padding: 16px 10px;
+    gap: 8px;
+}
+
+.horario-comparacion .diferencia-icono {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    font-size: 20px;
+}
+
+@media (max-width: 370px) {
+    .horario-comparacion {
+        flex-direction: column;
+    }
+}

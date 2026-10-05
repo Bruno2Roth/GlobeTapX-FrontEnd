@@ -1,257 +1,166 @@
-import '../index.css'
-import '../Styles/favoritos.css'
-import Header from '../Componentes/Header/Header'
-import { useState, useEffect } from 'react'
-
-const PAISES = [
-  {
-    id: 1,
-    title: 'Argentina',
-    image: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 2,
-    title: 'Australia',
-    image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 3,
-    title: 'Brasil',
-    image: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 4,
-    title: 'Chile',
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 5,
-    title: 'China',
-    image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 6,
-    title: 'Corea del Sur',
-    image: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 7,
-    title: 'España',
-    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 8,
-    title: 'Estados Unidos',
-    image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 9,
-    title: 'Francia',
-    image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 10,
-    title: 'Inglaterra',
-    image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-  {
-    id: 11,
-    title: 'Israel',
-    image: 'https://t4.ftcdn.net/jpg/01/66/57/71/360_F_166577126_6pRc8OxeR9WNgYEb8DuVqsYTxiKi6fY2.jpg',
-    favorited: false,
-  },
-  {
-    id: 12,
-    title: 'Italia',
-    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=900&q=80',
-    favorited: false,
-  },
-]
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import "../index.css";
+import "../Styles/favoritos.css";
+import CardEvento from "../Componentes/CardEvento/CardEvento";
+import {
+  agregarEventoFavorito,
+  eliminarEventoFavorito,
+  getEventoFavoritos,
+  getEventos,
+  getPaises,
+} from "../services/backendApi";
+import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
+import { useSession } from "../context/SessionContext";
 
 function Favoritos() {
-  const [favorites, setFavorites] = useState(() => {
+  const { user } = useSession();
+  const [favoritos, setFavoritos] = useState([]);
+  const [eventos, setEventos] = useState([]);
+  const [paises, setPaises] = useState([]);
+  const [mostrarTodos, setMostrarTodos] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [pendiente, setPendiente] = useState(null);
+  const [error, setError] = useState("");
+
+  const cargarDatos = useCallback(async () => {
+    setCargando(true);
+    setError("");
     try {
-      const guardados = JSON.parse(localStorage.getItem('favorites') || '[]')
-
-      return PAISES.map((pais) => {
-        const anterior = guardados.find(
-          (item) => item.title === pais.title
-        )
-
-        return {
-          ...pais,
-          favorited: anterior ? anterior.favorited : pais.favorited,
-        }
-      }).sort((a, b) => Number(b.favorited) - Number(a.favorited))
-    } catch {
-      return PAISES
+      const [favoritosBackend, eventosBackend, paisesBackend] = await Promise.all([
+        getEventoFavoritos(),
+        getEventos(),
+        getPaises(),
+      ]);
+      setFavoritos(favoritosBackend);
+      setEventos(eventosBackend);
+      setPaises(paisesBackend);
+    } catch (requestError) {
+      console.error("Error al cargar favoritos:", requestError);
+      setError(CONNECTION_ERROR_MESSAGE);
+    } finally {
+      setCargando(false);
     }
-  })
-
-  const [mostrarTodos, setMostrarTodos] = useState(false)
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites))
-  }, [favorites])
+    if (!user) return undefined;
+    void cargarDatos();
+    return undefined;
+  }, [cargarDatos, user]);
 
-  const toggleFavorite = (id) => {
-    setFavorites((actuales) =>
-      actuales
-        .map((pais) =>
-          pais.id === id
-            ? { ...pais, favorited: !pais.favorited }
-            : pais
-        )
-        .sort((a, b) => Number(b.favorited) - Number(a.favorited))
-    )
-  }
+  const paisPorId = useMemo(
+    () => new Map(paises.map((pais) => [String(pais.ID), pais.nombre])),
+    [paises],
+  );
 
-  const cantidadFavoritos = favorites.filter(
-    (pais) => pais.favorited
-  ).length
+  const favoritosPorEvento = useMemo(
+    () => new Map(favoritos.map((favorite) => [String(favorite.IDEvento), favorite])),
+    [favoritos],
+  );
 
-  const paisesVisibles = mostrarTodos
-    ? favorites
-    : favorites.filter((pais) => pais.favorited)
+  const destinosGuardados = useMemo(
+    () => favoritos.map((favorite) => {
+      const evento = favorite.evento
+        || eventos.find((item) => String(item.ID ?? item.id) === String(favorite.IDEvento));
+      return evento ? { ...evento, favoriteId: favorite.ID ?? favorite.id } : null;
+    }).filter(Boolean),
+    [eventos, favoritos],
+  );
+
+  const toggleFavorito = async (evento) => {
+    const eventId = evento.ID ?? evento.id;
+    const favorite = favoritosPorEvento.get(String(eventId));
+    setPendiente(String(eventId));
+    setError("");
+    try {
+      if (favorite) await eliminarEventoFavorito(favorite.ID ?? favorite.id);
+      else await agregarEventoFavorito(eventId);
+      setFavoritos(await getEventoFavoritos());
+    } catch (requestError) {
+      console.error("Error al actualizar favoritos:", requestError);
+      setError(CONNECTION_ERROR_MESSAGE);
+    } finally {
+      setPendiente(null);
+    }
+  };
+
+  if (!user) return null;
+
+  const contenidoVisible = mostrarTodos ? eventos : destinosGuardados;
 
   return (
     <div className="favoritos-page">
-      <Header />
-
       <main className="favoritos-contenido">
         <section className="favoritos-hero">
           <div className="favoritos-hero-texto">
-            <span className="favoritos-etiqueta">
-              ✈ TU PRÓXIMA AVENTURA
-            </span>
-
+            <span className="favoritos-etiqueta">✈ TU PRÓXIMA AVENTURA</span>
             <h1>Mis favoritos <span>♥</span></h1>
-
-            <p>
-              Guardá los destinos que te inspiran y empezá a planear
-              tu próximo viaje.
-            </p>
-
+            <p>Guardá eventos de viaje para encontrarlos después y planear tu próxima aventura.</p>
             <div className="favoritos-contador">
               <span className="contador-icono">♥</span>
               <div>
-                <strong>{cantidadFavoritos}</strong>
-                <small>
-                  {cantidadFavoritos === 1
-                    ? 'destino guardado'
-                    : 'destinos guardados'}
-                </small>
+                <strong>{destinosGuardados.length}</strong>
+                <small>{destinosGuardados.length === 1 ? "evento guardado" : "eventos guardados"}</small>
               </div>
             </div>
           </div>
-
-          <div className="favoritos-hero-decoracion" aria-hidden="true">
-            🌎
-          </div>
+          <div className="favoritos-hero-decoracion" aria-hidden="true">🌎</div>
         </section>
 
         <section className="favoritos-listado">
           <div className="favoritos-titulo-seccion">
             <div>
-              <h2>Mis destinos</h2>
-              <p>
-                {mostrarTodos
-                  ? 'Explorá los destinos disponibles y guardá tus preferidos.'
-                  : 'Tus lugares guardados para viajar.'}
-              </p>
+              <h2>{mostrarTodos ? "Eventos disponibles" : "Mis eventos"}</h2>
+              <p>{mostrarTodos
+                ? "Elegí un evento y guardalo en tu cuenta."
+                : "Tus eventos favoritos sincronizados con tu cuenta."}</p>
             </div>
-
             <button
               className="favoritos-filtro"
-              onClick={() => setMostrarTodos(!mostrarTodos)}
+              type="button"
+              onClick={() => setMostrarTodos((visible) => !visible)}
             >
-              {mostrarTodos ? '♥ Ver favoritos' : '＋ Explorar destinos'}
+              {mostrarTodos ? "♥ Ver favoritos" : "＋ Explorar eventos"}
             </button>
           </div>
 
-          {paisesVisibles.length > 0 ? (
+          {error && <p className="ev-error" role="alert">{error}</p>}
+          {cargando ? (
+            <p className="favoritos-cargando">Cargando eventos...</p>
+          ) : contenidoVisible.length ? (
             <div className="favoritos-grid">
-              {paisesVisibles.map((pais) => (
-                <article className="destino-card" key={pais.id}>
-                  <div className="destino-imagen-contenedor">
-                    <img
-                      className="destino-imagen"
-                      src={pais.image}
-                      alt={pais.title}
-                      loading="lazy"
-                    />
-
-                    <span className="destino-etiqueta">
-                      {pais.favorited ? '♥ Guardado' : '✈ Destino'}
-                    </span>
-
-                    <button
-                      className={`destino-corazon ${
-                        pais.favorited ? 'activo' : ''
-                      }`}
-                      onClick={() => toggleFavorite(pais.id)}
-                      aria-label={
-                        pais.favorited
-                          ? `Quitar ${pais.title} de favoritos`
-                          : `Agregar ${pais.title} a favoritos`
-                      }
-                      title={
-                        pais.favorited
-                          ? 'Quitar de favoritos'
-                          : 'Agregar a favoritos'
-                      }
-                    >
-                      {pais.favorited ? '♥' : '♡'}
-                    </button>
-                  </div>
-
-                  <div className="destino-info">
-                    <h3>{pais.title}</h3>
-
-                    <div className="destino-pie">
-                      <span>
-                        {pais.favorited
-                          ? 'En tus favoritos'
-                          : 'Descubrí este destino'}
-                      </span>
-
-                      <span className="destino-flecha">↗</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
+              {contenidoVisible.map((evento) => {
+                const id = evento.ID ?? evento.id;
+                const favorite = favoritosPorEvento.get(String(id));
+                return (
+                  <CardEvento
+                    key={id}
+                    evento={evento}
+                    nombrePais={paisPorId.get(String(evento.IDPais)) || evento.paisNombre || ""}
+                    favoritado={Boolean(favorite)}
+                    favoritoDeshabilitado={pendiente === String(id)}
+                    onToggleFavorito={() => toggleFavorito(evento)}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="favoritos-vacio">
               <div className="favoritos-vacio-icono">♡</div>
-              <h3>Todavía no guardaste destinos</h3>
-              <p>
-                Explorá los países y tocá el corazón para guardar
-                los que más te gusten.
-              </p>
-
-              <button
-                className="favoritos-boton-principal"
-                onClick={() => setMostrarTodos(true)}
-              >
-                Explorar destinos
-              </button>
+              <h3>{mostrarTodos ? "Todavía no hay eventos disponibles" : "Todavía no guardaste eventos"}</h3>
+              <p>{mostrarTodos
+                ? "Cuando se publiquen eventos, vas a poder guardarlos acá."
+                : "Explorá los eventos y guardá los que te interesen."}</p>
+              {!mostrarTodos && (
+                <Link className="favoritos-filtro" to="/eventos">Explorar eventos</Link>
+              )}
             </div>
           )}
         </section>
       </main>
     </div>
-  )
+  );
 }
 
-export default Favoritos
+export default Favoritos;

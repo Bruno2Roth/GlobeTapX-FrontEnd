@@ -1,16 +1,29 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../Styles/eventos.css";
 import "../index.css";
-import { getEventos, getEventosPorPais, getEventosPorCategoria, getEventosPorFecha, getPaises, getCategorias, translateBatch } from "../services/backendApi";
+import {
+  agregarEventoFavorito,
+  eliminarEventoFavorito,
+  getCategorias,
+  getEventoFavoritos,
+  getEventos,
+  getEventosPorCategoria,
+  getEventosPorFecha,
+  getEventosPorPais,
+  getPaises,
+  translateBatch,
+} from "../services/backendApi";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
 import { useSession } from "../context/SessionContext";
+import CardEvento from "../Componentes/CardEvento/CardEvento";
 
 function Eventos() {
   const { user } = useSession();
   const [eventos, setEventos] = useState([]);
   const [paises, setPaises] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [favoritos, setFavoritos] = useState([]);
+  const [favoritoPendiente, setFavoritoPendiente] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(true);
 
@@ -27,7 +40,19 @@ function Eventos() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setFavoritos([]);
+      return undefined;
+    }
+    let active = true;
+    getEventoFavoritos()
+      .then((data) => { if (active) setFavoritos(data); })
+      .catch(() => { if (active) setError(CONNECTION_ERROR_MESSAGE); });
+    return () => { active = false; };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return undefined;
     let active = true;
     setCargando(true);
     setError("");
@@ -50,17 +75,25 @@ function Eventos() {
         const lang = document.documentElement.lang || "es";
         if (lang !== "es") {
           try {
-            const textos = data.flatMap((e) => [e.nombre, e.descripcion || "", e.categoria || ""].filter(Boolean));
+            const textos = data.flatMap((evento) => [
+              evento.nombre,
+              evento.descripcion || "",
+              evento.categoria || "",
+            ].filter(Boolean));
             if (textos.length) {
-              const trad = await translateBatch({ texts: textos, targetLanguage: lang, sourceLanguage: "es" });
+              const trad = await translateBatch({
+                texts: textos,
+                targetLanguage: lang,
+                sourceLanguage: "es",
+              });
               if (!active) return;
               if (trad?.data?.translations) {
                 let idx = 0;
-                data = data.map((e) => ({
-                  ...e,
-                  nombre: trad.data.translations[idx++] || e.nombre,
-                  descripcion: trad.data.translations[idx++] || e.descripcion,
-                  categoria: trad.data.translations[idx++] || e.categoria,
+                data = data.map((evento) => ({
+                  ...evento,
+                  nombre: trad.data.translations[idx++] || evento.nombre,
+                  descripcion: trad.data.translations[idx++] || evento.descripcion,
+                  categoria: trad.data.translations[idx++] || evento.categoria,
                 }));
               }
             }
@@ -68,16 +101,13 @@ function Eventos() {
         }
 
         if (!active) return;
-        if (ordenFecha === "asc") {
-          data.sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
-        } else {
-          data.sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio));
-        }
-
+        data.sort((a, b) => ordenFecha === "asc"
+          ? new Date(a.fechaInicio) - new Date(b.fechaInicio)
+          : new Date(b.fechaInicio) - new Date(a.fechaInicio));
         setEventos(data);
-      } catch (err) {
+      } catch (requestError) {
         if (active) {
-          console.error("Error al cargar eventos:", err);
+          console.error("Error al cargar eventos:", requestError);
           setError(CONNECTION_ERROR_MESSAGE);
         }
       } finally {
@@ -89,28 +119,39 @@ function Eventos() {
     return () => { active = false; };
   }, [categoriaFiltro, fechaDesde, fechaHasta, ordenFecha, paisFiltro, user]);
 
-  const eventosFiltrados = eventos.filter((e) => {
+  const eventosFiltrados = eventos.filter((evento) => {
     if (!busqueda) return true;
     const term = busqueda.toLowerCase();
     return (
-      (e.nombre || "").toLowerCase().includes(term) ||
-      (e.descripcion || "").toLowerCase().includes(term) ||
-      (e.ubicacion || "").toLowerCase().includes(term)
+      (evento.nombre || "").toLowerCase().includes(term) ||
+      (evento.descripcion || "").toLowerCase().includes(term) ||
+      (evento.ubicacion || "").toLowerCase().includes(term)
     );
   });
 
   const obtenerNombrePais = (idPais) => {
-    const p = paises.find((p) => Number(p.ID) === Number(idPais));
-    return p?.nombre || "";
+    const pais = paises.find((item) => Number(item.ID) === Number(idPais));
+    return pais?.nombre || "";
   };
 
-  const formatearFecha = (f) => {
-    if (!f) return "";
-    return new Date(f).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const toggleFavorito = async (evento) => {
+    const eventId = Number(evento.ID ?? evento.id);
+    const favorito = favoritos.find((item) => Number(item.IDEvento) === eventId);
+    setFavoritoPendiente(eventId);
+    setError("");
+    try {
+      if (favorito) {
+        await eliminarEventoFavorito(favorito.ID ?? favorito.id);
+      } else {
+        await agregarEventoFavorito(eventId);
+      }
+      setFavoritos(await getEventoFavoritos());
+    } catch (requestError) {
+      console.error("Error al actualizar favoritos:", requestError);
+      setError(CONNECTION_ERROR_MESSAGE);
+    } finally {
+      setFavoritoPendiente(null);
+    }
   };
 
   if (!user) return null;
@@ -128,28 +169,38 @@ function Eventos() {
           className="ev-filtro-input"
           placeholder="Buscar eventos..."
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(event) => setBusqueda(event.target.value)}
         />
 
         <select
           className="ev-filtro-select"
           value={paisFiltro}
-          onChange={(e) => { setPaisFiltro(e.target.value); setCategoriaFiltro(""); setFechaDesde(""); setFechaHasta(""); }}
+          onChange={(event) => {
+            setPaisFiltro(event.target.value);
+            setCategoriaFiltro("");
+            setFechaDesde("");
+            setFechaHasta("");
+          }}
         >
           <option value="">Todos los países</option>
-          {paises.map((p) => (
-            <option key={p.ID} value={p.ID}>{p.nombre}</option>
+          {paises.map((pais) => (
+            <option key={pais.ID} value={pais.ID}>{pais.nombre}</option>
           ))}
         </select>
 
         <select
           className="ev-filtro-select"
           value={categoriaFiltro}
-          onChange={(e) => { setCategoriaFiltro(e.target.value); setPaisFiltro(""); setFechaDesde(""); setFechaHasta(""); }}
+          onChange={(event) => {
+            setCategoriaFiltro(event.target.value);
+            setPaisFiltro("");
+            setFechaDesde("");
+            setFechaHasta("");
+          }}
         >
           <option value="">Todas las categorías</option>
-          {categorias.map((c) => (
-            <option key={c.ID} value={c.ID}>{c.nombre}</option>
+          {categorias.map((categoria) => (
+            <option key={categoria.ID} value={categoria.ID}>{categoria.nombre}</option>
           ))}
         </select>
 
@@ -158,65 +209,58 @@ function Eventos() {
             type="date"
             className="ev-filtro-date"
             value={fechaDesde}
-            onChange={(e) => { setFechaDesde(e.target.value); setPaisFiltro(""); setCategoriaFiltro(""); }}
+            onChange={(event) => {
+              setFechaDesde(event.target.value);
+              setPaisFiltro("");
+              setCategoriaFiltro("");
+            }}
             placeholder="Desde"
           />
           <input
             type="date"
             className="ev-filtro-date"
             value={fechaHasta}
-            onChange={(e) => { setFechaHasta(e.target.value); setPaisFiltro(""); setCategoriaFiltro(""); }}
+            onChange={(event) => {
+              setFechaHasta(event.target.value);
+              setPaisFiltro("");
+              setCategoriaFiltro("");
+            }}
             placeholder="Hasta"
           />
         </div>
 
         <button
           className="ev-filtro-orden"
+          type="button"
           onClick={() => setOrdenFecha(ordenFecha === "asc" ? "desc" : "asc")}
         >
           {ordenFecha === "asc" ? "↑ Más antiguos" : "↓ Más recientes"}
         </button>
       </div>
 
-      {error && <p className="ev-error">{error}</p>}
+      {error && <p className="ev-error" role="alert">{error}</p>}
 
       {cargando ? (
         <div className="ev-cargando">Cargando eventos...</div>
       ) : eventosFiltrados.length === 0 ? (
-        <div className="ev-vacio">
-          <p>No se encontraron eventos</p>
-        </div>
+        <div className="ev-vacio"><p>No se encontraron eventos</p></div>
       ) : (
         <div className="eventos-grid">
-          {eventosFiltrados.map((e) => (
-            <Link to={`/evento/${e.ID}`} key={e.ID} className="ev-card">
-              <div className="ev-card-img">
-                {e.imagen ? (
-                  <img src={e.imagen} alt={e.nombre} />
-                ) : (
-                  <div className="ev-card-img-placeholder">📅</div>
-                )}
-              </div>
-              <div className="ev-card-body">
-                <h3 className="ev-card-titulo">{e.nombre}</h3>
-                <p className="ev-card-pais">{obtenerNombrePais(e.IDPais)}</p>
-                <div className="ev-card-meta">
-                  <span className="ev-card-fecha">{formatearFecha(e.fechaInicio)}</span>
-                  {e.categoria && <span className="ev-card-categoria">{e.categoria}</span>}
-                </div>
-                {e.descripcion && (
-                  <p className="ev-card-desc">
-                    {e.descripcion.length > 100
-                      ? e.descripcion.slice(0, 100) + "..."
-                      : e.descripcion}
-                  </p>
-                )}
-                {e.ubicacion && (
-                  <p className="ev-card-ubicacion">📍 {e.ubicacion}</p>
-                )}
-              </div>
-            </Link>
-          ))}
+          {eventosFiltrados.map((evento) => {
+            const favorito = favoritos.find(
+              (item) => Number(item.IDEvento) === Number(evento.ID ?? evento.id),
+            );
+            return (
+              <CardEvento
+                key={evento.ID ?? evento.id}
+                evento={evento}
+                nombrePais={obtenerNombrePais(evento.IDPais)}
+                favoritado={Boolean(favorito)}
+                favoritoDeshabilitado={favoritoPendiente === Number(evento.ID ?? evento.id)}
+                onToggleFavorito={() => toggleFavorito(evento)}
+              />
+            );
+          })}
         </div>
       )}
     </div>

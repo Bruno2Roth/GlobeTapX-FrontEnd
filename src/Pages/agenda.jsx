@@ -9,25 +9,24 @@ import {
 } from "lucide-react";
 import "../Styles/agenda.css";
 import "../index.css";
-import { getAgendaUsuario, getPaises, translateText } from "../services/backendApi";
+import { getAgendaUsuario, getFeriadosPublicos, getPaises } from "../services/backendApi";
 import { obtenerCache, guardarCache } from "../helpers/cache";
 import CacheTimer from "../Componentes/CacheTimer/CacheTimer";
 import { useSession } from "../context/SessionContext";
 
 const cap = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
-const CACHE_KEY = (userId, countryId) => `agenda_${userId}_${countryId || "sin-pais"}`;
+const CACHE_KEY = (userId, countryId, year) => `agenda_${userId}_${countryId || "sin-pais"}_${year}`;
 
 function Agenda() {
   const { user, userId } = useSession();
   const userCountryId = user?.paisActual ?? user?.PaisActual ?? user?.paisID ?? user?.PaisID ?? "";
-  const initialCache = userId ? obtenerCache(CACHE_KEY(userId, userCountryId)) : null;
-  const [items, setItems] = useState(() => initialCache?.data || { eventos: [], feriados: [] });
   const [fecha, setFecha] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [cacheTimestamp, setCacheTimestamp] = useState(() => initialCache?.timestamp || null);
-
   const anio = fecha.getFullYear();
   const mes = fecha.getMonth();
+  const initialCache = userId ? obtenerCache(CACHE_KEY(userId, userCountryId, anio)) : null;
+  const [items, setItems] = useState(() => initialCache?.data || { eventos: [], feriados: [] });
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(() => initialCache?.timestamp || null);
 
   useEffect(() => {
     let active = true;
@@ -38,8 +37,8 @@ function Agenda() {
       return () => { active = false; };
     }
 
-    const cache = obtenerCache(CACHE_KEY(userId, userCountryId));
-
+    const cacheKey = CACHE_KEY(userId, userCountryId, anio);
+    const cache = obtenerCache(cacheKey);
     if (cache) {
       setItems(cache.data || { eventos: [], feriados: [] });
       setCacheTimestamp(cache.timestamp || null);
@@ -60,85 +59,28 @@ function Agenda() {
         if (!active) return;
 
         const userPais = paises.find((pais) => String(pais.ID) === String(userCountryId));
-        let codigoPais = "AR";
-
-        if (userPais) {
-          try {
-            const [tradRes, dispRes] = await Promise.all([
-              translateText({
-                text: userPais.nombre,
-                targetLanguage: "en",
-              }).catch(() => null),
-              fetch("https://date.nager.at/api/v3/AvailableCountries"),
-            ]);
-            if (tradRes && dispRes.ok) {
-              const nombreEN = tradRes.data.translatedText;
-              const disponibles = await dispRes.json();
-              const match = disponibles.find((pais) => pais.name === nombreEN);
-
-              if (match) codigoPais = match.countryCode;
-            }
-          } catch {
-            console.warn("No fue posible determinar el país para los feriados.");
-          }
-        }
-
+        const feriadosRaw = userPais?.codigo
+          ? await getFeriadosPublicos(userPais.codigo, anio).catch((error) => {
+            console.warn("No fue posible cargar los feriados desde el backend:", error);
+            return [];
+          })
+          : [];
         const eventos = (data.agenda || []).map((evento) => ({
           fecha: (evento.fechaInicio || "").split("T")[0],
           titulo: evento.eventoNombre || "Evento",
           desc: evento.eventoDescripcion || "",
           lugar: evento.ubicacion || "",
         }));
-
-        const feriados = [];
-
-        if (data.feriados) {
-          Object.values(data.feriados).forEach((lista) => {
-            if (Array.isArray(lista)) {
-              lista.forEach((feriado) => {
-                feriados.push({
-                  fecha: feriado.date,
-                  titulo: feriado.localName || feriado.name,
-                });
-              });
-            }
-          });
-        }
-
-        const anios = [];
-        for (let year = 2024; year <= 2030; year += 1) anios.push(year);
-
-        const controlador = new AbortController();
-        setTimeout(() => controlador.abort(), 5000);
-
-        const resultados = await Promise.allSettled(
-          anios.map((year) =>
-            fetch(
-              `https://date.nager.at/api/v3/PublicHolidays/${year}/${codigoPais}`,
-              { signal: controlador.signal }
-            )
-              .then((response) => (response.ok ? response.json() : []))
-              .catch(() => [])
-          )
-        );
-
-        resultados.forEach((resultado) => {
-          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) {
-            resultado.value.forEach((feriado) => {
-              if (!feriados.some((existente) => existente.fecha === feriado.date)) {
-                feriados.push({
-                  fecha: feriado.date,
-                  titulo: feriado.localName || feriado.name,
-                });
-              }
-            });
-          }
-        });
+        const feriados = Array.isArray(feriadosRaw)
+          ? feriadosRaw.map((feriado) => ({
+            fecha: feriado.date,
+            titulo: feriado.localName || feriado.name,
+          }))
+          : [];
 
         const result = { eventos, feriados };
-
         if (!active) return;
-        guardarCache(CACHE_KEY(userId, userCountryId), result);
+        guardarCache(cacheKey, result);
         setItems(result);
         setCacheTimestamp(Date.now());
       } catch (error) {
@@ -148,7 +90,7 @@ function Agenda() {
 
     void fetchData();
     return () => { active = false; };
-  }, [userCountryId, userId]);
+  }, [anio, userCountryId, userId]);
 
   const normalizarFecha = (valor) => (valor || "").split("T")[0];
   const prefijo = `${anio}-${String(mes + 1).padStart(2, "0")}`;

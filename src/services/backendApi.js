@@ -1,5 +1,6 @@
 import { getStoredToken, request } from "./api";
 import { CONNECTION_ERROR_MESSAGE } from "../helpers/errorMessages";
+import { normalizeFavoriteCollection } from "../helpers/favorites";
 
 const COUNTRY_CACHE_TTL = 5 * 60 * 1000;
 const LANGUAGE_IDS_BY_CODE = {
@@ -242,6 +243,25 @@ export const agregarEventoAAgenda = (eventId, interes = "quiero ir", recordatori
 export const eliminarEventoDeAgenda = (agendaId) => request(`/agendausuario/${requiredId(agendaId, "Agenda")}`, {
   method: "DELETE",
 });
+
+export function getEventoFavoritos() {
+  return request("/eventoFavorito").then(normalizeFavoriteCollection);
+}
+
+export const agregarEventoFavorito = (eventId) => request("/eventoFavorito", {
+  method: "POST",
+  body: { IDEvento: requiredId(eventId, "Evento") },
+});
+
+export const eliminarEventoFavorito = (favoriteId) => request(`/eventoFavorito/${requiredId(favoriteId, "Favorito")}`, {
+  method: "DELETE",
+});
+
+export function getFeriadosPublicos(countryCode, year) {
+  const code = encodeURIComponent(String(countryCode || ""));
+  const yearValue = encodeURIComponent(String(year || ""));
+  return request(`/agendaUsuario/feriados/${code}/${yearValue}`).then(unwrapData);
+}
 
 export function getCategorias() {
   return request("/categoria").then((response) => unwrapCollection(response, [

@@ -10,6 +10,8 @@ import "./index.css";
 const validarmail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const COUNTRIES_EMPTY_ERROR = "El backend no devolvió países. No se puede completar el registro hasta que se cargue la lista.";
+const COUNTRIES_LOAD_ERROR = "No se pudieron cargar los países. No se puede completar el registro hasta que vuelva a estar disponible el backend.";
 
 // Componente reutilizable de input con label y mensaje de error
 function InputField({ field, type, placeholder, label, value, error, touched, onChange, onBlur }) {
@@ -45,6 +47,7 @@ function RegisterForm() {
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fotoPreview, setFotoPreview] = useState("");
   const [paises, setPaises] = useState([]);
+  const [paisesLoading, setPaisesLoading] = useState(true);
   const [idiomas, setIdiomas] = useState(LANGUAGE_OPTIONS);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -55,7 +58,6 @@ function RegisterForm() {
   const [paisesError, setPaisesErrorState] = useState("");
   const [idiomasError, setIdiomasErrorState] = useState("");
   const setApiError = (message) => setApiErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
-  const setPaisesError = (message) => setPaisesErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
   const setIdiomasError = (message) => setIdiomasErrorState(message ? CONNECTION_ERROR_MESSAGE : "");
   const fileRef = useRef();
   const navigate = useNavigate();
@@ -68,8 +70,22 @@ function RegisterForm() {
   // Al montar, carga países e idiomas desde el backend
   useEffect(() => {
     getPaises()
-      .then(setPaises)
-      .catch(() => setPaisesError(CONNECTION_ERROR_MESSAGE));
+      .then((countries) => {
+        if (countries.length === 0) {
+          setPaises([]);
+          setPaisesErrorState(COUNTRIES_EMPTY_ERROR);
+          return;
+        }
+
+        setPaises(countries);
+        setPaisesErrorState("");
+      })
+      .catch((error) => {
+        console.error("No se pudieron cargar los países", error);
+        setPaises([]);
+        setPaisesErrorState(COUNTRIES_LOAD_ERROR);
+      })
+      .finally(() => setPaisesLoading(false));
 
     getSupportedLanguages()
       .then((data) => {
@@ -157,6 +173,15 @@ function RegisterForm() {
     setApiError("");
     setSuccessMsg("");
 
+    if (paisesLoading || paises.length === 0) {
+      setPaisesErrorState((currentError) => currentError || (
+        paisesLoading
+          ? "Esperá a que se cargue la lista de países antes de registrarte."
+          : COUNTRIES_EMPTY_ERROR
+      ));
+      return;
+    }
+
     // Marcar todos los campos como tocados para mostrar errores
     const allFields = Object.keys(form);
     setTouched(allFields.reduce((acc, f) => ({ ...acc, [f]: true }), {}));
@@ -222,6 +247,7 @@ function RegisterForm() {
           <select
             id="paisActual"
             value={form.paisActual}
+            disabled={paisesLoading || paises.length === 0}
             onChange={(e) => set("paisActual", e.target.value)}
             onBlur={() => handleBlur("paisActual")}
             className={"rg-input" + (errors.paisActual && touched.paisActual ? " rg-input--error" : "")}
@@ -229,8 +255,9 @@ function RegisterForm() {
             <option value="">Seleccionar país</option>
             {paises.map((p) => <option key={p.ID} value={p.ID}>{p.nombre}</option>)}
           </select>
+          {paisesLoading && <p role="status">Cargando países…</p>}
           {errors.paisActual && touched.paisActual && <p className="rg-field-error">{errors.paisActual}</p>}
-          {paisesError && <p className="rg-field-error">{paisesError}</p>}
+          {paisesError && <p className="rg-field-error" role="alert">{paisesError}</p>}
         </div>
 
         <div className="rg-field">
@@ -246,7 +273,7 @@ function RegisterForm() {
           {fotoError && <p className="rg-field-error">{fotoError}</p>}
         </div>
 
-        <button type="submit" className="rg-btn" disabled={loading}>
+        <button type="submit" className="rg-btn" disabled={loading || paisesLoading || paises.length === 0}>
           {loading ? <span className="rg-spinner" /> : "Crear Cuenta"}
         </button>
       </form>

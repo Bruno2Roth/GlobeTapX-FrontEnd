@@ -173,15 +173,23 @@ export function getCurrentUserPhoto(userId) {
 }
 
 export function getPaises() {
-  if (countriesCache && Date.now() - countriesCachedAt < COUNTRY_CACHE_TTL) {
+  if (countriesCache?.length && Date.now() - countriesCachedAt < COUNTRY_CACHE_TTL) {
     return Promise.resolve(countriesCache);
   }
   if (!countriesRequest) {
     countriesRequest = request("/pais")
       .then((response) => {
-        countriesCache = unwrapCollection(response, ["countries", "paises", "items", "results"]);
-        countriesCachedAt = Date.now();
-        return countriesCache;
+        const countries = unwrapCollection(response, ["countries", "paises", "items", "results"]);
+        if (countries.length > 0) {
+          countriesCache = countries;
+          countriesCachedAt = Date.now();
+        } else {
+          // An empty result can mean the backend/database is temporarily unavailable.
+          // Do not keep it for the full cache TTL; a later screen visit should retry.
+          countriesCache = null;
+          countriesCachedAt = 0;
+        }
+        return countries;
       })
       .finally(() => {
         countriesRequest = null;

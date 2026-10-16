@@ -1,0 +1,501 @@
+
+/* =========================================
+   LUGARES INSEGUROS
+========================================= */
+
+.inseguros-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 35px 25px 100px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  background: #f4f6f9;
+  color: #1d2939;
+}
+
+/* INTRO */
+
+.inseguros-intro {
+  position: relative;
+  overflow: hidden;
+
+  padding: 34px;
+  border-radius: 22px;
+
+  color: white;
+  background: linear-gradient(135deg, #0e7c66, #0b5a4c);
+
+  box-shadow: 0 8px 25px rgba(14, 124, 102, 0.15);
+}
+
+.inseguros-intro::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  top: -75px;
+  right: -50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.inseguros-badge {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  padding: 7px 12px;
+  margin-bottom: 15px;
+
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.inseguros-intro h1 {
+  position: relative;
+  z-index: 1;
+
+  max-width: 700px;
+  margin: 0 0 12px;
+
+  color: white;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.inseguros-intro p {
+  position: relative;
+  z-index: 1;
+
+  max-width: 650px;
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* SELECTOR */
+
+.inseguros-selector {
+  padding: 20px;
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+}
+
+.inseguros-selector label {
+  display: block;
+  margin-bottom: 9px;
+
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inseguros-selector select {
+  width: 100%;
+  height: 49px;
+  padding: 0 14px;
+
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+
+  background: #f9fafb;
+  color: #1d2939;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  outline: none;
+}
+
+.inseguros-selector select:focus {
+  border-color: #0e7c66;
+  box-shadow: 0 0 0 3px rgba(14, 124, 102, 0.1);
+}
+
+/* RESUMEN DEL PAÍS */
+
+.inseguros-resumen {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+
+  padding: 22px;
+  border-radius: 18px;
+
+  background: white;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+}
+
+.inseguros-bandera {
+  width: 65px;
+  height: 65px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+  background: #e8f5f1;
+
+  font-size: 35px;
+}
+
+.inseguros-resumen h2 {
+  margin: 0 0 6px;
+  color: #1d2939;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.inseguros-resumen p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* TÍTULO DE ZONAS */
+
+.zonas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.zonas-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inseguros-eyebrow {
+  color: #0e7c66;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.zonas-titulo h2 {
+  margin: 6px 0 0;
+  color: #1d2939;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.zonas-cantidad {
+  flex-shrink: 0;
+  padding: 7px 10px;
+
+  border-radius: 20px;
+  background: #e8f5f1;
+  color: #0e7c66;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* TARJETAS DE ZONAS */
+
+.zonas-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.zona-card {
+  min-width: 0;
+  padding: 22px;
+
+  border: 1px solid #edf0f3;
+  border-radius: 18px;
+  background: white;
+
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.035);
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.zona-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(16, 24, 40, 0.07);
+}
+
+.zona-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-bottom: 17px;
+}
+
+.zona-icono {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #e8f5f1;
+
+  font-size: 21px;
+}
+
+.zona-nivel {
+  padding: 6px 9px;
+  border-radius: 20px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.zona-nivel.atencion {
+  color: #175cd3;
+  background: #eff8ff;
+}
+
+.zona-nivel.precaucion {
+  color: #92400e;
+  background: #fffaeb;
+}
+
+.zona-nivel.alerta {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.zona-card h3 {
+  margin: 0 0 8px;
+  color: #1d2939;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.zona-descripcion {
+  margin: 0 0 18px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.zona-riesgo {
+  padding: 13px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.zona-riesgo strong {
+  color: #344054;
+  font-size: 12px;
+}
+
+.zona-riesgo p {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.zona-recomendacion {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  margin-top: 13px;
+}
+
+.zona-recomendacion > span {
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.zona-recomendacion p {
+  margin: 0;
+  color: #0e7c66;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* CONSEJOS */
+
+.consejos-seguridad {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+
+  padding: 23px;
+  border: 1px solid #d1e9e2;
+  border-radius: 18px;
+
+  background: #f0faf6;
+}
+
+.consejos-icono {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #d9f3e9;
+
+  font-size: 21px;
+}
+
+.consejos-seguridad h2 {
+  margin: 3px 0 12px;
+  color: #155e4b;
+  font-size: 17px;
+}
+
+.consejos-seguridad ul {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  padding-left: 18px;
+  margin: 0;
+
+  color: #47665c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* AVISO */
+
+.inseguros-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+
+  padding: 19px;
+
+  border: 1px solid #fef0c7;
+  border-radius: 16px;
+  background: #fffbeb;
+}
+
+.inseguros-aviso > span {
+  font-size: 23px;
+}
+
+.inseguros-aviso h3 {
+  margin: 2px 0 7px;
+  color: #92400e;
+  font-size: 14px;
+}
+
+.inseguros-aviso p {
+  margin: 0;
+  color: #854d0e;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.inseguros-aviso a {
+  display: inline-block;
+  margin-top: 11px;
+
+  color: #0e7c66;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.inseguros-aviso a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+  .inseguros-page {
+    padding: 25px 15px 100px;
+    gap: 17px;
+  }
+
+  .inseguros-intro {
+    padding: 25px 20px;
+    border-radius: 18px;
+  }
+
+  .inseguros-intro h1 {
+    font-size: 29px;
+  }
+
+  .inseguros-resumen {
+    padding: 17px;
+    gap: 12px;
+  }
+
+  .inseguros-bandera {
+    width: 52px;
+    height: 52px;
+    font-size: 28px;
+  }
+
+  .inseguros-resumen h2 {
+    font-size: 20px;
+  }
+
+  .zonas-lista {
+    grid-template-columns: 1fr;
+  }
+
+  .zona-card {
+    padding: 19px;
+  }
+
+  .zonas-titulo h2 {
+    font-size: 20px;
+  }
+
+  .consejos-seguridad {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 360px) {
+  .inseguros-page {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .zona-card-top {
+    align-items: flex-start;
+  }
+
+  .zona-nivel {
+    max-width: 150px;
+    line-height: 1.4;
+  }
+
+  .inseguros-intro h1 {
+    font-size: 26px;
+  }
+}

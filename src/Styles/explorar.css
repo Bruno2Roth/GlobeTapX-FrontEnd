@@ -1,0 +1,188 @@
+
+.explorar-page {
+  width: 100%;
+  padding: 30px;
+  color: #222;
+}
+
+.explorar-header {
+  margin-bottom: 25px;
+}
+
+.explorar-etiqueta {
+  color: #168b70;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.explorar-header h1 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+
+.explorar-header p {
+  color: #777;
+}
+
+.explorar-controles {
+  display: flex;
+  align-items: end;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.explorar-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 180px;
+}
+
+.explorar-campo label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.explorar-campo select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+}
+
+.explorar-boton,
+.explorar-boton-secundario {
+  border: none;
+  padding: 13px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.explorar-boton {
+  background: #168b70;
+  color: white;
+}
+
+.explorar-boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.explorar-boton-secundario {
+  background: #edf4f1;
+  color: #168b70;
+}
+
+.explorar-aviso,
+.explorar-mensaje {
+  color: #a05d20;
+  font-size: 13px;
+  margin: 12px 0;
+}
+
+.explorar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.explorar-mapa {
+  min-width: 0;
+}
+
+.mapa-leaflet {
+  width: 100%;
+  height: 570px;
+  border-radius: 16px;
+  z-index: 1;
+}
+
+.explorar-resultados {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 18px;
+  max-height: 570px;
+  overflow-y: auto;
+}
+
+.explorar-resultados h2 {
+  font-size: 18px;
+  margin: 0 0 15px;
+}
+
+.explorar-vacio {
+  color: #888;
+  font-size: 14px;
+}
+
+.lugar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  text-align: left;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.lugar-card:hover,
+.lugar-card-activo {
+  border-color: #168b70;
+  background: #f0f8f5;
+}
+
+.lugar-card span,
+.lugar-card small {
+  color: #777;
+  font-size: 12px;
+}
+
+.lugar-detalle {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 12px;
+  background: #f0f8f5;
+  overflow-wrap: anywhere;
+}
+
+.lugar-detalle h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 850px) {
+  .explorar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .explorar-resultados {
+    max-height: none;
+  }
+}
+
+@media (max-width: 550px) {
+  .explorar-page {
+    padding: 16px;
+  }
+
+  .explorar-controles {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .explorar-campo {
+    width: 100%;
+  }
+
+  .mapa-leaflet {
+    height: 420px;
+  }
+}

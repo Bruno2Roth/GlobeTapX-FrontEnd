@@ -185,6 +185,10 @@ function Home() {
   </Link>
 </div>
 
+<Link to="/explorar" className="mini-btn">
+  <p>Explorar mapa</p>
+</Link>
+
     </div>
   );
 }

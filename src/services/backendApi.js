@@ -364,3 +364,8 @@ export const getCountryDocumentationByName = (nombre, options = {}) => request("
   ...options,
   params: { ...(options.params || {}), nombre },
 }).then(unwrapData);
+
+export const getLugaresCercanos = (params) =>
+  request("/mapa/lugares", {
+    params,
+  });

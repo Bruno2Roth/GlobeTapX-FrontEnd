@@ -24,8 +24,9 @@ import DetalleEvento from "./Pages/detalleEvento";
 import Horario from "./Pages/horario";
 import Documentacion from "./Pages/documentacion";
 import VidaDiaria from "./Pages/vidaDiaria";
-import { useSession } from "./context/SessionContext";
+import LugaresInseguros from "./Pages/lugaresInseguros";
 import { normalizeLanguageCode, translatePage } from "./helpers/translatePage";
+import { useSession } from "./context/SessionContext";
 
 function preferredLanguageFromUser(user) {
   if (user?.idiomaPreferido && typeof user.idiomaPreferido === "object") {
@@ -84,7 +85,7 @@ function AppContent() {
           <Route path="/documentacion" element={<ProtectedRoute><Documentacion /></ProtectedRoute>} />
           <Route path="/vida" element={<ProtectedRoute><VidaDiaria /></ProtectedRoute>} />
           <Route path="/vidaDiaria" element={<ProtectedRoute><VidaDiaria /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
+          <Route path="/lugares-inseguros" element={<ProtectedRoute><LugaresInseguros /></ProtectedRoute>} />          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </div>
       {mostrarLayout && <Footer />}

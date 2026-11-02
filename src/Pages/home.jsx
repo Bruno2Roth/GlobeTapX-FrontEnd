@@ -162,20 +162,29 @@ function Home() {
         </Link>
       </div>
 
-      <div className="mini-buttons">
-        <Link to="/clima" className="mini-btn">
-          <p data-translate="Clima">Clima</p>
-        </Link>
-        <Link to="/idioma" className="mini-btn">
-          <p data-translate="Idioma">Idioma</p>
-        </Link>
-        <Link to="/reglas" className="mini-btn">
-          <p data-translate="Reglas">Reglas</p>
-        </Link>
-        <Link to="/Agenda" className="mini-btn">
-          <p data-translate="Agenda">Agenda</p>
-        </Link>
-      </div>
+     
+<div className="mini-buttons">
+  <Link to="/clima" className="mini-btn">
+    <p data-translate="Clima">Clima</p>
+  </Link>
+
+  <Link to="/idioma" className="mini-btn">
+    <p data-translate="Idioma">Idioma</p>
+  </Link>
+
+  <Link to="/reglas" className="mini-btn">
+    <p data-translate="Reglas">Reglas</p>
+  </Link>
+
+  <Link to="/Agenda" className="mini-btn">
+    <p data-translate="Agenda">Agenda</p>
+  </Link>
+
+  <Link to="/lugares-inseguros" className="mini-btn">
+    <p data-translate="Lugares inseguros">Lugares inseguros</p>
+  </Link>
+</div>
+
     </div>
   );
 }
